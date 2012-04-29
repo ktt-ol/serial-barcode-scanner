@@ -4,7 +4,7 @@ public static int main(string[] args) {
 		return 1;
 	}
 
-	var s = new Serial(args[1], 19200, 7, 1);
+	var s = new Serial(args[1], 9600, 8, 1);
 
 	char[] detected = {};
 
