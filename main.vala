@@ -28,8 +28,8 @@ public static int main(string[] args) {
 public static void interpret(string data) {
 	if(data.has_prefix("USER ")) {
 		string str_id = data.substring(5);
-		int id = int.parse(str_id);
-		stdout.printf("login: %d\n", id);
+		uint64 id = uint64.parse(str_id);
+		stdout.printf("login: %llu\n", id);
 	} else {
 		stdout.printf(" product: %s\n", data);
 	}
