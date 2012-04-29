@@ -1,10 +1,14 @@
+public Serial s;
+public Web w;
+
 public static int main(string[] args) {
 	if(args.length < 2) {
 		stderr.printf("%s <device>\n", args[0]);
 		return 1;
 	}
 
-	var s = new Serial(args[1], 9600, 8, 1);
+	s = new Serial(args[1], 9600, 8, 1);
+	w = new Web();
 
 	char[] detected = {};
 
@@ -29,8 +33,14 @@ public static void interpret(string data) {
 	if(data.has_prefix("USER ")) {
 		string str_id = data.substring(5);
 		uint64 id = uint64.parse(str_id);
-		stdout.printf("login: %llu\n", id);
+
+		if(w.is_logged_in())
+			w.logout();
+		else
+			w.login(id);
+
 	} else {
-		stdout.printf(" product: %s\n", data);
+		uint64 id = uint64.parse(data);
+		w.buy(id);
 	}
 }
