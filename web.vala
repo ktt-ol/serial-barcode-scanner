@@ -1,7 +1,7 @@
 public class Web {
 	private Soup.SessionAsync session;
 	private static string server = "https://shop.kreativitaet-trifft-technik.de";
-	uint64 user = -1;
+	uint64 user = 0;
 
 	public Web() {
 		session = new Soup.SessionAsync ();
@@ -11,35 +11,35 @@ public class Web {
 		var message = new Soup.Message ("GET", server+"/login");
 		session.send_message (message);
 
-		debug("login: %llu\n", id);
+		stdout.printf("login: %llu\n", id);
 
 		/* on success */
 		this.user = id;
 	}
 
 	public void logout() {
-		if(this.user != -1) {
+		if(this.user != 0) {
 			var message = new Soup.Message ("GET", server+"/logout");
 			session.send_message (message);
 
-			debug("logout: %llu\n", this.user);
+			stdout.printf("logout: %llu\n", this.user);
 
-			this.user = -1;
+			this.user = 0;
 		}
 	}
 
 	public void buy(uint64 article) {
-		if(this.user >= 0) {
+		if(this.user > 0) {
 			var message = new Soup.Message ("GET", server+"/buy");
 			session.send_message (message);
 
-			debug(" product: %llu\n", article);
+			stdout.printf(" product: %llu\n", article);
 		} else {
 			/* not logged into the system */
 		}
 	}
 
 	public bool is_logged_in() {
-		return (user != -1);
+		return (user != 0);
 	}
 }
