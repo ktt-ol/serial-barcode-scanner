@@ -18,13 +18,19 @@ public static int main(string[] args) {
 			} else {
 				if(detected.length > 0) {
 					detected += '\0';
-					interpret(detected);
+					interpret((string) detected);
 				}
 				detected = {};
 			}
 	}
 }
 
-public static void interpret(char[] data) {
-	stdout.printf("%s\n", (string) data);
+public static void interpret(string data) {
+	if(data.has_prefix("USER ")) {
+		string str_id = data.substring(5);
+		int id = int.parse(str_id);
+		stdout.printf("login: %d\n", id);
+	} else {
+		stdout.printf(" product: %s\n", data);
+	}
 }
