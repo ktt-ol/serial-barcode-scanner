@@ -8,7 +8,7 @@ public class Serial {
 	public Serial(string device, int rate, int bits, int stopbits) {
 		Posix.speed_t baudrate = Posix.B9600;
 
-		fd = Posix.open(device, Posix.O_RDONLY /*| Posix.O_NONBLOCK*/);
+		fd = Posix.open(device, Posix.O_RDWR /*| Posix.O_NONBLOCK*/);
 
 		if(fd < 0) {
 			fd = -1;
