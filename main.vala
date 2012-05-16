@@ -1,5 +1,5 @@
 public Serial s;
-public Web w;
+public Database w;
 
 public static int main(string[] args) {
 	if(args.length < 2) {
@@ -8,7 +8,7 @@ public static int main(string[] args) {
 	}
 
 	s = new Serial(args[1], 9600, 8, 1);
-	w = new Web();
+	w = new Database("shop.db");
 
 	char[] detected = {};
 
@@ -34,13 +34,18 @@ public static void interpret(string data) {
 		string str_id = data.substring(5);
 		uint64 id = uint64.parse(str_id);
 
-		if(w.is_logged_in())
+		if(w.is_logged_in()) {
+			stdout.printf("logout\n");
 			w.logout();
-		else
+		}
+		else {
+			stdout.printf("login: %llu\n".printf(id));
 			w.login(id);
-
+		}
 	} else {
 		uint64 id = uint64.parse(data);
 		w.buy(id);
+
+		stdout.printf("gekaufter Artikel: %s\n", w.get_product_name(id));
 	}
 }
