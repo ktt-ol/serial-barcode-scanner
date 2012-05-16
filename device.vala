@@ -1,11 +1,10 @@
-public class Serial {
+public class Device {
 	private Posix.termios newtio;
 	private Posix.termios restoretio;
 	public int fd=-1;
+	public int byterate;
 
-	public signal void new_data(uchar[] data);
-
-	public Serial(string device, int rate, int bits, int stopbits) {
+	public Device(string device, int rate, int bits, int stopbits) {
 		Posix.speed_t baudrate = Posix.B9600;
 
 		fd = Posix.open(device, Posix.O_RDWR /*| Posix.O_NONBLOCK*/);
@@ -56,6 +55,7 @@ public class Serial {
 				break;
 			default:
 				/* not supported */
+				rate = 9600;
 				break;
 		}
 
@@ -107,5 +107,50 @@ public class Serial {
 		Posix.ioctl(fd, Linux.Termios.TIOCMSET, out mcs);
 
 		Posix.tcsetattr(fd, Posix.TCSANOW, newtio);
+
+		this.byterate = rate/bits;
 	}
+
+	private ssize_t read(void *buf, size_t count) {
+		return Posix.read(fd, buf, count);
+	}
+
+	private ssize_t write(void *buf, size_t count) {
+		ssize_t size = Posix.write(fd, buf, count);
+		Posix.tcflush(fd, Posix.TCOFLUSH);
+		return size;
+	}
+
+	public string receive() {
+		char[] detected = {};
+		char buf[64];
+
+		int size = (int) this.read(buf, 64);
+
+		if(size <= 0)
+			error("serial device lost.\n");
+
+		for(int i = 0; i < size; i++) {
+			if(buf[i] != '\r' && buf[i] != '\n') {
+				detected += (char) buf[i];
+			} else {
+				if(detected.length > 0) {
+					detected += '\0';
+					return (string) detected;
+				}
+			}
+		}
+
+		return "";
+	}
+
+	/**
+	 * @param duration duration of the blink in 0.1 seconds
+	 */
+	public void blink(uint duration) {
+		uint size = byterate/10 * duration;
+		var msg = new uint8[size];
+		Posix.memset(msg, 0xFF, msg.length);
+		this.write(msg, msg.length);
+}
 }

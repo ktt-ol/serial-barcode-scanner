@@ -25,23 +25,31 @@ public class Database {
 		}
 	}
 
-	public void login(uint64 id) {
+	public bool login(uint64 id) {
 		this.user = id;
+		return true;
 	}
 
-	public void logout() {
+	public bool logout() {
 		this.user = 0;
+		return true;
 	}
 
-	public void buy(uint64 article) {
-		this.insert_stmt.reset();
-		this.insert_stmt.bind_text(1, "%llu".printf(user));
-		this.insert_stmt.bind_text(2, "%llu".printf(article));
+	public bool buy(uint64 article) {
+		if(is_logged_in()) {
+			this.insert_stmt.reset();
+			this.insert_stmt.bind_text(1, "%llu".printf(user));
+			this.insert_stmt.bind_text(2, "%llu".printf(article));
 
-		int rc = this.insert_stmt.step();
+			int rc = this.insert_stmt.step();
 
-		if(rc != Sqlite.DONE)
-			error("[interner Fehler: %d]".printf(rc));
+			if(rc != Sqlite.DONE)
+				error("[interner Fehler: %d]".printf(rc));
+			else
+				return true;
+		} else {
+			return false;
+		}
 	}
 
 	public string get_product_name(uint64 article) {
