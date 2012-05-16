@@ -3,7 +3,7 @@ public class Database {
 	private Sqlite.Statement insert_stmt;
 	private Sqlite.Statement product_stmt;
 	uint64 user = 0;
-	private static string insert_query = "INSERT INTO purchases ('user', 'product') VALUES (?, ?)";
+	private static string insert_query = "INSERT INTO purchases ('user', 'product', 'timestamp') VALUES (?, ?, ?)";
 	private static string product_query = "SELECT name FROM products WHERE id = ?";
 
 	public Database(string file) {
@@ -37,9 +37,12 @@ public class Database {
 
 	public bool buy(uint64 article) {
 		if(is_logged_in()) {
+			int64 timestamp = (new DateTime.now_utc()).to_unix();
+
 			this.insert_stmt.reset();
 			this.insert_stmt.bind_text(1, "%llu".printf(user));
 			this.insert_stmt.bind_text(2, "%llu".printf(article));
+			this.insert_stmt.bind_text(3, "%llu".printf(timestamp));
 
 			int rc = this.insert_stmt.step();
 
