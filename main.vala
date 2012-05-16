@@ -24,6 +24,11 @@ public static int main(string[] args) {
 
 		int size = (int) Posix.read(s.fd, buf, 64);
 
+		if(size <= 0) {
+			stderr.printf("serial device lost.\n");
+			return 1;
+		}
+
 		for(int i = 0; i < size; i++)
 			if(buf[i] != '\r' && buf[i] != '\n') {
 				detected += (char) buf[i];
