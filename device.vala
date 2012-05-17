@@ -125,23 +125,23 @@ public class Device {
 		char[] detected = {};
 		char buf[64];
 
-		int size = (int) this.read(buf, 64);
+		while(true) {
+			int size = (int) this.read(buf, 64);
 
-		if(size <= 0)
-			error("serial device lost.\n");
+			if(size <= 0)
+				error("serial device lost.\n");
 
-		for(int i = 0; i < size; i++) {
-			if(buf[i] != '\r' && buf[i] != '\n') {
-				detected += (char) buf[i];
-			} else {
-				if(detected.length > 0) {
-					detected += '\0';
-					return (string) detected;
+			for(int i = 0; i < size; i++) {
+				if(buf[i] != '\r' && buf[i] != '\n') {
+					detected += (char) buf[i];
+				} else {
+					if(detected.length > 0) {
+						detected += '\0';
+						return (string) detected;
+					}
 				}
 			}
 		}
-
-		return "";
 	}
 
 	/**
