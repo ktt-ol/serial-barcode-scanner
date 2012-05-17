@@ -145,6 +145,13 @@ public class Device {
 								detected[detected.length-2] = '\0';
 						}
 
+						if(((string) detected).has_prefix("AMOUNT ")) {
+							if(!check_code39_checksum((string) detected))
+								return "SCANNER RETURNED INCORRECT DATA";
+							else /* remove checksum */
+								detected[detected.length-2] = '\0';
+						}
+
 						return ((string) detected);
 					}
 				}

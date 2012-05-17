@@ -29,11 +29,68 @@ public static bool interpret(string data) {
 		}
 
 		if(db.is_logged_in()) {
-			stdout.printf("Logout\n");
-			return db.logout();
+			stdout.printf("Last User forgot to logout!\n");
+			db.logout();
+		}
+
+		stdout.printf("Login: %llu\n".printf(id));
+		return db.login(id);
+	} else if(data == "GUEST") {
+		if(db.is_logged_in()) {
+			stdout.printf("Last User forgot to logout!\n");
+			db.logout();
+		}
+
+		stdout.printf("Login: Guest\n");
+		return db.login(0);
+	} else if(data == "UNDO") {
+		if(!db.is_logged_in()) {
+			stdout.printf("Can't undo if not logged in!\n");
+			return false;
 		} else {
-			stdout.printf("Login: %llu\n".printf(id));
-			return db.login(id);
+			stdout.printf("Undo last purchase!\n");
+			return db.undo();
+		}
+	} else if(data == "LOGOUT") {
+		if(db.is_logged_in()) {
+			stdout.printf("Logout!\n");
+			return db.logout();
+		}
+
+		return false;
+	} else if(data == "STOCK") {
+		if(!db.is_logged_in()) {
+			stdout.printf("You must be logged in to go into the stock mode\n");
+			return false;
+		} else {
+			stdout.printf("Going into stock mode!\n");
+			return db.go_into_stock_mode();
+		}
+	} else if(db.is_in_stock_mode()) {
+		if(!data.has_prefix("AMOUNT")) {
+			uint64 id = uint64.parse(data);
+
+			/* check if data has valid format */
+			if(data != "%llu".printf(id)) {
+				stdout.printf("ungültiges Produkt: %s\n", data);
+				return false;
+			}
+
+			stdout.printf("wähle Produkt: %s\n", db.get_product_name(id));
+
+			return db.choose_stock_product(id);
+		} else {
+			uint64 amount = uint64.parse(data.substring(7));
+
+			/* check if data has valid format */
+			if(data != "AMOUNT %llu".printf(amount)) {
+				stdout.printf("ungültiges Produkt: %s\n", data);
+				return false;
+			}
+
+			stdout.printf("zum Bestand hinzufügen: %llu\n", amount);
+
+			return db.add_stock_product(amount);
 		}
 	} else {
 		uint64 id = uint64.parse(data);
