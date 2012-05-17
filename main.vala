@@ -24,7 +24,7 @@ public static bool interpret(string data) {
 
 		/* check if data has valid format */
 		if(data != "USER %llu".printf(id)) {
-			stdout.printf("ungültige Benutzernummer!\n");
+			stdout.printf("ungültige Benutzernummer: %s\n", data);
 			return false;
 		}
 
@@ -40,15 +40,16 @@ public static bool interpret(string data) {
 
 		/* check if data has valid format */
 		if(data != "%llu".printf(id)) {
-			stdout.printf("ungültiges Produkt!\n");
+			stdout.printf("ungültiges Produkt: %s\n", data);
 			return false;
 		}
 
 		if(db.buy(id)) {
 			stdout.printf("gekaufter Artikel: %s\n", db.get_product_name(id));
 			return true;
+		} else {
+			stdout.printf("Kauf fehlgeschlagen!\n");
+			return false;
 		}
-
-		return false;
 	}
 }
