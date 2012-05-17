@@ -1,6 +1,7 @@
 public class Database {
 	private Sqlite.Database db;
-	private Sqlite.Statement insert_stmt;
+	private Sqlite.Statement purchase_stmt1;
+	private Sqlite.Statement purchase_stmt2;
 	private Sqlite.Statement product_stmt;
 	private Sqlite.Statement undo_stmt;
 	private Sqlite.Statement stock_stmt1;
@@ -9,7 +10,9 @@ public class Database {
 	uint64 product = 0;
 	bool logged_in = false;
 	bool stock_mode = false;
-	private static string insert_query = "INSERT INTO purchases ('user', 'product', 'timestamp') VALUES (?, ?, ?)";
+	private static string purchase_query1 = "INSERT INTO purchases ('user', 'product', 'timestamp') VALUES (?, ?, ?)";
+	private static string purchase_query2 = "UPDATE products SET amount = amount - 1 WHERE id = ?";
+
 	private static string product_query = "SELECT name FROM products WHERE id = ?";
 	private static string undo_query = "DELETE FROM purchases WHERE user = ? ORDER BY 'timestamp' DESC LIMIT 1";
 
@@ -24,9 +27,14 @@ public class Database {
 			error("could not open database!");
 		}
 
-		rc = this.db.prepare_v2(insert_query, -1, out insert_stmt);
+		rc = this.db.prepare_v2(purchase_query1, -1, out purchase_stmt1);
 		if(rc != Sqlite.OK) {
-			error("could not prepare insert statement!");
+			error("could not prepare first purchase statement!");
+		}
+
+		rc = this.db.prepare_v2(purchase_query2, -1, out purchase_stmt2);
+		if(rc != Sqlite.OK) {
+			error("could not prepare second purchase statement!");
 		}
 
 		rc = this.db.prepare_v2(product_query, -1, out product_stmt);
@@ -65,19 +73,26 @@ public class Database {
 
 	public bool buy(uint64 article) {
 		if(is_logged_in()) {
+			int rc = 0;
 			int64 timestamp = (new DateTime.now_utc()).to_unix();
 
-			this.insert_stmt.reset();
-			this.insert_stmt.bind_text(1, "%llu".printf(user));
-			this.insert_stmt.bind_text(2, "%llu".printf(article));
-			this.insert_stmt.bind_text(3, "%llu".printf(timestamp));
+			this.purchase_stmt1.reset();
+			this.purchase_stmt1.bind_text(1, "%llu".printf(user));
+			this.purchase_stmt1.bind_text(2, "%llu".printf(article));
+			this.purchase_stmt1.bind_text(3, "%llu".printf(timestamp));
 
-			int rc = this.insert_stmt.step();
-
+			rc = this.purchase_stmt1.step();
 			if(rc != Sqlite.DONE)
 				error("[interner Fehler: %d]".printf(rc));
-			else
-				return true;
+
+			this.purchase_stmt2.reset();
+			this.purchase_stmt2.bind_text(1, "%llu".printf(article));
+
+			rc = this.purchase_stmt2.step();
+			if(rc != Sqlite.DONE)
+				error("[interner Fehler: %d]".printf(rc));
+
+			return true;
 		} else {
 			return false;
 		}
