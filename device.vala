@@ -137,11 +137,69 @@ public class Device {
 				} else {
 					if(detected.length > 0) {
 						detected += '\0';
-						return (string) detected;
+
+						if(((string) detected).has_prefix("USER ")) {
+							if(!check_code39_checksum((string) detected))
+								return "SCANNER RETURNED INCORRECT DATA";
+							else /* remove checksum */
+								detected[detected.length-2] = '\0';
+						}
+
+						return ((string) detected);
 					}
 				}
 			}
 		}
+	}
+
+	private bool check_code39_checksum(string data) {
+		int result = 0;
+
+		for(int i = 0; i<data.length-1; i++) {
+			if(data[i] >= '0' && data[i] <= '9')
+				result += data[i] - '0';
+			else if(data[i] >= 'A' && data[i] <= 'Z')
+				result += data[i] - 'A' + 10;
+			else
+				switch(data[i]) {
+					case '-':
+						result += 36; break;
+					case '.':
+						result += 37; break;
+					case ' ':
+						result += 38; break;
+					case '$':
+						result += 39; break;
+					case '/':
+						result += 40; break;
+					case '+':
+						result += 41; break;
+					case '%':
+						result += 42; break;
+					default:
+						/* invalid character */
+						return false;
+				}
+
+			result %= 43;
+		}
+
+		if(result < 10)
+			result = result + '0';
+		else if(result < 36)
+			result = result - 10 + 'A';
+		else
+			switch(result) {
+				case 36: result = '-'; break;
+				case 37: result = '.'; break;
+				case 38: result = ' '; break;
+				case 39: result = '$'; break;
+				case 40: result = '/'; break;
+				case 41: result = '+'; break;
+				case 42: result = '%'; break;
+			}
+
+		return (data[data.length-1] == result);
 	}
 
 	/**
