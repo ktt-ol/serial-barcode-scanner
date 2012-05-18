@@ -137,7 +137,7 @@ public class Database {
 			rc = this.undo_stmt1.step();
 			switch(rc) {
 				case Sqlite.ROW:
-					pid = uint64.parse(this.product_stmt.column_text(0));
+					pid = uint64.parse(this.undo_stmt1.column_text(0));
 					break;
 				case Sqlite.DONE:
 					stdout.printf("undo not possible without purchases");
