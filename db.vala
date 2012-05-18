@@ -5,6 +5,7 @@ public class Database {
 	private Sqlite.Statement purchase_stmt2;
 	private Sqlite.Statement undo_stmt1;
 	private Sqlite.Statement undo_stmt2;
+	private Sqlite.Statement undo_stmt3;
 	private Sqlite.Statement stock_stmt1;
 	private Sqlite.Statement stock_stmt2;
 	uint64 user = 0;
@@ -127,33 +128,35 @@ public class Database {
 
 	public bool undo() {
 		if(is_logged_in()) {
-			int pid = 0;
+			uint64 pid = 0;
+			int rc = 0;
 
 			this.undo_stmt1.reset();
 			this.undo_stmt1.bind_text(1, "%llu".printf(user));
 
-			int rc = this.undo_stmt1.step();
+			rc = this.undo_stmt1.step();
 			switch(rc) {
 				case Sqlite.ROW:
-					pid = this.product_stmt.column_text(0);
+					pid = uint64.parse(this.product_stmt.column_text(0));
+					break;
 				case Sqlite.DONE:
-					stdout.printF("undo not possible without purchases");
+					stdout.printf("undo not possible without purchases");
 					return false;
 				default:
-					return "[interner Fehler: %d]".printf(rc);
+					error("[interner Fehler: %d]".printf(rc));
 			}
 
 			this.undo_stmt2.reset();
 			this.undo_stmt2.bind_text(1, "%llu".printf(user));
 
-			int rc = this.undo_stmt2.step();
+			rc = this.undo_stmt2.step();
 			if(rc != Sqlite.DONE)
 				error("[interner Fehler: %d]".printf(rc));
 
 			this.undo_stmt3.reset();
 			this.undo_stmt3.bind_text(1, "%llu".printf(pid));
 
-			int rc = this.undo_stmt3.step();
+			rc = this.undo_stmt3.step();
 			if(rc != Sqlite.DONE)
 				error("[interner Fehler: %d]".printf(rc));
 
