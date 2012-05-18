@@ -1,21 +1,22 @@
 public class Database {
 	private Sqlite.Database db;
+	private Sqlite.Statement product_stmt;
 	private Sqlite.Statement purchase_stmt1;
 	private Sqlite.Statement purchase_stmt2;
-	private Sqlite.Statement product_stmt;
-	private Sqlite.Statement undo_stmt;
+	private Sqlite.Statement undo_stmt1;
+	private Sqlite.Statement undo_stmt2;
 	private Sqlite.Statement stock_stmt1;
 	private Sqlite.Statement stock_stmt2;
 	uint64 user = 0;
 	uint64 product = 0;
 	bool logged_in = false;
 	bool stock_mode = false;
+	private static string product_query = "SELECT name FROM products WHERE id = ?";
 	private static string purchase_query1 = "INSERT INTO purchases ('user', 'product', 'timestamp') VALUES (?, ?, ?)";
 	private static string purchase_query2 = "UPDATE products SET amount = amount - 1 WHERE id = ?";
-
-	private static string product_query = "SELECT name FROM products WHERE id = ?";
-	private static string undo_query = "DELETE FROM purchases WHERE user = ? ORDER BY 'timestamp' DESC LIMIT 1";
-
+	private static string undo_query1 = "SELECT product FROM purchases WHERE user = ? ORDER BY timestamp DESC LIMIT 1";
+	private static string undo_query2 = "DELETE FROM purchases WHERE user = ? ORDER BY timestamp DESC LIMIT 1";
+	private static string undo_query3 = "UPDATE products SET amount = amount + 1 WHERE id = ?";
 	private static string stock_query1 = "INSERT INTO restock ('user', 'product', 'amount', 'timestamp') VALUES (?, ?, ?, ?)";
 	private static string stock_query2 = "UPDATE products SET amount = amount + ? WHERE id = ?";
 
@@ -42,9 +43,19 @@ public class Database {
 			error("could not prepare article statement!");
 		}
 
-		rc = this.db.prepare_v2(undo_query, -1, out undo_stmt);
+		rc = this.db.prepare_v2(undo_query1, -1, out undo_stmt1);
 		if(rc != Sqlite.OK) {
-			error("could not prepare undo statement!");
+			error("could not prepare first undo statement!");
+		}
+
+		rc = this.db.prepare_v2(undo_query2, -1, out undo_stmt2);
+		if(rc != Sqlite.OK) {
+			error("could not prepare second undo statement!");
+		}
+
+		rc = this.db.prepare_v2(undo_query3, -1, out undo_stmt3);
+		if(rc != Sqlite.OK) {
+			error("could not prepare third undo statement!");
 		}
 
 		rc = this.db.prepare_v2(stock_query1, -1, out stock_stmt1);
@@ -116,14 +127,37 @@ public class Database {
 
 	public bool undo() {
 		if(is_logged_in()) {
-			this.undo_stmt.reset();
-			this.undo_stmt.bind_text(1, "%llu".printf(user));
+			int pid = 0;
 
-			int rc = this.undo_stmt.step();
+			this.undo_stmt1.reset();
+			this.undo_stmt1.bind_text(1, "%llu".printf(user));
+
+			int rc = this.undo_stmt1.step();
+			switch(rc) {
+				case Sqlite.ROW:
+					pid = this.product_stmt.column_text(0);
+				case Sqlite.DONE:
+					stdout.printF("undo not possible without purchases");
+					return false;
+				default:
+					return "[interner Fehler: %d]".printf(rc);
+			}
+
+			this.undo_stmt2.reset();
+			this.undo_stmt2.bind_text(1, "%llu".printf(user));
+
+			int rc = this.undo_stmt2.step();
 			if(rc != Sqlite.DONE)
 				error("[interner Fehler: %d]".printf(rc));
-			else
-				return true;
+
+			this.undo_stmt3.reset();
+			this.undo_stmt3.bind_text(1, "%llu".printf(pid));
+
+			int rc = this.undo_stmt3.step();
+			if(rc != Sqlite.DONE)
+				error("[interner Fehler: %d]".printf(rc));
+
+			return true;
 		}
 
 		return false;
