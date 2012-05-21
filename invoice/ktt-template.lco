@@ -179,7 +179,7 @@
 \newcommand\twitter{@KtT\_OL}
 \newcommand\amtsgericht{\textbf{Amtsgericht Oldenburg}\\VR 201044}
 \newcommand\finanzamt{\textbf{Finanzamt Oldenburg}\\\textbf{Steuer Nr.:} 64/220/18413}
-\newcommand\vorstand{\textbf{Vorstand}\\Patrick Günther, Martin Hilscher, Eike Frost}
+\newcommand\vorstand{\textbf{Vorstand}\\Patrick Günther, Martin Hilscher, Holger Cremer}
 \setkomavar{frombank}{\textbf{Raiffeisenbank Oldenburg}\\
 		\textbf{Kontonummer}: 370 18 500\\
 		\textbf{Bankleitzahl}: 280 602 28
