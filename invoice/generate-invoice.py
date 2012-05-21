@@ -1,6 +1,16 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-import datetime, sqlite3, sys
+import datetime, sqlite3, os, sys, smtplib, subprocess, time
+import tempfile
+from email.mime.multipart import MIMEMultipart
+from email.mime.application import MIMEApplication
+from email.mime.text import MIMEText
+from email.header import Header
+
+SMTPSERVERNAME = 'SERVER'
+SMTPSERVERPORT = 587
+SMTPSERVERUSER = 'username'
+SMTPSERVERPASS = 'password'
 
 def get_user_info(userid):
 	result = {
@@ -91,13 +101,13 @@ def invoice(user, title, subject, start=0, stop=0):
 		total += price
 
 		if lastdate != row[0]:
-			result += "\t\t\t\t%s\t& %s\t& %s\t& %d,%d Euro\\\\\n" % (row[0], row[1], row[2], price / 100, price % 100)
+			result += "\t\t\t\t%s\t& %s\t& %s\t& %d,%02d Euro\\\\\n" % (row[0], row[1], row[2], price / 100, price % 100)
 			lastdate = row[0]
 		else:
-			result += "\t\t\t\t%s\t& %s\t& %s\t& %d,%d Euro\\\\\n" % ("           ", row[1], row[2], price / 100, price % 100)
+			result += "\t\t\t\t%s\t& %s\t& %s\t& %d,%02d Euro\\\\\n" % ("           ", row[1], row[2], price / 100, price % 100)
 
 	result += "\t\t\t\t\\hline\n"
-	result += "\t\t\t\t\\multicolumn{3}{|l|}{Summe:} & %d,%d Euro\\\\\n" % (total / 100, total % 100)
+	result += "\t\t\t\t\\multicolumn{3}{|l|}{Summe:} & %d,%02d Euro\\\\\n" % (total / 100, total % 100)
 	result += "\t\t\t\t\\hline\n"
 	result += "\t\t\t\\end{longtable}\n"
 	result += "\t\t\\end{footnotesize}\n\n"
@@ -114,6 +124,42 @@ def invoice(user, title, subject, start=0, stop=0):
 
 	return result
 
+def generate_mail(receiver, subject, message, pdfdata, cc = None):
+	msg = MIMEMultipart()
+	msg["From"] = "KtT Shop System <shop@kreativitaet-trifft-technik.de>"
+
+	try:
+		if receiver.encode("ascii"):
+			msg["To"] = receiver
+	except UnicodeError:
+		msg["To"] = Header(receiver, 'utf-8')
+
+	if cc != None:
+		msg["Cc"] = cc
+	msg["Subject"] = Header(subject, 'utf-8')
+	msg.preamble = "Please use a MIME aware email client"
+
+	msg.attach(MIMEText(message, 'plain', 'utf-8'))
+
+	pdf = MIMEApplication(pdfdata, 'pdf')
+	pdf.add_header('Content-Disposition', 'attachment', filename = 'rechnung.pdf')
+	msg.attach(pdf)
+
+	return msg
+
+def generate_pdf(data):
+	rubber = subprocess.Popen("rubber-pipe -d", shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+	pdf, stderr = rubber.communicate(input=data.encode('utf-8'))
+	return pdf
+
+def send_mail(mail, receiver):
+	server = smtplib.SMTP(SMTPSERVERNAME, SMTPSERVERPORT)
+	server.starttls()
+	server.login(SMTPSERVERUSER, SMTPSERVERPASS)
+	maildata = mail.as_string()
+	server.sendmail(mail["From"], receiver, maildata)
+	server.quit()
+
 def get_users_with_purches(start, stop):
 	result = []
 
@@ -129,20 +175,25 @@ def get_users_with_purches(start, stop):
 
 	return result
 
+def daily(timestamp = time.time()):
+	requested = datetime.datetime.fromtimestamp(timestamp)
 
-##############################
-# User Code
-##############################
+	# timestamps for previous day
+	dstop = requested.replace(hour = 0, minute = 0, second = 0) - datetime.timedelta(seconds = 1)
+	dstart = requested.replace(hour = 0, minute = 0, second = 0) - datetime.timedelta(days = 1)
+	stop = int(dstop.strftime("%s"))
+	start = int(dstart.strftime("%s"))
 
-user = 2342
-start = int(datetime.datetime(2012, 5, 1, 0, 0, 0).strftime("%s"))
-stop = int(datetime.datetime(2012, 5, 31, 23, 59, 59).strftime("%s"))
+	title = "Getränke Rechnung %04d-%02d-%02d" % (dstart.year, dstart.month, dstart.day)
+	subject = "Getränke Zwischenstand %02d.%02d.%04d" % (dstart.day, dstart.month, dstart.year)
 
-# TODO: autogenerate title and subject
-title = "Getränke Rechnung 05/2012"
-subject = "Rechnung Nr. 2012050001"
+	for user in get_users_with_purches(start, stop):
+		userinfo = get_user_info(user)
+		receiver = "%s %s <%s>" % (userinfo["firstname"], userinfo["lastname"], userinfo["email"])
+		tex  = invoice(user, title, subject, start, stop)
+		pdf  = generate_pdf(tex)
+		mail = generate_mail(receiver, title, subject, pdf)
+		send_mail(mail, userinfo["email"])
+		print(user)
 
-# this can be used to find users, which should get an invoice in a specified time slice
-#print("users:", get_users_with_purches(start, stop), file=sys.stderr)
-
-print(invoice(user, title, subject, start, stop))
+daily()
