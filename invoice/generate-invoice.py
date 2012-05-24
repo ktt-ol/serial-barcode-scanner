@@ -1,45 +1,33 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-import datetime, sqlite3, os, sys, smtplib, subprocess, time
-import tempfile
+import datetime, sqlite3, os, sys, smtplib, subprocess, time, tempfile
 from email.mime.multipart import MIMEMultipart
 from email.mime.application import MIMEApplication
 from email.mime.text import MIMEText
 from email.header import Header
 
-SMTPSERVERNAME = 'SERVER'
-SMTPSERVERPORT = 587
-SMTPSERVERUSER = 'username'
-SMTPSERVERPASS = 'password'
+from config import *
 
 def get_user_info(userid):
-	result = {
-		"id": userid,
-		"username": "",
-		"email": "",
-		"firstname": "",
-		"lastname": "",
-		"street": "",
-		"city": ""
-	}
-
 	connection = sqlite3.connect('shop.db')
 	c = connection.cursor()
-
-	c.execute("SELECT id, username, email, firstname, lastname, street, city FROM users WHERE id = ?;", (userid,))
-
-	for row in c:
-		result["id"] = row[0]
-		result["username"] = row[1]
-		result["email"] = row[2]
-		result["firstname"] = row[3]
-		result["lastname"] = row[4]
-		result["street"] = row[5]
-		result["city"] = row[6]
-
+	c.execute("SELECT id, email, firstname, lastname, gender, street, plz, city FROM users WHERE id = ?;", (userid,))
+	row = c.fetchone()
 	c.close()
 
-	return result
+	if row is None:
+		return None
+	else:
+		return {
+			"id": row[0],
+			"email": row[1],
+			"firstname": row[2],
+			"lastname": row[3],
+			"gender": row[4],
+			"street": row[5],
+			"plz": row[6],
+			"city": row[7]
+		}
 
 def get_price_info(product, timestamp, member = True):
 	result = 0
@@ -69,7 +57,7 @@ def invoice(user, title, subject, start=0, stop=0):
 		startcondition = " AND timestamp >= %d" % start
 	if stop > 0:
 		stopcondition = " AND timestamp <= %d" % stop
-	
+
 	userinfo = get_user_info(user)
 
 	result = "\\documentclass[ktt-template,12pt,pagesize=auto,enlargefirstpage=on,paper=a4]{scrlttr2}\n\n"
@@ -79,11 +67,17 @@ def invoice(user, title, subject, start=0, stop=0):
 
 	result+= "\\setkomavar{subject}{%s}\n" % subject
 	result+= "\\setkomavar{toname}{%s %s}\n" % (userinfo["firstname"], userinfo["lastname"])
-	result+= "\\setkomavar{toaddress}{%s\\newline\\newline\\textbf{%s}}\n\n" % (userinfo["street"], userinfo["city"])
+	result+= "\\setkomavar{toaddress}{%s\\newline\\newline\\textbf{%d %s}}\n\n" % (userinfo["street"], userinfo["plz"], userinfo["city"])
 
 	result+= "\\begin{document}\n"
 	result+= "\t\\begin{letter}{}\n"
-	result+= "\t\t\\opening{Sehr geehrter Herr %s,}\n\n" % userinfo["lastname"]
+
+	if userinfo["gender"] == "masculinum":
+		result+= "\t\t\\opening{Sehr geehrter Herr %s,}\n\n" % userinfo["lastname"]
+	elif userinfo["gender"] == "femininum":
+		result+= "\t\t\\opening{Sehr geehrte Frau %s,}\n\n" % userinfo["lastname"]
+	else:
+		result+= "\t\t\\opening{Sehr geehrte/r Frau/Herr %s,}\n\n" % userinfo["lastname"]
 
 	result+= "\t\twir erlauben uns, Ihnen für den Verzehr von Speisen und Getränken wie folgt zu berechnen:\n\n"
 
@@ -179,21 +173,27 @@ def daily(timestamp = time.time()):
 	requested = datetime.datetime.fromtimestamp(timestamp)
 
 	# timestamps for previous day
-	dstop = requested.replace(hour = 0, minute = 0, second = 0) - datetime.timedelta(seconds = 1)
-	dstart = requested.replace(hour = 0, minute = 0, second = 0) - datetime.timedelta(days = 1)
+	dstop = requested.replace(hour = 8, minute = 0, second = 0) - datetime.timedelta(seconds = 1)
+	dstart = requested.replace(hour = 8, minute = 0, second = 0) - datetime.timedelta(days = 1)
+	if dstop > requested:
+		dstop -= datetime.timedelta(days = 1)
+		dstart -= datetime.timedelta(days = 1)
 	stop = int(dstop.strftime("%s"))
 	start = int(dstart.strftime("%s"))
 
 	title = "Getränke Rechnung %04d-%02d-%02d" % (dstart.year, dstart.month, dstart.day)
-	subject = "Getränke Zwischenstand %02d.%02d.%04d" % (dstart.day, dstart.month, dstart.year)
+	subject = "Getränke Zwischenstand %02d.%02d.%04d %02d Uhr bis %02d.%02d.%04d %02d Uhr" % (dstart.day, dstart.month, dstart.year, dstart.hour, dstop.day, dstop.month, dstop.year, dstop.hour)
 
 	for user in get_users_with_purches(start, stop):
 		userinfo = get_user_info(user)
-		receiver = "%s %s <%s>" % (userinfo["firstname"], userinfo["lastname"], userinfo["email"])
-		tex  = invoice(user, title, subject, start, stop)
-		pdf  = generate_pdf(tex)
-		mail = generate_mail(receiver, title, subject, pdf)
-		send_mail(mail, userinfo["email"])
-		print(user)
+		if userinfo is not None:
+			receiver = "%s %s <%s>" % (userinfo["firstname"], userinfo["lastname"], userinfo["email"])
+			tex  = invoice(user, title, subject, start, stop)
+			pdf  = generate_pdf(tex)
+			mail = generate_mail(receiver, title, subject, pdf)
+			send_mail(mail, userinfo["email"])
+			print("Sent invoice to", userinfo["firstname"], userinfo["lastname"])
+		else:
+			print("Can't send invoice for missing user with the following id:", user)
 
 daily()
