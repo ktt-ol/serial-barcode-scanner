@@ -79,6 +79,7 @@ public class Database {
 
 	public bool logout() {
 		this.user = 0;
+		this.stock_mode = false;
 		this.logged_in = false;
 		return true;
 	}
