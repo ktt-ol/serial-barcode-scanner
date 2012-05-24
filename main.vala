@@ -25,7 +25,7 @@ public static bool interpret(string data) {
 		int32 id = int.parse(str_id);
 
 		/* check if data has valid format */
-		if(data != "USER %lld".printf(id)) {
+		if(data != "USER %d".printf(id)) {
 			stdout.printf("[%lld] ungültige Benutzernummer: %s\n", timestamp, data);
 			return false;
 		}
@@ -35,7 +35,7 @@ public static bool interpret(string data) {
 			db.logout();
 		}
 
-		stdout.printf("[%lld] Login: %lld\n", timestamp, id);
+		stdout.printf("[%lld] Login: %d\n", timestamp, id);
 		return db.login(id);
 	} else if(data == "GUEST") {
 		if(db.is_logged_in()) {
