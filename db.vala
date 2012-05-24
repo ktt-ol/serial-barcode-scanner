@@ -8,7 +8,7 @@ public class Database {
 	private Sqlite.Statement undo_stmt3;
 	private Sqlite.Statement stock_stmt1;
 	private Sqlite.Statement stock_stmt2;
-	uint64 user = 0;
+	int32 user = 0;
 	uint64 product = 0;
 	bool logged_in = false;
 	bool stock_mode = false;
@@ -71,7 +71,7 @@ public class Database {
 
 	}
 
-	public bool login(uint64 id) {
+	public bool login(int32 id) {
 		this.user = id;
 		this.logged_in = true;
 		return true;
@@ -90,7 +90,7 @@ public class Database {
 			int64 timestamp = (new DateTime.now_utc()).to_unix();
 
 			this.purchase_stmt1.reset();
-			this.purchase_stmt1.bind_text(1, "%llu".printf(user));
+			this.purchase_stmt1.bind_text(1, "%lld".printf(user));
 			this.purchase_stmt1.bind_text(2, "%llu".printf(article));
 			this.purchase_stmt1.bind_text(3, "%llu".printf(timestamp));
 

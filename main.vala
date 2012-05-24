@@ -20,10 +20,10 @@ public static int main(string[] args) {
 public static bool interpret(string data) {
 	if(data.has_prefix("USER ")) {
 		string str_id = data.substring(5);
-		uint64 id = uint64.parse(str_id);
+		int32 id = int.parse(str_id);
 
 		/* check if data has valid format */
-		if(data != "USER %llu".printf(id)) {
+		if(data != "USER %lld".printf(id)) {
 			stdout.printf("ungültige Benutzernummer: %s\n", data);
 			return false;
 		}
@@ -33,7 +33,7 @@ public static bool interpret(string data) {
 			db.logout();
 		}
 
-		stdout.printf("Login: %llu\n".printf(id));
+		stdout.printf("Login: %lld\n".printf(id));
 		return db.login(id);
 	} else if(data == "GUEST") {
 		if(db.is_logged_in()) {
