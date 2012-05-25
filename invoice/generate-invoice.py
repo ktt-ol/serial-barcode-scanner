@@ -131,7 +131,7 @@ def generate_mail(receiver, subject, message, pdfdata, cc = None):
 	if cc != None:
 		msg["Cc"] = cc
 	msg["Subject"] = Header(subject, 'utf-8')
-	msg.preamble = "Please use a MIME aware email client"
+	msg.preamble = "Please use a MIME aware email client!"
 
 	msg.attach(MIMEText(message, 'plain', 'utf-8'))
 
