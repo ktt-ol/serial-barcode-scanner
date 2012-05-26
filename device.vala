@@ -117,7 +117,6 @@ public class Device {
 
 	private ssize_t write(void *buf, size_t count) {
 		ssize_t size = Posix.write(fd, buf, count);
-		Posix.tcflush(fd, Posix.TCOFLUSH);
 		return size;
 	}
 
