@@ -135,9 +135,10 @@ def generate_mail(receiver, subject, message, pdfdata, cc = None):
 
 	msg.attach(MIMEText(message, 'plain', 'utf-8'))
 
-	pdf = MIMEApplication(pdfdata, 'pdf')
-	pdf.add_header('Content-Disposition', 'attachment', filename = 'rechnung.pdf')
-	msg.attach(pdf)
+	if pdfdata is not None:
+		pdf = MIMEApplication(pdfdata, 'pdf')
+		pdf.add_header('Content-Disposition', 'attachment', filename = 'rechnung.pdf')
+		msg.attach(pdf)
 
 	return msg
 
@@ -195,5 +196,14 @@ def daily(timestamp = time.time()):
 			print("Sent invoice to", userinfo["firstname"], userinfo["lastname"])
 		else:
 			print("Can't send invoice for missing user with the following id:", user)
+
+def monthly(timestamp = time.time()):
+	print("monthly invoice()")
+
+def backup(timestamp = time.time()):
+	print("backup()")
+
+def stock(timestamp = time.time()):
+	print("stock()")
 
 daily()
