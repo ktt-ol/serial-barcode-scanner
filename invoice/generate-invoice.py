@@ -246,8 +246,17 @@ def gen_stock_mail():
 	msg.attach(MIMEText(gen_stock_asciitable(), 'plain', 'utf-8'))
 	return msg
 
-def stock():
+def weekly():
 	send_mail(gen_stock_mail(), "einkauf@kreativitaet-trifft-technik.de")
 
-#stock()
-daily()
+def backup():
+	# TODO
+
+if sys.argv[1] == "daily":
+	daily()
+elif sys.argv[1] == "weekly":
+	weekly()
+elif sys.argv[1] == "monthly":
+	print("TODO: not yet implemented")
+else
+	print("not supported!")
