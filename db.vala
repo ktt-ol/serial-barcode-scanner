@@ -8,7 +8,7 @@ public class Database {
 	private Sqlite.Statement undo_stmt3;
 	private Sqlite.Statement stock_stmt1;
 	private Sqlite.Statement stock_stmt2;
-	uint64 user = 0;
+	int32 user = 0;
 	uint64 product = 0;
 	bool logged_in = false;
 	bool stock_mode = false;
@@ -71,7 +71,7 @@ public class Database {
 
 	}
 
-	public bool login(uint64 id) {
+	public bool login(int32 id) {
 		this.user = id;
 		this.logged_in = true;
 		return true;
@@ -79,6 +79,7 @@ public class Database {
 
 	public bool logout() {
 		this.user = 0;
+		this.stock_mode = false;
 		this.logged_in = false;
 		return true;
 	}
@@ -89,7 +90,7 @@ public class Database {
 			int64 timestamp = (new DateTime.now_utc()).to_unix();
 
 			this.purchase_stmt1.reset();
-			this.purchase_stmt1.bind_text(1, "%llu".printf(user));
+			this.purchase_stmt1.bind_text(1, "%d".printf(user));
 			this.purchase_stmt1.bind_text(2, "%llu".printf(article));
 			this.purchase_stmt1.bind_text(3, "%llu".printf(timestamp));
 
@@ -132,7 +133,7 @@ public class Database {
 			int rc = 0;
 
 			this.undo_stmt1.reset();
-			this.undo_stmt1.bind_text(1, "%llu".printf(user));
+			this.undo_stmt1.bind_text(1, "%d".printf(user));
 
 			rc = this.undo_stmt1.step();
 			switch(rc) {
@@ -140,14 +141,14 @@ public class Database {
 					pid = uint64.parse(this.undo_stmt1.column_text(0));
 					break;
 				case Sqlite.DONE:
-					stdout.printf("undo not possible without purchases");
+					stdout.printf("undo not possible without purchases\n");
 					return false;
 				default:
 					error("[interner Fehler: %d]".printf(rc));
 			}
 
 			this.undo_stmt2.reset();
-			this.undo_stmt2.bind_text(1, "%llu".printf(user));
+			this.undo_stmt2.bind_text(1, "%d".printf(user));
 
 			rc = this.undo_stmt2.step();
 			if(rc != Sqlite.DONE)
@@ -180,7 +181,7 @@ public class Database {
 			int64 timestamp = (new DateTime.now_utc()).to_unix();
 
 			this.stock_stmt1.reset();
-			this.stock_stmt1.bind_text(1, "%llu".printf(user));
+			this.stock_stmt1.bind_text(1, "%d".printf(user));
 			this.stock_stmt1.bind_text(2, "%llu".printf(product));
 			this.stock_stmt1.bind_text(3, "%llu".printf(amount));
 			this.stock_stmt1.bind_text(4, "%llu".printf(timestamp));

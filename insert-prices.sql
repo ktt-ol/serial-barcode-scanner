@@ -44,4 +44,5 @@ INSERT INTO prices (product, memberprice, guestprice) VALUES (76222504,80,100);
 INSERT INTO prices (product, memberprice, guestprice) VALUES (5000159407410,140,180);
 INSERT INTO prices (product, memberprice, guestprice) VALUES (5000159418546,80,100);
 INSERT INTO prices (product, memberprice, guestprice) VALUES (5000159418577,80,100);
+INSERT INTO prices (product, memberprice, guestprice) VALUES (4007495314014,100,130);
 COMMIT;
