@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-import datetime, sqlite3, os, sys, smtplib, subprocess, time, tempfile
+import datetime, sqlite3, os, sys, smtplib, subprocess, time, tempfile, email.utils
 from email.mime.multipart import MIMEMultipart
 from email.mime.application import MIMEApplication
 from email.mime.text import MIMEText
@@ -170,9 +170,10 @@ def generate_invoice_text(user, title, subject, start=0, stop=0):
 
 	return result
 
-def generate_mail(receiver, subject, message, pdfdata, cc = None):
+def generate_mail(receiver, subject, message, pdfdata, timestamp=time.time(), cc = None):
 	msg = MIMEMultipart()
 	msg["From"] = "KtT Shop System <shop@kreativitaet-trifft-technik.de>"
+	msg["Date"] = email.utils.formatdate(timestamp, True)
 
 	try:
 		if receiver.encode("ascii"):
@@ -244,13 +245,14 @@ def daily(timestamp = time.time()):
 			tex  = generate_invoice_tex(user, title, subject, start, stop)
 			msg  = generate_invoice_text(user, title, subject, start, stop)
 			pdf  = generate_pdf(tex)
-			mail = generate_mail(receiver, title, msg, pdf)
+			mail = generate_mail(receiver, title, msg, pdf, timestamp)
 			send_mail(mail, userinfo["email"])
 			print("Sent invoice to", userinfo["firstname"], userinfo["lastname"])
 		else:
 			print("Can't send invoice for missing user with the following id:", user)
 
 def monthly(timestamp = time.time()):
+	# CC: KtT Schatzmeister <schatzmeister@kreativitaet-trifft-oldenburg.de>
 	print("monthly invoice()")
 
 def backup(timestamp = time.time()):
