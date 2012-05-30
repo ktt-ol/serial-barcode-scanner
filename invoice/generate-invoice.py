@@ -73,7 +73,7 @@ def get_invoice_data(user, start=0, stop=0):
 
 	return result
 
-def generate_invoice_tex(user, title, subject, start=0, stop=0):
+def generate_invoice_tex(user, title, subject, start=0, stop=0, temporary=False):
 	userinfo = get_user_info(user)
 
 	result = "\\documentclass[ktt-template,12pt,pagesize=auto,enlargefirstpage=on,paper=a4]{scrlttr2}\n\n"
@@ -123,6 +123,11 @@ def generate_invoice_tex(user, title, subject, start=0, stop=0):
 	result += "\t\tUmsatzsteuer wird nicht erhoben, da Kreativität trifft Technik e.V. als Kleinunternehmen\n"
 	result += "\t\tder Regelung des § 19 Abs. 1 UStG unterfällt.\n\n"
 
+	if temporary is True:
+		result += "\t\tBei dieser Abrechnung handelt es sich lediglich um einen Zwischenstand. Die\n"
+		result += "\t\tHauptrechnung wird einmal monatlich getrennt zugestellt und der Gesamtbetrag\n"
+		result += "\t\twird dann vom angegebenen Bankkonto eingezogen.\n\n"
+
 	result += "\t\t\\closing{Mit freundlichen Grüßen}\n\n"
 
 	result += "\t\\end{letter}\n"
@@ -130,7 +135,7 @@ def generate_invoice_tex(user, title, subject, start=0, stop=0):
 
 	return result
 
-def generate_invoice_text(user, title, subject, start=0, stop=0):
+def generate_invoice_text(user, title, subject, start=0, stop=0, temporary=False):
 	userinfo = get_user_info(user)
 	result = ""
 
@@ -167,6 +172,11 @@ def generate_invoice_text(user, title, subject, start=0, stop=0):
 
 	result += "Umsatzsteuer wird nicht erhoben, da Kreativität trifft Technik e.V. als Kleinunternehmen\n"
 	result += "der Regelung des § 19 Abs. 1 UStG unterfällt.\n\n"
+
+	if temporary is True:
+		result += "Bei dieser Abrechnung handelt es sich lediglich um einen Zwischenstand. Die\n"
+		result += "Hauptrechnung wird einmal monatlich getrennt zugestellt und der Gesamtbetrag\n"
+		result += "wird dann vom angegebenen Bankkonto eingezogen.\n\n"
 
 	return result
 
@@ -242,8 +252,8 @@ def daily(timestamp = time.time()):
 		userinfo = get_user_info(user)
 		if userinfo is not None:
 			receiver = "%s %s <%s>" % (userinfo["firstname"], userinfo["lastname"], userinfo["email"])
-			tex  = generate_invoice_tex(user, title, subject, start, stop)
-			msg  = generate_invoice_text(user, title, subject, start, stop)
+			tex  = generate_invoice_tex(user, title, subject, start, stop, True)
+			msg  = generate_invoice_text(user, title, subject, start, stop, True)
 			pdf  = generate_pdf(tex)
 			mail = generate_mail(receiver, title, msg, pdf, timestamp)
 			send_mail(mail, userinfo["email"])
