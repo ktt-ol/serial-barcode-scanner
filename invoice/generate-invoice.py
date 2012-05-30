@@ -208,7 +208,7 @@ def send_mail(mail, receiver):
 	server.sendmail(mail["From"], receiver, maildata)
 	server.quit()
 
-def get_users_with_purches(start, stop):
+def get_users_with_purchases(start, stop):
 	result = []
 
 	connection = sqlite3.connect('shop.db')
@@ -238,7 +238,7 @@ def daily(timestamp = time.time()):
 	title = "Getränke Rechnung %04d-%02d-%02d" % (dstart.year, dstart.month, dstart.day)
 	subject = "Getränke Zwischenstand %02d.%02d.%04d %02d:%02d Uhr bis %02d.%02d.%04d %02d:%02d Uhr" % (dstart.day, dstart.month, dstart.year, dstart.hour, dstart.minute, dstop.day, dstop.month, dstop.year, dstop.hour, dstop.minute)
 
-	for user in get_users_with_purches(start, stop):
+	for user in get_users_with_purchases(start, stop):
 		userinfo = get_user_info(user)
 		if userinfo is not None:
 			receiver = "%s %s <%s>" % (userinfo["firstname"], userinfo["lastname"], userinfo["email"])
