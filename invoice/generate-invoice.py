@@ -182,7 +182,7 @@ def generate_invoice_text(user, title, subject, start=0, stop=0, temporary=False
 
 def generate_mail(receiver, subject, message, pdfdata, timestamp=time.time(), cc = None):
 	msg = MIMEMultipart()
-	msg["From"] = "KtT Shop System <shop@kreativitaet-trifft-technik.de>"
+	msg["From"] = "KtT-Shopsystem <shop@kreativitaet-trifft-technik.de>"
 	msg["Date"] = email.utils.formatdate(timestamp, True)
 
 	try:
@@ -245,8 +245,8 @@ def daily(timestamp = time.time()):
 	stop = int(dstop.strftime("%s"))
 	start = int(dstart.strftime("%s"))
 
-	title = "Getränke Rechnung %04d-%02d-%02d" % (dstart.year, dstart.month, dstart.day)
-	subject = "Getränke Zwischenstand %02d.%02d.%04d %02d:%02d Uhr bis %02d.%02d.%04d %02d:%02d Uhr" % (dstart.day, dstart.month, dstart.year, dstart.hour, dstart.minute, dstop.day, dstop.month, dstop.year, dstop.hour, dstop.minute)
+	title = "Getränkerechnung %04d-%02d-%02d" % (dstart.year, dstart.month, dstart.day)
+	subject = "Getränke-Zwischenstand %02d.%02d.%04d %02d:%02d Uhr bis %02d.%02d.%04d %02d:%02d Uhr" % (dstart.day, dstart.month, dstart.year, dstart.hour, dstart.minute, dstop.day, dstop.month, dstop.year, dstop.hour, dstop.minute)
 
 	for user in get_users_with_purchases(start, stop):
 		userinfo = get_user_info(user)
@@ -304,7 +304,7 @@ def gen_stock_asciitable():
 
 def gen_stock_mail():
 	msg = MIMEMultipart()
-	msg["From"] = "KtT Shop System <shop@kreativitaet-trifft-technik.de>"
+	msg["From"] = "KtT-Shopsystem <shop@kreativitaet-trifft-technik.de>"
 	msg["To"] = "KtT Einkaufsteam <einkauf@kreativitaet-trifft-technik.de>"
 	msg["Subject"] = Header("Aktueller Warenbestand", 'utf-8')
 	msg.preamble = "Please use a MIME aware email client!"
