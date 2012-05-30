@@ -47,7 +47,7 @@ def get_price_info(product, timestamp, member = True):
 
 	return result
 
-def invoice(user, title, subject, start=0, stop=0):
+def get_invoice_data(user, start=0, stop=0):
 	connection = sqlite3.connect('shop.db')
 	c = connection.cursor()
 	startcondition = ""
@@ -58,6 +58,22 @@ def invoice(user, title, subject, start=0, stop=0):
 	if stop > 0:
 		stopcondition = " AND timestamp <= %d" % stop
 
+	c.execute("SELECT date(timestamp, 'unixepoch', 'localtime'), time(timestamp, 'unixepoch', 'localtime'), products.name, purchases.product, purchases.timestamp FROM purchases, products WHERE user = ? AND products.id = purchases.product" + startcondition + stopcondition + " ORDER BY timestamp;", (user,))
+
+	result = []
+	for row in c:
+		result.append({
+			"date": row[0],
+			"time": row[1],
+			"product": row[2],
+			"price": int(get_price_info(row[3], row[4], user != 0)),
+		})
+
+	c.close()
+
+	return result
+
+def generate_invoice_tex(user, title, subject, start=0, stop=0):
 	userinfo = get_user_info(user)
 
 	result = "\\documentclass[ktt-template,12pt,pagesize=auto,enlargefirstpage=on,paper=a4]{scrlttr2}\n\n"
@@ -87,18 +103,16 @@ def invoice(user, title, subject, start=0, stop=0):
 	result += "\t\t\t\tDatum		& Uhrzeit	& Artikel	& Preis\\\\\n"
 	result += "\t\t\t\t\\hline\n"
 
-	c.execute("SELECT date(timestamp, 'unixepoch', 'localtime'), time(timestamp, 'unixepoch', 'localtime'), products.name, purchases.product, purchases.timestamp FROM purchases, products WHERE user = ? AND products.id = purchases.product" + startcondition + stopcondition + " ORDER BY timestamp;", (user,))
 	lastdate = ""
 	total = 0
-	for row in c:
-		price = get_price_info(row[3], row[4], user != 0)
-		total += price
+	for row in get_invoice_data(user, start, stop):
+		total += row["price"]
 
-		if lastdate != row[0]:
-			result += "\t\t\t\t%s\t& %s\t& %s\t& %d,%02d Euro\\\\\n" % (row[0], row[1], row[2], price / 100, price % 100)
-			lastdate = row[0]
+		if lastdate != row["date"]:
+			result += "\t\t\t\t%s\t& %s\t& %s\t& %d,%02d Euro\\\\\n" % (row["date"], row["time"], row["product"], row["price"] / 100, row["price"] % 100)
+			lastdate = row["date"]
 		else:
-			result += "\t\t\t\t%s\t& %s\t& %s\t& %d,%02d Euro\\\\\n" % ("           ", row[1], row[2], price / 100, price % 100)
+			result += "\t\t\t\t%s\t& %s\t& %s\t& %d,%02d Euro\\\\\n" % ("           ", row["time"], row["product"], row["price"] / 100, row["price"] % 100)
 
 	result += "\t\t\t\t\\hline\n"
 	result += "\t\t\t\t\\multicolumn{3}{|l|}{Summe:} & %d,%02d Euro\\\\\n" % (total / 100, total % 100)
@@ -114,7 +128,45 @@ def invoice(user, title, subject, start=0, stop=0):
 	result += "\t\\end{letter}\n"
 	result += "\\end{document}"
 
-	c.close()
+	return result
+
+def generate_invoice_text(user, title, subject, start=0, stop=0):
+	userinfo = get_user_info(user)
+	result = ""
+
+	if userinfo["gender"] == "masculinum":
+		result+= "Sehr geehrter Herr %s,\n\n" % userinfo["lastname"]
+	elif userinfo["gender"] == "femininum":
+		result+= "Sehr geehrte Frau %s,\n\n" % userinfo["lastname"]
+	else:
+		result+= "Sehr geehrte/r Frau/Herr %s,\n\n" % userinfo["lastname"]
+
+	result+= "wir erlauben uns, Ihnen für den Verzehr von Speisen und Getränken wie folgt zu berechnen:\n\n"
+
+	lastdate = ""
+	total = 0
+	namelength = 0
+	for row in get_invoice_data(user, start, stop):
+		if len(row["product"]) > namelength:
+			namelength = len(row["product"])
+
+	result += "+------------+----------+-" + namelength * "-" + "-+----------+\n"
+	result += "| Datum      | Uhrzeit  | Artikel" + (namelength - len("Artikel")) * " " + " | Preis    |\n"
+	result += "+------------+----------+-" + namelength * "-" + "-+----------+\n"
+	for row in get_invoice_data(user, start, stop):
+		total += row["price"]
+
+		if lastdate != row["date"]:
+			result += "| %s | %s | %s | %3d,%02d € |\n" % (row["date"], row["time"], row["product"] + (namelength - len(row["product"])) * " ", row["price"] / 100, row["price"] % 100)
+			lastdate = row["date"]
+		else:
+			result += "| %s | %s | %s | %3d,%02d € |\n" % ("          ", row["time"], row["product"] + (namelength - len(row["product"])) * " ", row["price"] / 100, row["price"] % 100)
+	result += "+------------+----------+-" + namelength * "-" + "-+----------+\n"
+	result += "| Summe:                  " + namelength * " " + " | %3d,%02d € |\n" % (total / 100, total % 100)
+	result += "+-------------------------" + namelength * "-" + "-+----------+\n\n"
+
+	result += "Umsatzsteuer wird nicht erhoben, da Kreativität trifft Technik e.V. als Kleinunternehmen\n"
+	result += "der Regelung des § 19 Abs. 1 UStG unterfällt.\n\n"
 
 	return result
 
@@ -189,9 +241,10 @@ def daily(timestamp = time.time()):
 		userinfo = get_user_info(user)
 		if userinfo is not None:
 			receiver = "%s %s <%s>" % (userinfo["firstname"], userinfo["lastname"], userinfo["email"])
-			tex  = invoice(user, title, subject, start, stop)
+			tex  = generate_invoice_tex(user, title, subject, start, stop)
+			msg  = generate_invoice_text(user, title, subject, start, stop)
 			pdf  = generate_pdf(tex)
-			mail = generate_mail(receiver, title, subject, pdf)
+			mail = generate_mail(receiver, title, msg, pdf)
 			send_mail(mail, userinfo["email"])
 			print("Sent invoice to", userinfo["firstname"], userinfo["lastname"])
 		else:
@@ -250,7 +303,7 @@ def weekly():
 	send_mail(gen_stock_mail(), "einkauf@kreativitaet-trifft-technik.de")
 
 def backup():
-	# TODO
+	pass # TODO
 
 if sys.argv[1] == "daily":
 	daily()
@@ -258,5 +311,5 @@ elif sys.argv[1] == "weekly":
 	weekly()
 elif sys.argv[1] == "monthly":
 	print("TODO: not yet implemented")
-else
+else:
 	print("not supported!")
