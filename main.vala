@@ -10,13 +10,11 @@ public static int main(string[] args) {
 	dev = new Device(args[1], 9600, 8, 1);
 	db = new Database("shop.db");
 
-	dev.received_barcode.connect((data) => {
-		if(interpret(data))
+	while(true) {
+		string message = dev.receive();
+		if(interpret((string) message))
 			dev.blink(10);
-	});
-
-	new MainLoop(null, false).run();
-	return 0;
+	}
 }
 
 public static bool interpret(string data) {
