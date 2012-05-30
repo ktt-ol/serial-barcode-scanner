@@ -150,20 +150,20 @@ def generate_invoice_text(user, title, subject, start=0, stop=0):
 		if len(row["product"]) > namelength:
 			namelength = len(row["product"])
 
-	result += "+------------+----------+-" + namelength * "-" + "-+----------+\n"
-	result += "| Datum      | Uhrzeit  | Artikel" + (namelength - len("Artikel")) * " " + " | Preis    |\n"
-	result += "+------------+----------+-" + namelength * "-" + "-+----------+\n"
+	result += " +------------+----------+-" + namelength * "-" + "-+----------+\n"
+	result += " | Datum      | Uhrzeit  | Artikel" + (namelength - len("Artikel")) * " " + " | Preis    |\n"
+	result += " +------------+----------+-" + namelength * "-" + "-+----------+\n"
 	for row in get_invoice_data(user, start, stop):
 		total += row["price"]
 
 		if lastdate != row["date"]:
-			result += "| %s | %s | %s | %3d,%02d € |\n" % (row["date"], row["time"], row["product"] + (namelength - len(row["product"])) * " ", row["price"] / 100, row["price"] % 100)
+			result += " | %s | %s | %s | %3d,%02d € |\n" % (row["date"], row["time"], row["product"] + (namelength - len(row["product"])) * " ", row["price"] / 100, row["price"] % 100)
 			lastdate = row["date"]
 		else:
-			result += "| %s | %s | %s | %3d,%02d € |\n" % ("          ", row["time"], row["product"] + (namelength - len(row["product"])) * " ", row["price"] / 100, row["price"] % 100)
-	result += "+------------+----------+-" + namelength * "-" + "-+----------+\n"
-	result += "| Summe:                  " + namelength * " " + " | %3d,%02d € |\n" % (total / 100, total % 100)
-	result += "+-------------------------" + namelength * "-" + "-+----------+\n\n"
+			result += " | %s | %s | %s | %3d,%02d € |\n" % ("          ", row["time"], row["product"] + (namelength - len(row["product"])) * " ", row["price"] / 100, row["price"] % 100)
+	result += " +------------+----------+-" + namelength * "-" + "-+----------+\n"
+	result += " | Summe:                  " + namelength * " " + " | %3d,%02d € |\n" % (total / 100, total % 100)
+	result += " +-------------------------" + namelength * "-" + "-+----------+\n\n"
 
 	result += "Umsatzsteuer wird nicht erhoben, da Kreativität trifft Technik e.V. als Kleinunternehmen\n"
 	result += "der Regelung des § 19 Abs. 1 UStG unterfällt.\n\n"
