@@ -2,7 +2,10 @@ public class Device {
 	private Posix.termios newtio;
 	private Posix.termios restoretio;
 	public int fd=-1;
+	IOChannel io_read;
 	public int byterate;
+
+	public signal void received_barcode(string barcode);
 
 	public Device(string device, int rate, int bits, int stopbits) {
 		Posix.speed_t baudrate = Posix.B9600;
@@ -11,7 +14,7 @@ public class Device {
 
 		if(fd < 0) {
 			fd = -1;
-			stderr.printf("Could not open device!\n");
+			error("Could not open device!\n");
 		}
 
 		Posix.tcflush(fd, Posix.TCIOFLUSH);
@@ -109,11 +112,50 @@ public class Device {
 		Posix.tcsetattr(fd, Posix.TCSANOW, newtio);
 
 		this.byterate = rate/bits;
+
+		io_read = new IOChannel.unix_new(fd);
+		if(!(io_read.add_watch(IOCondition.IN | IOCondition.HUP, device_read) != 0)) {
+			error("Could not bind IOChannel");
+		}
+	}
+	private bool device_read(IOChannel gio, IOCondition cond) {
+		IOStatus ret;
+		string msg;
+		size_t len, term_char;
+
+		if((cond & IOCondition.HUP) == IOCondition.HUP)
+			stdout.printf("HUP. Do something");
+
+		try {
+			ret = gio.read_line(out msg, out len, out term_char);
+			msg = msg[0:(long)term_char];
+
+			if(msg.has_prefix("USER ") || msg.has_prefix("AMOUNT ")) {
+				if(!check_code39_checksum(msg))
+					received_barcode("SCANNER RETURNED INCORRECT DATA");
+				else  {/* remove checksum */
+					msg = msg[0:-2];
+					received_barcode(msg);
+				}
+			}
+
+		}
+		catch(IOChannelError e) {
+			stderr.printf("IOChannel Error: %s", e.message);
+			return false;
+		}
+		catch(ConvertError e) {
+			stderr.printf("Convert Error: %s", e.message);
+			return false;
+		}
+		return true;
 	}
 
+#if 0
 	private ssize_t read(void *buf, size_t count) {
 		return Posix.read(fd, buf, count);
 	}
+#endif
 
 	private ssize_t write(void *buf, size_t count) {
 		ssize_t size = Posix.write(fd, buf, count);
@@ -121,6 +163,7 @@ public class Device {
 		return size;
 	}
 
+#if 0
 	public string receive() {
 		char[] detected = {};
 		char buf[64];
@@ -158,6 +201,7 @@ public class Device {
 			}
 		}
 	}
+#endif
 
 	private bool check_code39_checksum(string data) {
 		int result = 0;
