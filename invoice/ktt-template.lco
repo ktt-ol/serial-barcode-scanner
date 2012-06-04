@@ -6,6 +6,7 @@
 \usepackage{graphicx}
 \usepackage{pgf}
 \usepackage{calc}
+\usepackage[right]{eurosym}
 
 %%
 %% This is file `DIN.lco',
