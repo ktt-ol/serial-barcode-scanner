@@ -265,8 +265,26 @@ def monthly(timestamp = time.time()):
 	# CC: KtT Schatzmeister <schatzmeister@kreativitaet-trifft-oldenburg.de>
 	print("monthly invoice()")
 
-def backup(timestamp = time.time()):
-	print("backup()")
+def backup():
+	timestamp = time.time()
+	dt = datetime.datetime.fromtimestamp(timestamp)
+
+	msg = MIMEMultipart()
+	msg["From"] = "KtT-Shopsystem <shop@kreativitaet-trifft-technik.de>"
+	msg["Date"] = email.utils.formatdate(timestamp, True)
+	msg["To"]   = "KtT-Shopsystem Backups <shop-backup@kreativitaet-trifft-technik.de>"
+	msg["Subject"] = "Backup KtT-Shopsystem %04d-%02d-%02d %02d:%02d" % (dt.year, dt.month, dt.day, dt.hour, dt.minute)
+	msg.preamble = "Please use a MIME aware email client!"
+
+	msg.attach(MIMEText("You can find a backup of 'shop.db' attached to this mail.", 'plain', 'utf-8'))
+
+	dbfile = open('shop.db', 'rb')
+	attachment = MIMEApplication(dbfile.read())
+	attachment.add_header('Content-Disposition', 'attachment', filename = 'shop.db')
+	msg.attach(attachment)
+	dbfile.close()
+
+	send_mail(msg, "shop-backup@kreativitaet-trifft-technik.de")
 
 def get_stock_data():
 	connection = sqlite3.connect('shop.db')
@@ -313,9 +331,6 @@ def gen_stock_mail():
 
 def weekly():
 	send_mail(gen_stock_mail(), "einkauf@kreativitaet-trifft-technik.de")
-
-def backup():
-	pass # TODO
 
 if sys.argv[1] == "daily":
 	daily()
