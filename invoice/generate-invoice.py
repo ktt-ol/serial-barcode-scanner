@@ -98,10 +98,13 @@ def generate_invoice_tex(user, title, subject, start=0, stop=0, temporary=False)
 	result+= "\t\twir erlauben uns, Ihnen für den Verzehr von Speisen und Getränken wie folgt zu berechnen:\n\n"
 
 	result += "\t\t\\begin{footnotesize}\n"
-	result += "\t\t\t\\begin{longtable}{|l|l|l|l|}\n"
+	result += "\t\t\t\\begin{longtable}{|p{2cm}|p{1.8cm}|p{5cm}|p{2cm}|}\n"
 	result += "\t\t\t\t\\hline\n"
-	result += "\t\t\t\tDatum		& Uhrzeit	& Artikel	& Preis\\\\\n"
+	result += "\t\t\t\t\\textbf{Datum} & \\textbf{Uhrzeit}	& \\textbf{Artikel} & \\textbf{Preis}\\\\\n"
 	result += "\t\t\t\t\\hline\n"
+	result += "\\endhead\n"
+	result += "\t\t\t\t\\hline\n"
+	result += "\\endfoot\n"
 
 	lastdate = ""
 	total = 0
@@ -109,14 +112,13 @@ def generate_invoice_tex(user, title, subject, start=0, stop=0, temporary=False)
 		total += row["price"]
 
 		if lastdate != row["date"]:
-			result += "\t\t\t\t%s\t& %s\t& %s\t& %d,%02d Euro\\\\\n" % (row["date"], row["time"], row["product"], row["price"] / 100, row["price"] % 100)
+			result += "\t\t\t\t%s\t& %s\t& %s\t& \\EUR{%d,%02d}\\\\\n" % (row["date"], row["time"], row["product"], row["price"] / 100, row["price"] % 100)
 			lastdate = row["date"]
 		else:
-			result += "\t\t\t\t%s\t& %s\t& %s\t& %d,%02d Euro\\\\\n" % ("           ", row["time"], row["product"], row["price"] / 100, row["price"] % 100)
+			result += "\t\t\t\t%s\t& %s\t& %s\t& \\EUR{%d,%02d}\\\\\n" % ("           ", row["time"], row["product"], row["price"] / 100, row["price"] % 100)
 
 	result += "\t\t\t\t\\hline\n"
-	result += "\t\t\t\t\\multicolumn{3}{|l|}{Summe:} & %d,%02d Euro\\\\\n" % (total / 100, total % 100)
-	result += "\t\t\t\t\\hline\n"
+	result += "\t\t\t\t\\multicolumn{3}{|l|}{Summe:} & \\EUR{%d,%02d}\\\\\n" % (total / 100, total % 100)
 	result += "\t\t\t\\end{longtable}\n"
 	result += "\t\t\\end{footnotesize}\n\n"
 
@@ -127,6 +129,9 @@ def generate_invoice_tex(user, title, subject, start=0, stop=0, temporary=False)
 		result += "\t\tBei dieser Abrechnung handelt es sich lediglich um einen Zwischenstand. Die\n"
 		result += "\t\tHauptrechnung wird einmal monatlich getrennt zugestellt und der Gesamtbetrag\n"
 		result += "\t\twird dann vom angegebenen Bankkonto eingezogen.\n\n"
+	else:
+		result += "\t\tDer Gesamtbetrag wird in den nächsten Tagen von dem angegebenen Bankkonto\n"
+		result += "\t\teingezogen.\n\n"
 
 	result += "\t\t\\closing{Mit freundlichen Grüßen}\n\n"
 
@@ -177,6 +182,9 @@ def generate_invoice_text(user, title, subject, start=0, stop=0, temporary=False
 		result += "Bei dieser Abrechnung handelt es sich lediglich um einen Zwischenstand. Die\n"
 		result += "Hauptrechnung wird einmal monatlich getrennt zugestellt und der Gesamtbetrag\n"
 		result += "wird dann vom angegebenen Bankkonto eingezogen.\n\n"
+	else:
+		result += "Der Gesamtbetrag wird in den nächsten Tagen von dem angegebenen Bankkonto\n"
+		result += "eingezogen.\n\n"
 
 	return result
 
@@ -262,8 +270,32 @@ def daily(timestamp = time.time()):
 			print("Can't send invoice for missing user with the following id:", user)
 
 def monthly(timestamp = time.time()):
-	# CC: KtT Schatzmeister <schatzmeister@kreativitaet-trifft-oldenburg.de>
-	print("monthly invoice()")
+	requested = datetime.datetime.fromtimestamp(timestamp)
+	# timestamps for previous month
+	dstop = requested.replace(hour = 8, minute = 0, second = 0, day = 16) - datetime.timedelta(seconds = 1)
+	if dstop > requested:
+		dstop = dstop.replace(month = dstop.month -1)
+	dstart = dstop.replace(month = dstop.month -1)
+	stop = int(dstop.strftime("%s"))
+	start = int(dstart.strftime("%s"))
+
+	title = "Getränkerechnung %04d/%02d" % (dstart.year, dstart.month)
+	number = 0
+
+	for user in get_users_with_purchases(start, stop):
+		number += 1
+		subject = "Rechnung Nr.%04d%02d5%03d" % (dstart.year, dstart.month, number)
+		userinfo = get_user_info(user)
+		if userinfo is not None:
+			receiver = "%s %s <%s>" % (userinfo["firstname"], userinfo["lastname"], userinfo["email"])
+			tex  = generate_invoice_tex(user, title, subject, start, stop, False)
+			msg  = generate_invoice_text(user, title, subject, start, stop, False)
+			pdf  = generate_pdf(tex)
+			mail = generate_mail(receiver, title, msg, pdf, timestamp, cc = "schatzmeister@kreativitaet-trifft-technik.de")
+			send_mail(mail, [userinfo["email"], "schatzmeister@kreativitaet-trifft-oldenburg.de"])
+			print("Sent invoice to", userinfo["firstname"], userinfo["lastname"])
+		else:
+			print("Can't send invoice for missing user with the following id:", user)
 
 def backup():
 	timestamp = time.time()
@@ -337,6 +369,6 @@ if sys.argv[1] == "daily":
 elif sys.argv[1] == "weekly":
 	weekly()
 elif sys.argv[1] == "monthly":
-	print("TODO: not yet implemented")
+	monthly()
 else:
 	print("not supported!")
