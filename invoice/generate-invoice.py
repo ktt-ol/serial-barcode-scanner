@@ -366,6 +366,7 @@ def weekly():
 
 if sys.argv[1] == "daily":
 	daily()
+	backup()
 elif sys.argv[1] == "weekly":
 	weekly()
 elif sys.argv[1] == "monthly":
