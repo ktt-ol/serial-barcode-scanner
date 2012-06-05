@@ -116,7 +116,7 @@ public class Device {
 		try {
 			io_read = new IOChannel.unix_new(fd);
 			io_read.set_line_term("\r\n", 2);
-			if(io_read.set_encoding("") != IOStatus.NORMAL)
+			if(io_read.set_encoding(null) != IOStatus.NORMAL)
 				error("Failed to set encoding");
 			if(!(io_read.add_watch(IOCondition.IN | IOCondition.HUP, device_read) != 0)) {
 				error("Could not bind IOChannel");
@@ -134,12 +134,7 @@ public class Device {
 			stdout.printf("HUP. Do something");
 
 		try {
-			stdout.printf("trying to read message\n");
-			if((ret = gio.read_line(out msg, out len, out term_char)) != IOStatus.NORMAL) {
-				received_barcode("SCANNER RETURNED INCORRET DATA");
-				return false;
-			}
-			stdout.printf("read message\n");
+			ret = gio.read_line(out msg, out len, out term_char);
 			msg = msg[0:(long)term_char];
 
 			if(msg.has_prefix("USER ") || msg.has_prefix("AMOUNT ")) {
@@ -150,7 +145,8 @@ public class Device {
 					received_barcode(msg);
 				}
 			}
-
+			else
+				received_barcode(msg);
 		}
 		catch(IOChannelError e) {
 			stderr.printf("IOChannel Error: %s", e.message);
