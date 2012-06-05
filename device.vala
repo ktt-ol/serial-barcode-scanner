@@ -131,7 +131,7 @@ public class Device {
 		size_t len, term_char;
 
 		if((cond & IOCondition.HUP) == IOCondition.HUP)
-			stdout.printf("HUP. Do something");
+			error("Lost device");
 
 		try {
 			ret = gio.read_line(out msg, out len, out term_char);
