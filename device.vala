@@ -159,56 +159,10 @@ public class Device {
 		return true;
 	}
 
-#if 0
-	private ssize_t read(void *buf, size_t count) {
-		return Posix.read(fd, buf, count);
-	}
-#endif
-
 	private ssize_t write(void *buf, size_t count) {
 		ssize_t size = Posix.write(fd, buf, count);
 		return size;
 	}
-
-#if 0
-	public string receive() {
-		char[] detected = {};
-		char buf[64];
-
-		while(true) {
-			int size = (int) this.read(buf, 64);
-
-			if(size <= 0)
-				error("serial device lost.\n");
-
-			for(int i = 0; i < size; i++) {
-				if(buf[i] != '\r' && buf[i] != '\n') {
-					detected += (char) buf[i];
-				} else {
-					if(detected.length > 0) {
-						detected += '\0';
-
-						if(((string) detected).has_prefix("USER ")) {
-							if(!check_code39_checksum((string) detected))
-								return "SCANNER RETURNED INCORRECT DATA";
-							else /* remove checksum */
-								detected[detected.length-2] = '\0';
-						}
-
-						if(((string) detected).has_prefix("AMOUNT ")) {
-							if(!check_code39_checksum((string) detected))
-								return "SCANNER RETURNED INCORRECT DATA";
-							else /* remove checksum */
-								detected[detected.length-2] = '\0';
-						}
-
-						return ((string) detected);
-					}
-				}
-			}
-		}
-	}
-#endif
 
 	private bool check_code39_checksum(string data) {
 		int result = 0;
