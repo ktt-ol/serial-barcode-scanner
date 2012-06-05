@@ -2,7 +2,7 @@ public class Device {
 	private Posix.termios newtio;
 	private Posix.termios restoretio;
 	public int fd=-1;
-	IOChannel io_read;
+	private IOChannel io_read;
 	public int byterate;
 
 	public signal void received_barcode(string barcode);
