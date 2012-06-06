@@ -3,6 +3,8 @@
 
 require "csv"
 
+#csv input "userid,firstname,lastname"
+
 @template = %q{
 	\documentclass[a4paper,landscape]{article}
 	\usepackage[utf8]{inputenc}
