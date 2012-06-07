@@ -137,7 +137,7 @@ public class Device {
 			ret = gio.read_line(out msg, out len, out term_char);
 			msg = msg[0:(long)term_char];
 
-			if(msg.has_prefix("USER ") || msg.has_prefix("AMOUNT ")) {
+			if(msg.has_prefix("USER ") || msg.has_prefix("STOCK") || msg.has_prefix("AMOUNT ")) {
 				if(!check_code39_checksum(msg))
 					received_barcode("SCANNER RETURNED INCORRECT DATA");
 				else  {/* remove checksum */
