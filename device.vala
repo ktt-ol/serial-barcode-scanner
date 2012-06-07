@@ -141,7 +141,7 @@ public class Device {
 				if(!check_code39_checksum(msg))
 					received_barcode("SCANNER RETURNED INCORRECT DATA");
 				else  {/* remove checksum */
-					msg = msg[0:-2];
+					msg = msg[0:-1];
 					received_barcode(msg);
 				}
 			}
