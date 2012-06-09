@@ -2,11 +2,14 @@
 \usepackage{ifpdf}
 \usepackage{longtable}
 \usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
 \usepackage[german]{babel}
 \usepackage{graphicx}
 \usepackage{pgf}
 \usepackage{calc}
 \usepackage[right]{eurosym}
+\usepackage{lmodern}
+\usepackage{textcomp}
 
 %%
 %% This is file `DIN.lco',
