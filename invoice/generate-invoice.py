@@ -294,7 +294,7 @@ def monthly(timestamp = time.time()):
 			msg  = generate_invoice_text(user, title, subject, start, stop, False)
 			pdf  = generate_pdf(tex)
 			mail = generate_mail(receiver, title, msg, pdf, timestamp, cc = "schatzmeister@kreativitaet-trifft-technik.de")
-			send_mail(mail, [userinfo["email"], "schatzmeister@kreativitaet-trifft-oldenburg.de"])
+			send_mail(mail, [userinfo["email"], "schatzmeister@kreativitaet-trifft-technik.de"])
 			print("Sent invoice to", userinfo["firstname"], userinfo["lastname"])
 		else:
 			print("Can't send invoice for missing user with the following id:", user)
