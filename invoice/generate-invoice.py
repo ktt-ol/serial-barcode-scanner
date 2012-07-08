@@ -208,7 +208,12 @@ def generate_mail(receiver, subject, message, pdfdata, timestamp=time.time(), cc
 
 	msg.attach(MIMEText(message, 'plain', 'utf-8'))
 
-	if pdfdata is not None:
+	if isinstance(pdfdata, dict):
+		for name, data in pdfdata.items():
+			pdf = MIMEApplication(data, 'pdf')
+			pdf.add_header('Content-Disposition', 'attachment', filename = name)
+			msg.attach(pdf)
+	elif pdfdata is not None:
 		pdf = MIMEApplication(pdfdata, 'pdf')
 		pdf.add_header('Content-Disposition', 'attachment', filename = 'rechnung.pdf')
 		msg.attach(pdf)
@@ -284,6 +289,8 @@ def monthly(timestamp = time.time()):
 	title = "Getränkerechnung %04d/%02d" % (dstart.year, dstart.month)
 	number = 0
 
+	invoices = {}
+
 	for user in get_users_with_purchases(start, stop):
 		number += 1
 		subject = "Rechnung Nr.%04d%02d5%03d" % (dstart.year, dstart.month, number)
@@ -293,11 +300,17 @@ def monthly(timestamp = time.time()):
 			tex  = generate_invoice_tex(user, title, subject, start, stop, False)
 			msg  = generate_invoice_text(user, title, subject, start, stop, False)
 			pdf  = generate_pdf(tex)
-			mail = generate_mail(receiver, title, msg, pdf, timestamp, cc = "schatzmeister@kreativitaet-trifft-technik.de")
-			send_mail(mail, [userinfo["email"], "schatzmeister@kreativitaet-trifft-technik.de"])
+			invoices["%04d%02d5%03d_%s_%s.pdf" % (dstart.year, dstart.month, number, userinfo["firstname"], userinfo["lastname"])] = pdf
+			mail = generate_mail(receiver, title, msg, pdf, timestamp)
+			send_mail(mail, userinfo["email"])
 			print("Sent invoice to", userinfo["firstname"], userinfo["lastname"])
 		else:
 			print("Can't send invoice for missing user with the following id:", user)
+	
+	mail = generate_mail("Schatzmeister <schatzmeister@kreativiteat-trifft-technik.de>",
+		"Rechnungen %04d%02d" % (dstart.year, dstart.month),
+		None, invoices, timestamp)
+	send_mail(mail, "schatzmeister@kreativiteat-trifft-technik.de")
 
 def backup():
 	timestamp = time.time()
