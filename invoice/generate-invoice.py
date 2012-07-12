@@ -307,10 +307,10 @@ def monthly(timestamp = time.time()):
 		else:
 			print("Can't send invoice for missing user with the following id:", user)
 	
-	mail = generate_mail("Schatzmeister <schatzmeister@kreativiteat-trifft-technik.de>",
+	mail = generate_mail("Schatzmeister <schatzmeister@kreativitaet-trifft-technik.de>",
 		"Rechnungen %04d%02d" % (dstart.year, dstart.month),
 		None, invoices, timestamp)
-	send_mail(mail, "schatzmeister@kreativiteat-trifft-technik.de")
+	send_mail(mail, "schatzmeister@kreativitaet-trifft-technik.de")
 
 def backup():
 	timestamp = time.time()
