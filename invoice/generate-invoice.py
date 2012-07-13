@@ -38,7 +38,7 @@ def get_price_info(product, timestamp, member = True):
 	if not member:
 		field = "guestprice"
 
-	c.execute("SELECT "+ field +" FROM prices WHERE product = ? AND valid_from <= ? ORDER BY valid_from ASC LIMIT 1;", (product,timestamp,))
+	c.execute("SELECT "+ field +" FROM prices WHERE product = ? AND valid_from <= ? ORDER BY valid_from DESC LIMIT 1;", (product,timestamp,))
 
 	for row in c:
 		result = int(row[0])
