@@ -132,7 +132,7 @@ def generate_invoice_tex(user, title, subject, start=0, stop=0, temporary=False)
 		result += "\t\tHauptrechnung wird einmal monatlich getrennt zugestellt und der Gesamtbetrag\n"
 		result += "\t\twird dann vom angegebenen Bankkonto eingezogen.\n\n"
 	else:
-		result += "\t\tDer Gesamtbetrag wird in den nächsten Tagen von dem angegebenen Bankkonto\n"
+		result += "\t\tDer Gesamtbetrag wird in 10 Tagen von dem angegebenen Bankkonto\n"
 		result += "\t\teingezogen.\n\n"
 
 	result += "\t\t\\closing{Mit freundlichen Grüßen}\n\n"
@@ -185,7 +185,7 @@ def generate_invoice_text(user, title, subject, start=0, stop=0, temporary=False
 		result += "Hauptrechnung wird einmal monatlich getrennt zugestellt und der Gesamtbetrag\n"
 		result += "wird dann vom angegebenen Bankkonto eingezogen.\n\n"
 	else:
-		result += "Der Gesamtbetrag wird in den nächsten Tagen von dem angegebenen Bankkonto\n"
+		result += "Der Gesamtbetrag wird in 10 Tagen von dem angegebenen Bankkonto\n"
 		result += "eingezogen.\n\n"
 
 	return result
