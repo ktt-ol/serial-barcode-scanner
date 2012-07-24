@@ -15,7 +15,7 @@ def TortendiagramUser():
 
 	cairoplot.pie_plot("tortendiagram", data, 640, 480)
 
-def TortendiagramUserRanking():
+def BalkendiagramUserRanking():
 	data = {}
 	names = []
 
@@ -57,7 +57,7 @@ def Lagerbestand(category):
 
 	day = 24 * 60 * 60
 	now = int(time.time())
-	
+
 	dates = []
 	dt = datetime.datetime.fromtimestamp(now)
 	dates.append("%04d-%02d-%02d" % (dt.year, dt.month, dt.day))
@@ -93,6 +93,8 @@ def Lagerbestand(category):
 		query = "name LIKE '%Gouda%' OR name LIKE '%Chipsfrisch%' OR name LIKE '%Sesamsticks%'"
 	elif category == "schoko":
 		query = "name = 'Ü-Ei' OR name LIKE '%Tender%' OR name = 'Knoppers' OR name LIKE '%m&m%'"
+	elif category == "balisto":
+		query = "name LIKE '%Balisto%'"
 	else:
 		return
 
@@ -101,7 +103,7 @@ def Lagerbestand(category):
 	for row in c:
 		data[row[0]] = [int(row[1])]
 		translation[row[2]] = row[0]
-	
+
 	current = now
 	currentid = 1
 	while current > (now - 21 * day):
@@ -122,7 +124,7 @@ def Lagerbestand(category):
 
 		current -= day
 		currentid += 1
-	
+
 	for k, v in data.iteritems():
 		data[k].reverse()
 	dates.reverse()
@@ -130,12 +132,64 @@ def Lagerbestand(category):
 	c.close()
 	cairoplot.dot_line_plot("lagerbestand_%s" % category, data, 640, 480, series_colors = colors, x_labels = dates, y_title = "Anzahl", axis=True, grid=True, series_legend = True)
 
+def TotalPurchasesPerDay():
+	day = 24 * 60 * 60
+	now = int(time.time())
 
-data = [ "getraenke", "haribo", "riegel", "other", "schoko" ]
+	colors = [
+		"black",
+	]
+
+	dates = []
+	dt = datetime.datetime.fromtimestamp(now)
+	dates.append("%04d-%02d-%02d" % (dt.year, dt.month, dt.day))
+
+	connection = sqlite3.connect('shop.db')
+	c = connection.cursor()
+	query = "SELECT SUM(memberprice) FROM purchases purch, prices WHERE purch.product = prices.product AND purch.user > 0 AND purch.timestamp > ? AND purch.timestamp < ? AND prices.valid_from = (SELECT valid_from FROM prices WHERE product = purch.product AND valid_from < purch.timestamp ORDER BY valid_from DESC LIMIT 1)"
+
+	current = now
+	data = []
+	while current > (now - 42 * day):
+		c.execute(query, (current-day, current))
+
+		dt = datetime.datetime.fromtimestamp(current - day)
+		dates.append("%04d-%02d-%02d" % (dt.year, dt.month, dt.day))
+
+		for row in c:
+			amount = row[0] or 0
+			data.append(int(amount)/100.0)
+
+		current -= day
+
+	data.reverse()
+	dates.reverse()
+
+	c.execute(query, (0, now))
+	total = c.fetchone()[0]
+
+	dt = datetime.datetime.fromtimestamp(now)
+	start = dt.replace(hour = 8, minute = 0, second = 0, day = 16)
+	if start > dt:
+		start = start.replace(month = start.month - 1)
+	c.execute(query, (start.strftime("%s"), now))
+	month = c.fetchone()[0]
+
+	c.close()
+
+	print "Total sales: %.2f€" % (total / 100.0)
+	print "Total sales this month: %.2f€" % (month / 100.0)
+	print "Average per day (last 42 days): %.2f€" % (sum(data)/len(data))
+
+	cairoplot.dot_line_plot("total_sales_per_day", data, 640, 480, series_colors = colors, x_labels = dates, y_title = "Euro", axis=True, grid=True)
 
 TortendiagramUser()
-TortendiagramProduct()
-TortendiagramUserRanking()
+BalkendiagramUserRanking()
 
+TortendiagramProduct()
+
+data = [ "getraenke", "haribo", "riegel", "other", "schoko", "balisto" ]
 for x in data:
 	Lagerbestand(x)
+
+TotalPurchasesPerDay()
