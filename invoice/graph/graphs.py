@@ -4,11 +4,18 @@ import cairoplot, datetime, sqlite3, time
 
 def TortendiagramUser():
 	data = {}
+	now = int(time.time())
+
+	query = "SELECT users.id, SUM(memberprice) FROM users, purchases purch, prices \
+			WHERE users.id = purch.user AND purch.product = prices.product AND \
+			purch.timestamp > ? AND purch.timestamp < ? AND prices.valid_from = \
+			(SELECT valid_from FROM prices WHERE product = purch.product AND \
+			valid_from < purch.timestamp ORDER BY valid_from DESC LIMIT 1) \
+			GROUP BY users.id"
 
 	connection = sqlite3.connect('shop.db')
 	c = connection.cursor()
-	c.execute("SELECT users.id, SUM(prices.memberprice) FROM users, purchases, prices " +
-			  "WHERE users.id = purchases.user AND purchases.product = prices.product GROUP BY users.id")
+	c.execute(query, (0, now))
 	for row in c:
 		data["%d (%d.%d Euro)" %(row[0], row[1] / 100, row[1] % 100)] = row[1]
 	c.close()
@@ -18,11 +25,18 @@ def TortendiagramUser():
 def BalkendiagramUserRanking():
 	data = {}
 	names = []
+	now = int(time.time())
+
+	query = "SELECT firstname, lastname, SUM(memberprice) FROM users, purchases purch, prices \
+			WHERE users.id = purch.user AND purch.product = prices.product AND \
+			purch.timestamp > ? AND purch.timestamp < ? AND prices.valid_from = \
+			(SELECT valid_from FROM prices WHERE product = purch.product AND \
+			valid_from < purch.timestamp ORDER BY valid_from DESC LIMIT 1) \
+			GROUP BY users.id"
 
 	connection = sqlite3.connect('shop.db')
 	c = connection.cursor()
-	c.execute("SELECT users.firstname, users.lastname, SUM(prices.memberprice) FROM users, purchases, prices " +
-			  "WHERE users.id = purchases.user AND purchases.product = prices.product GROUP BY users.id")
+	c.execute(query, (0, now))
 	for row in c:
 		data["%s %s (%d.%d Euro)" % (row[0], row[1], row[2] / 100, row[2] % 100)] = row[2]
 	c.close()
