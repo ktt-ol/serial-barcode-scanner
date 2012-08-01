@@ -140,7 +140,7 @@ public class Database {
 
 		this.price_stmt.reset();
 		this.price_stmt.bind_text(1, "%llu".printf(article));
-		this.price_stmt.bind_text(1, "%lld".printf(timestamp));
+		this.price_stmt.bind_text(2, "%lld".printf(timestamp));
 
 		int rc = this.price_stmt.step();
 
@@ -151,10 +151,10 @@ public class Database {
 				else
 					return this.price_stmt.column_int(1);
 			case Sqlite.DONE:
-				stderr.printf("unbekanntes Produkt: %llu", article);
+				stderr.printf("unbekanntes Produkt: %llu\n", article);
 				return 0;
 			default:
-				stderr.printf("[interner Fehler: %d]", rc);
+				stderr.printf("[interner Fehler: %d]\n", rc);
 				return 0;
 		}
 	}
