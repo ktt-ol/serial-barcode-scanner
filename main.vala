@@ -106,7 +106,7 @@ public static bool interpret(string data) {
 		}
 
 		if(db.buy(id)) {
-			stdout.printf("[%lld] gekaufter Artikel: %s\n", timestamp, db.get_product_name(id));
+			stdout.printf("[%lld] gekaufter Artikel: %s (%d,%02d €)\n", timestamp, db.get_product_name(id), db.get_product_price(id)/100, db.get_product_price(id) % 100);
 			return true;
 		} else {
 			stdout.printf("[%lld] Kauf fehlgeschlagen!\n", timestamp);

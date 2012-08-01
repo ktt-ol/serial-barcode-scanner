@@ -8,6 +8,7 @@ public class Database {
 	private Sqlite.Statement undo_stmt3;
 	private Sqlite.Statement stock_stmt1;
 	private Sqlite.Statement stock_stmt2;
+	private Sqlite.Statement price_stmt;
 	int32 user = 0;
 	uint64 product = 0;
 	bool logged_in = false;
@@ -20,6 +21,7 @@ public class Database {
 	private static string undo_query3 = "UPDATE products SET amount = amount + 1 WHERE id = ?";
 	private static string stock_query1 = "INSERT INTO restock ('user', 'product', 'amount', 'timestamp') VALUES (?, ?, ?, ?)";
 	private static string stock_query2 = "UPDATE products SET amount = amount + ? WHERE id = ?";
+	private static string price_query = "SELECT memberprice, guestprice FROM prices WHERE product = ? AND valid_from <= ? ORDER BY valid_from DESC LIMIT 1";
 
 	public Database(string file) {
 		int rc;
@@ -67,6 +69,11 @@ public class Database {
 		rc = this.db.prepare_v2(stock_query2, -1, out stock_stmt2);
 		if(rc != Sqlite.OK) {
 			error("could not prepare second stock statement!");
+		}
+
+		rc = this.db.prepare_v2(price_query, -1, out price_stmt);
+		if(rc != Sqlite.OK) {
+			error("could not prepare price statement!");
 		}
 
 	}
@@ -124,6 +131,31 @@ public class Database {
 				return "unbekanntes Produkt: %llu".printf(article);
 			default:
 				return "[interner Fehler: %d]".printf(rc);
+		}
+	}
+
+	public int get_product_price(uint64 article) {
+		int64 timestamp = (new DateTime.now_utc()).to_unix();
+		bool member = user != 0;
+
+		this.price_stmt.reset();
+		this.price_stmt.bind_text(1, "%llu".printf(article));
+		this.price_stmt.bind_text(1, "%lld".printf(timestamp));
+
+		int rc = this.price_stmt.step();
+
+		switch(rc) {
+			case Sqlite.ROW:
+				if(member)
+					return this.price_stmt.column_int(0);
+				else
+					return this.price_stmt.column_int(1);
+			case Sqlite.DONE:
+				stderr.printf("unbekanntes Produkt: %llu", article);
+				return 0;
+			default:
+				stderr.printf("[interner Fehler: %d]", rc);
+				return 0;
 		}
 	}
 
