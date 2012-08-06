@@ -24,6 +24,9 @@ public void restock_dialog() {
 		var product = (id != null) ? uint64.parse(id) : 0;
 		var amount = (int) spinner.get_value();
 
+		int64 timestamp = (new DateTime.now_utc()).to_unix();
+		stdout.printf("[%lld] restock: %lld - %lld\n", timestamp, product, amount);
+
 		if(db.restock(product, amount))
 			window.hide();
 	});
