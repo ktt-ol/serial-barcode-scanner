@@ -28,7 +28,7 @@ public void init_restock_dialog() {
 		var amount = (int) spinner.get_value();
 
 		int64 timestamp = (new DateTime.now_utc()).to_unix();
-		stdout.printf("[%lld] restock: %lld - %lld\n", timestamp, product, amount);
+		stdout.printf("[%lld] restock: %lld - %d\n", timestamp, product, amount);
 
 		if(db.restock(product, amount))
 			window.hide();
