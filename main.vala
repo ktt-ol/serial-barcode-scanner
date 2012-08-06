@@ -77,34 +77,8 @@ public static bool interpret(string data) {
 			stdout.printf("[%lld] You must be logged in to go into the stock mode\n", timestamp);
 			return false;
 		} else {
-			stdout.printf("[%lld] Going into stock mode!\n", timestamp);
-			return db.go_into_stock_mode();
-		}
-	} else if(db.is_in_stock_mode()) {
-		if(!data.has_prefix("AMOUNT")) {
-			uint64 id = uint64.parse(data);
-
-			/* check if data has valid format */
-			if(data != "%llu".printf(id)) {
-				stdout.printf("[%lld] ungültiges Produkt: %s\n", timestamp, data);
-				return false;
-			}
-
-			stdout.printf("[%lld] wähle Produkt: %s\n", timestamp, db.get_product_name(id));
-
-			return db.choose_stock_product(id);
-		} else {
-			uint64 amount = uint64.parse(data.substring(7));
-
-			/* check if data has valid format */
-			if(data != "AMOUNT %llu".printf(amount)) {
-				stdout.printf("[%lld] ungültiges Produkt: %s\n", timestamp, data);
-				return false;
-			}
-
-			stdout.printf("[%lld] zum Bestand hinzufügen: %llu\n", timestamp, amount);
-
-			return db.add_stock_product(amount);
+			restock_dialog();
+			return true;
 		}
 	} else {
 		uint64 id = uint64.parse(data);

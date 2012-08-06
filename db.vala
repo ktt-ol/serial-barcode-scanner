@@ -11,9 +11,7 @@ public class Database {
 	private Sqlite.Statement stock_stmt2;
 	private Sqlite.Statement price_stmt;
 	int32 user = 0;
-	uint64 product = 0;
 	bool logged_in = false;
-	bool stock_mode = false;
 	private static string product_query = "SELECT name FROM products WHERE id = ?";
 	private static string products_query = "SELECT id, name FROM products";
 	private static string purchase_query1 = "INSERT INTO purchases ('user', 'product', 'timestamp') VALUES (?, ?, ?)";
@@ -93,7 +91,6 @@ public class Database {
 
 	public bool logout() {
 		this.user = 0;
-		this.stock_mode = false;
 		this.logged_in = false;
 		return true;
 	}
@@ -216,22 +213,6 @@ public class Database {
 		return false;
 	}
 
-	public bool choose_stock_product(uint64 id) {
-		if(is_in_stock_mode()) {
-			product = id;
-			return true;
-		}
-		return false;
-	}
-
-	public bool add_stock_product(uint64 amount) {
-		if(is_in_stock_mode() && product != 0) {
-			return restock(this.product, amount);
-		}
-
-		return false;
-	}
-
 	public bool restock(uint64 product, uint64 amount) {
 		if(is_logged_in()) {
 			int rc = 0;
@@ -261,17 +242,7 @@ public class Database {
 		return false;
 	}
 
-	public bool go_into_stock_mode() {
-		if(is_logged_in())
-			stock_mode = true;
-		return stock_mode;
-	}
-
 	public bool is_logged_in() {
 		return this.logged_in;
-	}
-
-	public bool is_in_stock_mode() {
-		return this.stock_mode;
 	}
 }
