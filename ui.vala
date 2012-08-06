@@ -16,7 +16,7 @@ public void restock_dialog() {
 	var ok = builder.get_object("button-restock-add") as Gtk.Button;
 
 	cancel.clicked.connect(() => {
-		window.destroy();
+		window.hide();
 	});
 
 	ok.clicked.connect(() => {
@@ -25,6 +25,6 @@ public void restock_dialog() {
 		var amount = (int) spinner.get_value();
 
 		if(db.restock(product, amount))
-			window.destroy();
+			window.hide();
 	});
 }
