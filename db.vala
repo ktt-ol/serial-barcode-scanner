@@ -1,6 +1,7 @@
 public class Database {
 	private Sqlite.Database db;
 	private Sqlite.Statement product_stmt;
+	private Sqlite.Statement products_stmt;
 	private Sqlite.Statement purchase_stmt1;
 	private Sqlite.Statement purchase_stmt2;
 	private Sqlite.Statement undo_stmt1;
@@ -14,6 +15,7 @@ public class Database {
 	bool logged_in = false;
 	bool stock_mode = false;
 	private static string product_query = "SELECT name FROM products WHERE id = ?";
+	private static string products_query = "SELECT id, name FROM products";
 	private static string purchase_query1 = "INSERT INTO purchases ('user', 'product', 'timestamp') VALUES (?, ?, ?)";
 	private static string purchase_query2 = "UPDATE products SET amount = amount - 1 WHERE id = ?";
 	private static string undo_query1 = "SELECT product FROM purchases WHERE user = ? ORDER BY timestamp DESC LIMIT 1";
@@ -44,6 +46,11 @@ public class Database {
 		rc = this.db.prepare_v2(product_query, -1, out product_stmt);
 		if(rc != Sqlite.OK) {
 			error("could not prepare article statement!");
+		}
+
+		rc = this.db.prepare_v2(products_query, -1, out products_stmt);
+		if(rc != Sqlite.OK) {
+			error("could not prepare products statement!");
 		}
 
 		rc = this.db.prepare_v2(undo_query1, -1, out undo_stmt1);
@@ -89,6 +96,16 @@ public class Database {
 		this.stock_mode = false;
 		this.logged_in = false;
 		return true;
+	}
+
+	public Gee.HashMap<string,string> get_products() {
+		var result = new Gee.HashMap<string,string>(null, null);
+		this.products_stmt.reset();
+
+		while(this.products_stmt.step() == Sqlite.ROW)
+			result[this.products_stmt.column_text(0)] = this.products_stmt.column_text(1);
+
+		return result;
 	}
 
 	public bool buy(uint64 article) {
@@ -209,6 +226,14 @@ public class Database {
 
 	public bool add_stock_product(uint64 amount) {
 		if(is_in_stock_mode() && product != 0) {
+			return restock(this.product, amount);
+		}
+
+		return false;
+	}
+
+	public bool restock(uint64 product, uint64 amount) {
+		if(is_logged_in()) {
 			int rc = 0;
 			int64 timestamp = (new DateTime.now_utc()).to_unix();
 

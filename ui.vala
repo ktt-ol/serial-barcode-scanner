@@ -1,0 +1,30 @@
+public void restock_dialog() {
+	var window = builder.get_object("restock_dialog") as Gtk.Window;
+	window.show_all();
+
+	/* product combobox */
+	var box = builder.get_object("comboboxtext1") as Gtk.ComboBoxText;
+	foreach(var entry in db.get_products().entries) {
+		box.append(entry.key, entry.value);
+	}
+
+	/* spinner button */
+	var spinner = builder.get_object("spinbutton1") as Gtk.SpinButton;
+
+	/* dialog buttons */
+	var cancel = builder.get_object("button-restock-cancel") as Gtk.Button;
+	var ok = builder.get_object("button-restock-add") as Gtk.Button;
+
+	cancel.clicked.connect(() => {
+		window.destroy();
+	});
+
+	ok.clicked.connect(() => {
+		var id = box.get_active_id();
+		var product = (id != null) ? uint64.parse(id) : 0;
+		var amount = (int) spinner.get_value();
+
+		if(db.restock(product, amount))
+			window.destroy();
+	});
+}

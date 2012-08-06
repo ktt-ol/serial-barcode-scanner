@@ -1,7 +1,10 @@
 public Device dev;
 public Database db;
+public Gtk.Builder builder;
 
 public static int main(string[] args) {
+	Gtk.init (ref args);
+
 	if(args.length < 2) {
 		stderr.printf("%s <device>\n", args[0]);
 		return 1;
@@ -9,13 +12,20 @@ public static int main(string[] args) {
 
 	dev = new Device(args[1], 9600, 8, 1);
 	db = new Database("shop.db");
+	builder = new Gtk.Builder();
+	try {
+		builder.add_from_file("user-interface.ui");
+	} catch(Error e) {
+		stderr.printf ("Could not load UI: %s\n", e.message);
+		return 1;
+	}
 
 	dev.received_barcode.connect((data) => {
 		if(interpret(data))
 			dev.blink(10);
 	});
 
-	new MainLoop(null, false).run();
+	Gtk.main();
 	return 0;
 }
 
