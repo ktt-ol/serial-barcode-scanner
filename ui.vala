@@ -1,6 +1,9 @@
-public void restock_dialog() {
+public void init_ui() {
+	init_restock_dialog();
+}
+
+public void init_restock_dialog() {
 	var window = builder.get_object("restock_dialog") as Gtk.Window;
-	window.show();
 
 	/* product combobox */
 	var box = builder.get_object("comboboxtext1") as Gtk.ComboBoxText;
@@ -30,4 +33,8 @@ public void restock_dialog() {
 		if(db.restock(product, amount))
 			window.hide();
 	});
+}
+
+public void show_restock_dialog() {
+	(builder.get_object("restock_dialog") as Gtk.Window).show();
 }

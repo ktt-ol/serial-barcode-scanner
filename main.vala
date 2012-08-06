@@ -25,6 +25,8 @@ public static int main(string[] args) {
 			dev.blink(10);
 	});
 
+	init_ui();
+
 	Gtk.main();
 	return 0;
 }
@@ -77,7 +79,7 @@ public static bool interpret(string data) {
 			stdout.printf("[%lld] You must be logged in to go into the stock mode\n", timestamp);
 			return false;
 		} else {
-			restock_dialog();
+			show_restock_dialog();
 			return true;
 		}
 	} else {
