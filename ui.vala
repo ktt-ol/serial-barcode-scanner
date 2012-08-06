@@ -19,6 +19,8 @@ public void init_restock_dialog() {
 	var ok = builder.get_object("button-restock-add") as Gtk.Button;
 
 	cancel.clicked.connect(() => {
+		spinner.value = 0.0;
+		box.active = -1;
 		window.hide();
 	});
 
@@ -30,8 +32,11 @@ public void init_restock_dialog() {
 		int64 timestamp = (new DateTime.now_utc()).to_unix();
 		stdout.printf("[%lld] restock: %lld - %d\n", timestamp, product, amount);
 
-		if(db.restock(product, amount))
+		if(db.restock(product, amount)) {
+			spinner.value = 0.0;
+			box.active = -1;
 			window.hide();
+		}
 	});
 }
 
