@@ -1,6 +1,6 @@
 public void restock_dialog() {
 	var window = builder.get_object("restock_dialog") as Gtk.Window;
-	window.show_all();
+	window.show();
 
 	/* product combobox */
 	var box = builder.get_object("comboboxtext1") as Gtk.ComboBoxText;
