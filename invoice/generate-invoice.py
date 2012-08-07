@@ -190,6 +190,27 @@ def generate_invoice_text(user, title, subject, start=0, stop=0, temporary=False
 
 	return result
 
+def get_invoice_amount(user, start=0, stop=0):
+	if user < 0:
+		return 0
+	else:
+		query = "SELECT SUM(memberprice) FROM users, purchases purch, prices \
+				WHERE users.id = ? AND users.id = purch.user AND purch.product = prices.product \
+				AND purch.timestamp >= ? AND purch.timestamp <= ? AND prices.valid_from = \
+				(SELECT valid_from FROM prices WHERE product = purch.product AND \
+				valid_from < purch.timestamp ORDER BY valid_from DESC LIMIT 1) GROUP BY users.id"
+		amount = 0
+
+		connection = sqlite3.connect('shop.db')
+		c = connection.cursor()
+		c.execute(query, (user, start, stop))
+
+		for row in c:
+			amount += row[0]
+
+		c.close()
+		return amount
+
 def generate_mail(receiver, subject, message, pdfdata, timestamp=time.time(), cc = None):
 	msg = MIMEMultipart()
 	msg["From"] = "KtT-Shopsystem <shop@kreativitaet-trifft-technik.de>"
@@ -210,9 +231,14 @@ def generate_mail(receiver, subject, message, pdfdata, timestamp=time.time(), cc
 
 	if isinstance(pdfdata, dict):
 		for name, data in pdfdata.items():
-			pdf = MIMEApplication(data, 'pdf')
-			pdf.add_header('Content-Disposition', 'attachment', filename = name)
-			msg.attach(pdf)
+			if name.endswith("pdf"):
+				pdf = MIMEApplication(data, 'pdf')
+				pdf.add_header('Content-Disposition', 'attachment', filename = name)
+				msg.attach(pdf)
+			else:
+				txt = MIMEText(data, 'plain', 'utf-8')
+				txt.add_header('Content-Disposition', 'attachment', filename = name)
+				msg.attach(txt)
 	elif pdfdata is not None:
 		pdf = MIMEApplication(pdfdata, 'pdf')
 		pdf.add_header('Content-Disposition', 'attachment', filename = 'rechnung.pdf')
@@ -290,6 +316,7 @@ def monthly(timestamp = time.time()):
 	number = 0
 
 	invoices = {}
+	invoicedata = []
 
 	for user in get_users_with_purchases(start, stop):
 		number += 1
@@ -301,12 +328,19 @@ def monthly(timestamp = time.time()):
 			msg  = generate_invoice_text(user, title, subject, start, stop, False)
 			pdf  = generate_pdf(tex)
 			invoices["%04d%02d5%03d_%s_%s.pdf" % (dstart.year, dstart.month, number, userinfo["firstname"], userinfo["lastname"])] = pdf
+			amount = get_invoice_amount(user, start, stop)
+			invoicedata.append({"userid": user, "lastname": userinfo["lastname"], "firstname": userinfo["firstname"], "invoiceid": "%04d%02d5%03d" % (dstart.year, dstart.month, number), "amount": amount})
 			mail = generate_mail(receiver, title, msg, pdf, timestamp)
 			send_mail(mail, userinfo["email"])
 			print("Sent invoice to", userinfo["firstname"], userinfo["lastname"])
 		else:
 			print("Can't send invoice for missing user with the following id:", user)
-	
+
+	csvinvoicedata = ""
+	for entry in invoicedata:
+		csvinvoicedata += "%d,%s,%s,%s,%d.%02d\n" % (entry["userid"], entry["lastname"], entry["firstname"], entry["invoiceid"], entry["amount"] / 100, entry["amount"] % 100)
+	invoices["invoicedata.csv"] = csvinvoicedata
+
 	mail = generate_mail("Schatzmeister <schatzmeister@kreativitaet-trifft-technik.de>",
 		"Rechnungen %04d%02d" % (dstart.year, dstart.month),
 		None, invoices, timestamp)
