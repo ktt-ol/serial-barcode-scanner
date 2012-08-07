@@ -293,7 +293,7 @@ def monthly(timestamp = time.time()):
 
 	for user in get_users_with_purchases(start, stop):
 		number += 1
-		subject = "Rechnung Nr.%04d%02d5%03d" % (dstart.year, dstart.month, number)
+		subject = "Rechnung Nr. %04d%02d5%03d" % (dstart.year, dstart.month, number)
 		userinfo = get_user_info(user)
 		if userinfo is not None:
 			receiver = "%s %s <%s>" % (userinfo["firstname"], userinfo["lastname"], userinfo["email"])
