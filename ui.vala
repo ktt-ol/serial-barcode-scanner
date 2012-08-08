@@ -88,6 +88,40 @@ public void show_stock_dialog() {
 	(builder.get_object("stock-dialog") as Gtk.Window).show();
 }
 
+public void stock_dialog_handle_response(Gtk.Dialog dialog, int responseid) {
+	if(responseid == 1) {
+		stock_dialog_print(dialog);
+	} else {
+		dialog.hide();
+	}
+}
+
+public void stock_dialog_print(Gtk.Window parentw) {
+	var operation = new Gtk.PrintOperation();
+
+	operation.begin_print.connect(begin_print);
+	operation.draw_page.connect(draw_page);
+	operation.end_print.connect(end_print);
+
+	try {
+		operation.run(Gtk.PrintOperationAction.PRINT_DIALOG, parentw);
+	} catch(Error e) {
+		error("error while printing: %s\n", e.message);
+	}
+}
+
+public void begin_print(Gtk.PrintContext context) {
+	/* TODO: find out how many pages we need */
+}
+
+public void draw_page(Gtk.PrintContext context, int nr) {
+	/* TODO: do some cairo magic */
+}
+
+public void end_print(Gtk.PrintContext context) {
+	/* TODO: free allocated resources */
+}
+
 [PrintfFormat]
 public void write_to_log(string format, ...) {
 	var arguments = va_list();
