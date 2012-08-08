@@ -26,14 +26,23 @@ public class Device {
 	public Device(string device, int rate, int bits, int stopbits) {
 		Posix.speed_t baudrate = Posix.B9600;
 
-		/* check lock file */
-		lockfile = File.new_for_path("/var/lock/LCK.." + device.replace("/dev/", ""));
-		if(lockfile.query_exists()) {
-			error("device is locked!\n");
-			/* TODO: check pid */
-		}
-
 		try {
+			/* check lock file */
+			lockfile = File.new_for_path("/var/lock/LCK.." + device.replace("/dev/", ""));
+			if(lockfile.query_exists()) {
+				int pid = -1;
+				uint8[] data;
+				if(lockfile.load_contents(null, out data, null)) {
+					pid = int.parse((string) data);
+				} else {
+					error("Can't read lock file!\n");
+				}
+
+				if(Posix.kill(pid, 0) == 0) {
+					error("serial device is locked!\n");
+				}
+			}
+
 			var pid = "%d\n".printf(Posix.getpid());
 			lockfile.replace_contents(pid.data, null, false, FileCreateFlags.NONE, null);
 
