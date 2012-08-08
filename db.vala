@@ -13,6 +13,14 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+public struct StockEntry {
+	public string id;
+	public string name;
+	public int amount;
+	public string memberprice;
+	public string guestprice;
+}
+
 public class Database {
 	private Sqlite.Database db;
 	private Sqlite.Statement product_stmt;
@@ -25,6 +33,7 @@ public class Database {
 	private Sqlite.Statement stock_stmt1;
 	private Sqlite.Statement stock_stmt2;
 	private Sqlite.Statement price_stmt;
+	private Sqlite.Statement stock_status_stmt;
 	int32 user = 0;
 	bool logged_in = false;
 	private static string product_query = "SELECT name FROM products WHERE id = ?";
@@ -37,6 +46,7 @@ public class Database {
 	private static string stock_query1 = "INSERT INTO restock ('user', 'product', 'amount', 'timestamp') VALUES (?, ?, ?, ?)";
 	private static string stock_query2 = "UPDATE products SET amount = amount + ? WHERE id = ?";
 	private static string price_query = "SELECT memberprice, guestprice FROM prices WHERE product = ? AND valid_from <= ? ORDER BY valid_from DESC LIMIT 1";
+	private static string stock_status_query = "SELECT id, name, amount, memberprice, guestprice FROM products, prices WHERE products.id = prices.product AND products.amount > 0 AND prices.valid_from = (SELECT valid_from FROM prices WHERE product = products.id ORDER BY valid_from DESC LIMIT 1)";
 
 	public Database(string file) {
 		int rc;
@@ -96,6 +106,10 @@ public class Database {
 			error("could not prepare price statement!");
 		}
 
+		rc = this.db.prepare_v2(stock_status_query, -1, out stock_status_stmt);
+		if(rc != Sqlite.OK) {
+			error("could not prepare stock status statement!");
+		}
 	}
 
 	public bool login(int32 id) {
@@ -116,6 +130,28 @@ public class Database {
 
 		while(this.products_stmt.step() == Sqlite.ROW)
 			result[this.products_stmt.column_text(0)] = this.products_stmt.column_text(1);
+
+		return result;
+	}
+
+	public Gee.List<StockEntry?> get_stock() {
+		var result = new Gee.ArrayList<StockEntry?>();
+		this.stock_status_stmt.reset();
+
+		while(this.stock_status_stmt.step() == Sqlite.ROW) {
+			StockEntry entry = {
+				this.stock_status_stmt.column_text(0),
+				this.stock_status_stmt.column_text(1),
+				this.stock_status_stmt.column_int(2),
+				null,
+				null
+			};
+
+			entry.memberprice = "%d.%02d€".printf(this.stock_status_stmt.column_int(3) / 100, this.stock_status_stmt.column_int(3) % 100);
+			entry.guestprice = "%d.%02d€".printf(this.stock_status_stmt.column_int(4) / 100, this.stock_status_stmt.column_int(4) % 100);
+
+			result.add(entry);
+		}
 
 		return result;
 	}

@@ -21,7 +21,6 @@ public void init_ui() {
 public void init_main_window() {
 	var window = builder.get_object("main") as Gtk.Window;
 
-	/* TODO */
 	window.destroy.connect(() => {
 		Gtk.main_quit();
 	});
@@ -74,6 +73,19 @@ public void show_about_dialog() {
 
 public void show_main_window() {
 	(builder.get_object("main") as Gtk.Window).show();
+}
+
+public void show_stock_dialog() {
+	var liststore = builder.get_object("stock-store") as Gtk.ListStore;
+	liststore.clear();
+
+	Gtk.TreeIter iter;
+	foreach(var item in db.get_stock()) {
+		liststore.append(out iter);
+		liststore.set(iter, 0, item.id, 1, item.name, 2, item.amount, 3, item.memberprice, 4, item.guestprice, -1);
+	}
+
+	(builder.get_object("stock-dialog") as Gtk.Window).show();
 }
 
 [PrintfFormat]
