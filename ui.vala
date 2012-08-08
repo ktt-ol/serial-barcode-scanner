@@ -99,9 +99,8 @@ public void stock_dialog_handle_response(Gtk.Dialog dialog, int responseid) {
 public void stock_dialog_print(Gtk.Window parentw) {
 	var operation = new Gtk.PrintOperation();
 
-	operation.begin_print.connect(begin_print);
+	operation.n_pages = 1; // FIXME: implement correct paging
 	operation.draw_page.connect(draw_page);
-	operation.end_print.connect(end_print);
 
 	try {
 		operation.run(Gtk.PrintOperationAction.PRINT_DIALOG, parentw);
@@ -110,16 +109,71 @@ public void stock_dialog_print(Gtk.Window parentw) {
 	}
 }
 
-public void begin_print(Gtk.PrintContext context) {
-	/* TODO: find out how many pages we need */
-}
-
 public void draw_page(Gtk.PrintContext context, int nr) {
-	/* TODO: do some cairo magic */
-}
+	uint8 HEADER_HEIGHT = 100;
+	uint8 LEFT_MARGIN   = 25;
 
-public void end_print(Gtk.PrintContext context) {
-	/* TODO: free allocated resources */
+	var cr = context.get_cairo_context();
+	int height, x, y = HEADER_HEIGHT;
+	Value value;
+	Gdk.Rectangle rect;
+	var layout = context.create_pango_layout();
+	var desc = Pango.FontDescription.from_string("Monospace");
+	desc.set_size(10 * Pango.SCALE);
+	layout.set_font_description(desc);
+	layout.set_text("Current KtT Shop Stock", -1);
+	layout.set_width(-1);
+	layout.set_alignment(Pango.Alignment.LEFT);
+	layout.get_size(null, out height);
+	var text_height = height / Pango.SCALE;
+
+	cr.move_to(LEFT_MARGIN, (HEADER_HEIGHT - text_height) / 2);
+	Pango.cairo_show_layout(cr, layout);
+
+	var view = builder.get_object("stock-view") as Gtk.TreeView;
+	var model = view.get_model();
+	Gtk.TreeIter iter = {};
+	Gtk.TreeViewColumn column;
+	var path = new Gtk.TreePath.first(); // keep the same for the whole document
+	string text = "";
+
+	for(int i = 0; i < 100 && model.get_iter(out iter, path); i++) {
+		x = LEFT_MARGIN;
+
+		for(int col_num=0; col_num < model.get_n_columns(); col_num++) {
+			column = view.get_column(col_num);
+
+			if(column.visible) {
+				model.get_value(iter,col_num,out value);
+
+				if(value.holds(typeof(string))) {
+					text = value.get_string();
+					if(text == null) text = "";
+				} else if(value.holds(typeof(int))) {
+					text = "%d".printf(value.get_int());
+				} else {
+					text = "";
+				}
+
+				value.unset();
+			}
+
+			view.get_background_area(path,column,out rect);
+
+			layout.set_text(text, -1);
+
+			layout.set_width(rect.width * Pango.SCALE);
+			layout.set_wrap(Pango.WrapMode.CHAR);
+			layout.set_ellipsize(Pango.EllipsizeMode.END);
+			cr.move_to(x, y);
+			Pango.cairo_show_layout(cr, layout);
+
+			x += (rect.width+3);
+		}
+
+		y += text_height;
+		path.next();
+	}
 }
 
 [PrintfFormat]

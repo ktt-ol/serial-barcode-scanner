@@ -637,7 +637,6 @@ Lennart Weller &lt;lhw@ring0.de&gt;</property>
                 <property name="label">gtk-print</property>
                 <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
-                <property name="sensitive">False</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
                 <property name="use_action_appearance">False</property>
@@ -679,7 +678,7 @@ Lennart Weller &lt;lhw@ring0.de&gt;</property>
             <property name="can_focus">True</property>
             <property name="shadow_type">in</property>
             <child>
-              <object class="GtkTreeView" id="treeview">
+              <object class="GtkTreeView" id="stock-view">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="model">stock-store</property>
