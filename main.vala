@@ -48,6 +48,11 @@ public static int main(string[] args) {
 	write_to_log("KtT Shop System has been started");
 
 	Gtk.main();
+
+	/* call destructors */
+	dev = null;
+	db  = null;
+
 	return 0;
 }
 

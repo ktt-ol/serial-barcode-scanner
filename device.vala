@@ -19,18 +19,36 @@ public class Device {
 	public int fd=-1;
 	private IOChannel io_read;
 	public int byterate;
+	private File lockfile;
 
 	public signal void received_barcode(string barcode);
 
 	public Device(string device, int rate, int bits, int stopbits) {
 		Posix.speed_t baudrate = Posix.B9600;
 
-		fd = Posix.open(device, Posix.O_RDWR /*| Posix.O_NONBLOCK*/);
-
-		if(fd < 0) {
-			fd = -1;
-			error("Could not open device!\n");
+		/* check lock file */
+		lockfile = File.new_for_path("/var/lock/LCK.." + device.replace("/dev/", ""));
+		if(lockfile.query_exists()) {
+			error("device is locked!\n");
+			/* TODO: check pid */
 		}
+
+		try {
+			var pid = "%d\n".printf(Posix.getpid());
+			lockfile.replace_contents(pid.data, null, false, FileCreateFlags.NONE, null);
+
+			fd = Posix.open(device, Posix.O_RDWR /*| Posix.O_NONBLOCK*/);
+
+			if(fd < 0) {
+				fd = -1;
+				lockfile.delete();
+				error("Could not open device!\n");
+			}
+
+		} catch(Error e) {
+			error("Could not create lock file: %s!\n", e.message);
+		}
+
 
 		Posix.tcflush(fd, Posix.TCIOFLUSH);
 
@@ -140,6 +158,18 @@ public class Device {
 			error("IOChannel: %s", e.message);
 		}
 	}
+
+	~Device() {
+		/* restore old tty config */
+		Posix.tcsetattr(fd, Posix.TCSANOW, restoretio);
+
+		/* close file */
+		Posix.close(fd);
+
+		/* remove lock */
+		lockfile.delete();
+	}
+
 	private bool device_read(IOChannel gio, IOCondition cond) {
 		IOStatus ret;
 		string msg;

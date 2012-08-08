@@ -41,7 +41,7 @@ public class Database {
 	public Database(string file) {
 		int rc;
 
-		rc = Sqlite.Database.open (file, out db);
+		rc = Sqlite.Database.open(file, out db);
 		if(rc != Sqlite.OK) {
 			error("could not open database!");
 		}
