@@ -1,3 +1,18 @@
+/* Copyright 2012, Sebastian Reichel <sre@ring0.de>
+ *
+ * Permission to use, copy, modify, and/or distribute this software for any
+ * purpose with or without fee is hereby granted, provided that the above
+ * copyright notice and this permission notice appear in all copies.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+ * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+ * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+ * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+ * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+ * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ */
+
 public Device dev;
 public Database db;
 public Gtk.Builder builder;
@@ -16,9 +31,10 @@ public static int main(string[] args) {
 	try {
 		builder.add_from_file("user-interface.ui");
 	} catch(Error e) {
-		stderr.printf ("Could not load UI: %s\n", e.message);
+		stderr.printf("Could not load UI: %s\n", e.message);
 		return 1;
 	}
+	builder.connect_signals(null);
 
 	dev.received_barcode.connect((data) => {
 		if(interpret(data))
@@ -27,56 +43,58 @@ public static int main(string[] args) {
 
 	init_ui();
 
+	show_main_window();
+
+	write_to_log("KtT Shop System has been started");
+
 	Gtk.main();
 	return 0;
 }
 
 public static bool interpret(string data) {
-	int64 timestamp = (new DateTime.now_utc()).to_unix();
-
 	if(data.has_prefix("USER ")) {
 		string str_id = data.substring(5);
 		int32 id = int.parse(str_id);
 
 		/* check if data has valid format */
 		if(data != "USER %d".printf(id)) {
-			stdout.printf("[%lld] ungültige Benutzernummer: %s\n", timestamp, data);
+			write_to_log("ungültige Benutzernummer: %s", data);
 			return false;
 		}
 
 		if(db.is_logged_in()) {
-			stdout.printf("[%lld] Last User forgot to logout!\n", timestamp);
+			write_to_log("Last User forgot to logout!");
 			db.logout();
 		}
 
-		stdout.printf("[%lld] Login: %d\n", timestamp, id);
+		write_to_log("Login: %d", id);
 		return db.login(id);
 	} else if(data == "GUEST") {
 		if(db.is_logged_in()) {
-			stdout.printf("[%lld] Last User forgot to logout!\n", timestamp);
+			write_to_log("Last User forgot to logout!");
 			db.logout();
 		}
 
-		stdout.printf("[%lld] Login: Guest\n", timestamp);
+		write_to_log("Login: Guest");
 		return db.login(0);
 	} else if(data == "UNDO") {
 		if(!db.is_logged_in()) {
-			stdout.printf("[%lld] Can't undo if not logged in!\n", timestamp);
+			write_to_log("Can't undo if not logged in!");
 			return false;
 		} else {
-			stdout.printf("[%lld] Undo last purchase!\n", timestamp);
+			write_to_log("Undo last purchase!");
 			return db.undo();
 		}
 	} else if(data == "LOGOUT") {
 		if(db.is_logged_in()) {
-			stdout.printf("[%lld] Logout!\n", timestamp);
+			write_to_log("Logout!");
 			return db.logout();
 		}
 
 		return false;
 	} else if(data == "STOCK") {
 		if(!db.is_logged_in()) {
-			stdout.printf("[%lld] You must be logged in to go into the stock mode\n", timestamp);
+			write_to_log("You must be logged in to go into the stock mode");
 			return false;
 		} else {
 			show_restock_dialog();
@@ -87,15 +105,15 @@ public static bool interpret(string data) {
 
 		/* check if data has valid format */
 		if(data != "%llu".printf(id)) {
-			stdout.printf("[%lld] ungültiges Produkt: %s\n", timestamp, data);
+			write_to_log("ungültiges Produkt: %s", data);
 			return false;
 		}
 
 		if(db.buy(id)) {
-			stdout.printf("[%lld] gekaufter Artikel: %s (%d,%02d €)\n", timestamp, db.get_product_name(id), db.get_product_price(id)/100, db.get_product_price(id) % 100);
+			write_to_log("gekaufter Artikel: %s (%d,%02d €)", db.get_product_name(id), db.get_product_price(id)/100, db.get_product_price(id) % 100);
 			return true;
 		} else {
-			stdout.printf("[%lld] Kauf fehlgeschlagen!\n", timestamp);
+			write_to_log("Kauf fehlgeschlagen!");
 			return false;
 		}
 	}

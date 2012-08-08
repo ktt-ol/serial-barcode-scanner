@@ -1,3 +1,18 @@
+/* Copyright 2012, Sebastian Reichel <sre@ring0.de>
+ *
+ * Permission to use, copy, modify, and/or distribute this software for any
+ * purpose with or without fee is hereby granted, provided that the above
+ * copyright notice and this permission notice appear in all copies.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+ * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+ * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+ * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+ * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+ * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ */
+
 public class Database {
 	private Sqlite.Database db;
 	private Sqlite.Statement product_stmt;
@@ -165,10 +180,10 @@ public class Database {
 				else
 					return this.price_stmt.column_int(1);
 			case Sqlite.DONE:
-				stderr.printf("unbekanntes Produkt: %llu\n", article);
+				write_to_log("unbekanntes Produkt: %llu\n", article);
 				return 0;
 			default:
-				stderr.printf("[interner Fehler: %d]\n", rc);
+				write_to_log("[interner Fehler: %d]\n", rc);
 				return 0;
 		}
 	}
@@ -187,7 +202,7 @@ public class Database {
 					pid = uint64.parse(this.undo_stmt1.column_text(0));
 					break;
 				case Sqlite.DONE:
-					stdout.printf("undo not possible without purchases\n");
+					write_to_log("undo not possible without purchases");
 					return false;
 				default:
 					error("[interner Fehler: %d]".printf(rc));
