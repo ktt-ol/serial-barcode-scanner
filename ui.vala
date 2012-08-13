@@ -181,8 +181,16 @@ public void write_to_log(string format, ...) {
 	var arguments = va_list();
 	var message = format.vprintf(arguments);
 	var time = new DateTime.now_local();
+	Gtk.TextIter iter;
 
 	var view = builder.get_object("logview") as Gtk.TextView;
-	view.buffer.insert_at_cursor(time.format("[%Y-%m-%d %H:%M:%S] ") + message + "\n", -1);
+
+	/* insert text */
+	view.buffer.get_iter_at_offset(out iter, -1);
+	view.buffer.insert(ref iter, time.format("[%Y-%m-%d %H:%M:%S] ") + message + "\n", -1);
+
+	/* scroll to end of text */
+	view.buffer.get_iter_at_offset(out iter, -1);
+	view.buffer.place_cursor(iter);
 	view.scroll_to_mark(view.buffer.get_insert(), 0.0, true, 0.0, 1.0);
 }
