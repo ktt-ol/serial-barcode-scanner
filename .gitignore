@@ -1,2 +1,4 @@
 barcode-scanner
 *.swp
+*.pyc
+invoice/graph/*.svg
