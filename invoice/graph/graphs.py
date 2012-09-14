@@ -67,9 +67,9 @@ def TortendiagramProduct():
 
 def Lagerbestand(category):
 	data = {}
-	translation = {}
 
 	day = 24 * 60 * 60
+	interval = 21
 	now = int(time.time())
 
 	dates = []
@@ -96,11 +96,17 @@ def Lagerbestand(category):
 	connection = sqlite3.connect('shop.db')
 	c = connection.cursor()
 	query = ""
+	name = ""
+	numbers = []
 
 	if category == "getraenke":
-		query = "name LIKE '%Mate%' OR name LIKE '%Coca Cola%' OR name LIKE '%Vilsa%' OR name = 'Fanta' OR name = 'Sprite'"
+		query = "name LIKE '%Mate%'  OR name LIKE '%Apfelsaft%' OR name LIKE '%Fritz%' OR name LIKE '%Coca Cola%' OR name LIKE '%Vilsa%' OR name = 'Fanta' OR name = 'Sprite'"
 	elif category == "haribo":
 		query = "name LIKE '%Haribo%'"
+	elif category == "haribo_total":
+		query = "name LIKE '%Haribo%'"
+		name = "Haribo"
+		interval = 4*7
 	elif category == "riegel":
 		query = "name LIKE '%KitKat%' OR name = 'Lion' OR name LIKE '%Snickers%' OR name = 'Mars' OR name = 'Twix' OR name = 'Duplo'"
 	elif category == "other":
@@ -112,15 +118,13 @@ def Lagerbestand(category):
 	else:
 		return
 
-	c.execute("SELECT name, amount, id FROM products WHERE (%s) AND amount > 0" % query);
-
+	c.execute("SELECT name, amount FROM products WHERE (%s) AND amount > 0" % query);
 	for row in c:
 		data[row[0]] = [int(row[1])]
-		translation[row[2]] = row[0]
 
 	current = now
 	currentid = 1
-	while current > (now - 21 * day):
+	while current > (now - interval * day):
 		for k, v in data.iteritems():
 			data[k].append(v[-1])
 
@@ -144,7 +148,17 @@ def Lagerbestand(category):
 	dates.reverse()
 
 	c.close()
-	cairoplot.dot_line_plot("lagerbestand_%s" % category, data, 640, 480, series_colors = colors, x_labels = dates, y_title = "Anzahl", axis=True, grid=True, series_legend = True)
+
+	result = {}
+	if name == "":
+		result = data
+	else:
+		result[name] = [0]*interval;
+		for product in data:
+			for i in range(0,interval):
+				result[name][i] += data[product][i]
+
+	cairoplot.dot_line_plot("lagerbestand_%s" % category, result, 640, 480, series_colors = colors, x_labels = dates, y_title = "Anzahl", axis=True, grid=True, series_legend = True)
 
 def TotalPurchasesPerDay():
 	day = 24 * 60 * 60
@@ -202,7 +216,7 @@ BalkendiagramUserRanking()
 
 TortendiagramProduct()
 
-data = [ "getraenke", "haribo", "riegel", "other", "schoko", "balisto" ]
+data = [ "getraenke", "haribo", "haribo_total", "riegel", "other", "schoko", "balisto" ]
 for x in data:
 	Lagerbestand(x)
 
