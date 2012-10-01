@@ -1,0 +1,30 @@
+<h1>Profit per Weekday (last 8 weeks, members only)</h1>
+<div id="placeholder" style="width:800px;height:400px;float: left;"></div>
+
+<script type="text/javascript">
+$(function () {
+    var data = {{{DATA}}};
+
+	var options = {
+		legend: {
+			show: false
+		},
+		series: {
+			pie: {
+				show: true,
+				label: {
+					show: true,
+					formatter: function(label, series) {
+						return "<div style=\"font-size:x-small;text-align:center;padding:2px;color:"+series.color+";\">"+label+"<br/>"+series.data[0][1]+"€ ("+Math.round(series.percent)+"%)</div>";
+					}
+				}
+			}
+		}
+	}
+
+	if (data.length > 0)
+		$.plot($("#placeholder"), data, options);
+	else
+		$.plot($("#placeholder"), [], options);
+});
+</script>

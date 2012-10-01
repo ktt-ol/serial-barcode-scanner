@@ -1,0 +1,28 @@
+<h2>Product Information</h2>
+<p>
+	<table class="table table-bordered table-nonfluid">
+		<th>EAN</th><td>{{{EAN}}}</td></tr>
+		<th>Name</th><td>{{{NAME}}}</td></tr>
+		<th>Amount</th><td>{{{AMOUNT}}}</td></tr>
+	</table>
+</p></p>
+
+<h2>Price History</h2>
+<table class="table table-bordered table-nonfluid">
+	<tr><th>Valid Since</th><th>Memberprice</th><th>Guestprice</th></tr>
+	{{{PRICES}}}
+</table>
+
+<h2>Restock</h2>
+<table class="table table-bordered table-nonfluid">
+	<tr><th>Date</th><th>Amount</th><th>Unit Price</th></tr>
+	{{{RESTOCKS}}}
+</table>
+
+<div id="restock" style="display: {{{RESTOCK}}};">
+	<form action="/products/{{{EAN}}}/restock" class="form-horizontal">
+		<input class="input-small" name="amount" type="number" min="1" placeholder="Amount" />
+		<input class="input-small" name="price" type="number" min="1" placeholder="Price" />
+		<button type="submit" class="btn btn-primary"><i class="icon-plus"></i></button>
+	</form>
+</div>

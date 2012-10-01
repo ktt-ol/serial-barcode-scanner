@@ -1,0 +1,15 @@
+<h2>Restock: {{{NAME}}}</h2>
+
+<div id="restock-successful" class="alert alert-success" style="display: {{{RESTOCK.OK}}};">
+	Successfully restocked <b>{{{AMOUNT}}}</b> items of
+	product <b>{{{NAME}}}</b>. Price per item: <b>{{{PRICE}}}</b>.
+</div>
+
+<div id="restock-failed" class="alert alert-error" style="display: {{{RESTOCK.FAIL}}};">
+	<h4>Error</h4>
+	Restocking <b>{{{NAME}}}</b> failed. Please make sure you
+	have sufficient permissions and gave valid values
+	for amount and price.
+</div>
+
+<a href=".">Back to {{{NAME}}}</a>

@@ -1,0 +1,20 @@
+<div class="navbar-inner">
+	<a class="brand" href="/">KtT Shop System</a>
+
+	<ul class="nav">
+		<li class="{{{MENU.home}}}"><a href="/">Home</a></li>
+		<li class="{{{MENU.products}}}"><a href="/products">Products</a></li>
+		<li class="{{{MENU.stats}}} dropdown">
+			<a href="#" id="statsmenu" class="dropdown-toggle" data-toggle="dropdown">Statistics <b class="caret"></b></a>
+			<ul class="dropdown-menu">
+				<li><a href="/stats">Information</a></li>
+				<li><a href="/stats/stock">Graph: Stock</a></li>
+				<li><a href="/stats/profit_per_day">Graph: Profit / Day</a></li>
+				<li><a href="/stats/profit_per_weekday">Graph: Profit / Weekday</a></li>
+				<li><a href="/stats/profit_per_product">Graph: Profit / Product</a></li>
+			</ul>
+		</li>
+	</ul>
+
+	{{{AUTH}}}
+</div>

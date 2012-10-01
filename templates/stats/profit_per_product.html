@@ -1,0 +1,42 @@
+<h1>Profit per Product (members only)</h1>
+<div id="profit_per_product" style="width:800px;height:400px;float: left;"></div>
+<div id="profit_per_product_info" style="clear: left;"></div>
+
+<script type="text/javascript">
+function pieHover(event, pos, obj) {
+	if(!obj) return;
+
+	percent = parseFloat(obj.series.percent).toFixed(2);
+	$("#profit_per_product_info").html('<span style="font-weight:bold; color: "'+obj.series.color+'">'+obj.series.label+' ('+obj.series.data[0][1]+'€ / '+percent+'%)</span>');
+}
+
+$(function () {
+    var data = {{{DATA}}};
+
+	var options = {
+		legend: {
+			show: true
+		},
+		series: {
+			pie: {
+				show: true,
+				combine: {
+					color: '#999',
+					threshold: 0.01
+				}
+			}
+		},
+        grid: {
+            hoverable: true,
+            clickable: true
+        }
+	}
+
+	if (data.length > 0)
+		$.plot($("#profit_per_product"), data, options);
+	else
+		$.plot($("#profit_per_product"), [], options);
+
+	$("#profit_per_product").bind("plothover", pieHover);
+});
+</script>

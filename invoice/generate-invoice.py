@@ -58,7 +58,7 @@ def get_invoice_data(user, start=0, stop=0):
 	if stop > 0:
 		stopcondition = " AND timestamp <= %d" % stop
 
-	c.execute("SELECT date(timestamp, 'unixepoch', 'localtime'), time(timestamp, 'unixepoch', 'localtime'), products.name, purchases.product, purchases.timestamp FROM purchases, products WHERE user = ? AND products.id = purchases.product" + startcondition + stopcondition + " ORDER BY timestamp;", (user,))
+	c.execute("SELECT date(timestamp, 'unixepoch', 'localtime'), time(timestamp, 'unixepoch', 'localtime'), products.name, sells.product, sells.timestamp FROM sells, products WHERE user = ? AND products.id = sells.product" + startcondition + stopcondition + " ORDER BY timestamp;", (user,))
 
 	result = []
 	for row in c:
@@ -194,7 +194,7 @@ def get_invoice_amount(user, start=0, stop=0):
 	if user < 0:
 		return 0
 	else:
-		query = "SELECT SUM(memberprice) FROM users, purchases purch, prices \
+		query = "SELECT SUM(memberprice) FROM users, sells purch, prices \
 				WHERE users.id = ? AND users.id = purch.user AND purch.product = prices.product \
 				AND purch.timestamp >= ? AND purch.timestamp <= ? AND prices.valid_from = \
 				(SELECT valid_from FROM prices WHERE product = purch.product AND \
@@ -265,7 +265,7 @@ def get_users_with_purchases(start, stop):
 	connection = sqlite3.connect('shop.db')
 	c = connection.cursor()
 
-	c.execute("SELECT user FROM purchases WHERE timestamp >= ? AND timestamp <= ? GROUP BY user ORDER BY user;", (start,stop))
+	c.execute("SELECT user FROM sells WHERE timestamp >= ? AND timestamp <= ? GROUP BY user ORDER BY user;", (start,stop))
 
 	for row in c:
 		result.append(row[0])

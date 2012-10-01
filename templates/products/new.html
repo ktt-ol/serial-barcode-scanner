@@ -1,0 +1,22 @@
+<h2>Add new product: {{{NAME}}}</h2>
+
+<div id="new-successful" class="alert alert-success" style="display: {{{NEW.OK}}};">
+	<p>Successfully created new item:</p>
+	
+	<table class="table">
+		<tr><th>Name</th><td>{{{NAME}}}</td></tr>
+		<tr><th>EAN</th><td>{{{EAN}}}</td></tr>
+		<tr><th>Memberprice</th><td>{{{MEMBERPRICE}}}</td></tr>
+		<tr><th>Guestprice</th><td>{{{GUESTPRICE}}}</td></tr>
+	</table>
+</div>
+
+<div id="new-failed" class="alert alert-error" style="display: {{{NEW.FAIL}}};">
+	<h4>Error</h4>
+	Creating new product failed. Please make sure you
+	have sufficient permissions and gave valid values
+	for name, EAN, memberprice and guestprice.
+</div>
+
+<a href="{{{EAN}}}" style="display: {{{NEW.OK}}}">Go to {{{NAME}}}</a><br style="display: {{{NEW.OK}}}">
+<a href=".">Back to product list</a>

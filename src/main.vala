@@ -15,11 +15,8 @@
 
 public Device dev;
 public Database db;
-public Gtk.Builder builder;
 
 public static int main(string[] args) {
-	Gtk.init (ref args);
-
 	if(args.length < 2) {
 		stderr.printf("%s <device>\n", args[0]);
 		return 1;
@@ -27,33 +24,32 @@ public static int main(string[] args) {
 
 	dev = new Device(args[1], 9600, 8, 1);
 	db = new Database("shop.db");
-	builder = new Gtk.Builder();
-	try {
-		builder.add_from_file("user-interface.ui");
-	} catch(Error e) {
-		stderr.printf("Could not load UI: %s\n", e.message);
-		return 1;
-	}
-	builder.connect_signals(null);
 
 	dev.received_barcode.connect((data) => {
 		if(interpret(data))
 			dev.blink(10);
 	});
 
-	init_ui();
-
-	show_main_window();
-
 	write_to_log("KtT Shop System has been started");
 
-	Gtk.main();
+	/* attach webserver to mainloop */
+	new WebServer();
+
+	/* run mainloop */
+	new MainLoop().run();
 
 	/* call destructors */
 	dev = null;
 	db  = null;
 
 	return 0;
+}
+
+public void write_to_log(string format, ...) {
+	var arguments = va_list();
+	var message = format.vprintf(arguments);
+
+	stdout.printf(message + "\n");
 }
 
 public static bool interpret(string data) {
@@ -97,14 +93,6 @@ public static bool interpret(string data) {
 		}
 
 		return false;
-	} else if(data == "STOCK") {
-		if(!db.is_logged_in()) {
-			write_to_log("You must be logged in to go into the stock mode");
-			return false;
-		} else {
-			show_restock_dialog();
-			return true;
-		}
 	} else {
 		uint64 id = uint64.parse(data);
 

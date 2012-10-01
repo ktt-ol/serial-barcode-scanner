@@ -276,5 +276,5 @@ public class Device {
 		var msg = new uint8[size];
 		Posix.memset(msg, 0xFF, msg.length);
 		this.write(msg, msg.length);
-}
+	}
 }

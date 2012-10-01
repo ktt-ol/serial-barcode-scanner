@@ -1,0 +1,65 @@
+/* sane margins for main content */
+.content {
+	margin-top: 55px;
+	margin-left: 20px;
+	margin-right: 20px;
+}
+
+/* class for tables without 100% width */
+.table-nonfluid {
+	width: auto;
+}
+
+/* navbar padding from sides */
+.navbar-fixed-top .navbar-inner {
+	padding-right: 5px;
+	padding-left: 5px;
+}
+
+/* statistics */
+#overviewLegend li > div {
+    display: inline-block;
+    margin-right: 4px;
+}
+
+#overviewLegend li {
+	list-style: none;
+}
+
+#placeholder .legend {
+	visibility: hidden;
+}
+
+#overviewLegend label {
+	display: inline;
+}
+
+#overviewLegend input {
+	margin: 0;
+}
+
+/* dropdown menu with button on the right */
+.btn-group > .cornered-dropdown-toggle {
+	border-top-right-radius: 0px;
+	border-bottom-right-radius: 0px;
+}
+
+.btn-group > .dropdown-menu + .btn {
+	border-left: 0px;
+}
+
+/* disabled entries in dropdown */
+.dropdown-menu .disabled {
+	color: #999;
+}
+
+.two-columns {
+	overflow: hidden;
+	width: 400px;
+}
+
+.two-columns li {
+	width: 20%;
+	float: left;
+	display: inline;
+}
