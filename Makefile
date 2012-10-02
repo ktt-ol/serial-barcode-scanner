@@ -1,5 +1,5 @@
-SRC=src/main.vala src/device.vala src/db.vala src/web.vala src/graph-data.vala src/template.vala src/session.vala src/price.vapi
-DEPS=--pkg posix --pkg linux --pkg libsoup-2.4 --pkg sqlite3 --pkg gee-1.0 --pkg gmodule-2.0 --pkg gio-2.0
+SRC=src/main.vala src/device.vala src/db.vala src/audio.vala src/web.vala src/graph-data.vala src/template.vala src/session.vala src/price.vapi
+DEPS=--pkg posix --pkg linux --pkg libsoup-2.4 --pkg sqlite3 --pkg gee-1.0 --pkg gio-2.0 --pkg gstreamer-0.10
 FLAGS=-X -w
 
 barcode-scanner: $(SRC)
