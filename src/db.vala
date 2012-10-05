@@ -184,6 +184,7 @@ public class Database {
 		queries["session_get"]       = "SELECT user FROM authentication WHERE session = ?";
 		queries["username"]          = "SELECT firstname, lastname FROM users WHERE id = ?";
 		queries["password_get"]      = "SELECT password FROM authentication WHERE user = ?";
+		queries["password_set"]      = "UPDATE authentication SET password=? WHERE user = ?";
 		queries["userinfo"]          = "SELECT firstname, lastname, email, gender, street, plz, city FROM users WHERE id = ?";
 		queries["userauth"]          = "SELECT disabled, superuser FROM authentication WHERE user = ?";
 		queries["profit_by_product"] = "SELECT name, SUM(memberprice - (SELECT price FROM purchaseprices WHERE product = purch.product)) AS price FROM sells purch, prices, products WHERE purch.product = products.id AND purch.product = prices.product AND purch.user > 0 AND purch.timestamp > ? AND purch.timestamp < ? AND prices.valid_from = (SELECT valid_from FROM prices WHERE product = purch.product AND valid_from < purch.timestamp ORDER BY valid_from DESC LIMIT 1) GROUP BY name ORDER BY price;";
@@ -580,6 +581,26 @@ public class Database {
 		} else {
 			return false;
 		}
+	}
+
+	public void set_user_password(int32 user, string password) {
+		var pwhash = Checksum.compute_for_string(ChecksumType.SHA256, password);
+		int rc;
+
+		/* create user auth line if not existing */
+		statements["user_auth_create"].reset();
+		statements["user_auth_create"].bind_int(1, user);
+		rc = statements["user_auth_create"].step();
+		if(rc != Sqlite.DONE)
+			error("[internal error: %d]".printf(rc));
+
+		/* set password */
+		statements["password_set"].reset();
+		statements["password_set"].bind_text(1, pwhash);
+		statements["password_set"].bind_int(2, user);
+		rc = statements["password_set"].step();
+		if(rc != Sqlite.DONE)
+			error("[internal error: %d]".printf(rc));
 	}
 
 	public void set_sessionid(int user, string sessionid) {

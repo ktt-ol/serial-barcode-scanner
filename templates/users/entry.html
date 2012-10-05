@@ -1,17 +1,22 @@
 <h2>Personal Data</h2>
-<p>
-	<table class="table table-bordered table-nonfluid">
-		<th>ID</th><td>{{{UID}}}</td></tr>
-		<th>Firstname</th><td>{{{FIRSTNAME}}}</td></tr>
-		<th>Lastname</th><td>{{{LASTNAME}}}</td></tr>
-		<th>E-Mail</th><td>{{{EMAIL}}}</td></tr>
-		<th>Gender</th><td>{{{GENDER}}}</td></tr>
-		<th>Street</th><td>{{{STREET}}}</td></tr>
-		<th>PLZ</th><td>{{{POSTALCODE}}}</td></tr>
-		<th>City</th><td>{{{CITY}}}</td></tr>
-		<tr><th colspan="2">Administrative Information</th></tr>
-		<th>Disabled</th><td>{{{DISABLED}}}</td></tr>
-		<th>Superuser</th><td>{{{ISSUPERUSER}}}</td></tr>
-	</table>
-</p>
 
+{{{MESSAGE}}}
+
+<form method="POST" enctype="multipart/form-data" action="#">
+	<table class="table table-bordered table-nonfluid">
+		<tr><th>ID</th><td>{{{UID}}}</td></tr>
+		<tr><th>Firstname</th><td>{{{FIRSTNAME}}}</td></tr>
+		<tr><th>Lastname</th><td>{{{LASTNAME}}}</td></tr>
+		<tr><th>E-Mail</th><td>{{{EMAIL}}}</td></tr>
+		<tr><th>Gender</th><td>{{{GENDER}}}</td></tr>
+		<tr><th>Street</th><td>{{{STREET}}}</td></tr>
+		<tr><th>PLZ</th><td>{{{POSTALCODE}}}</td></tr>
+		<tr><th>City</th><td>{{{CITY}}}</td></tr>
+		<tr><th colspan="2">Administrative Information</th></tr>
+		<tr><th>Disabled</th><td>{{{DISABLED}}}</td></tr>
+		<tr><th>Superuser</th><td>{{{ISSUPERUSER}}}</td></tr>
+		<tr><th rowspan="3">Password</th><td><input name="password1" placeholder="New Password" type="password" /></td></tr>
+		<tr><td><input name="password2" placeholder="New Password (again)" type="password" /></td></tr>
+		<tr><td><input type="submit" value="Change Password" /></td></tr>
+	</table>
+</form>

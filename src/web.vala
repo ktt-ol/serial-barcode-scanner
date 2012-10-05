@@ -200,12 +200,12 @@ public class WebServer {
 
 	void handler_user_entry(Soup.Server server, Soup.Message msg, string path, GLib.HashTable? query, Soup.ClientContext client, int id) {
 		try {
-			var l = new WebSession(server, msg, path, query, client);
-			if(id != l.user && !l.superuser) {
+			var session = new WebSession(server, msg, path, query, client);
+			if(id != session.user && !session.superuser) {
 				handler_403(server, msg, path, query, client);
 				return;
 			}
-			var t = new WebTemplate("users/entry.html", l);
+			var t = new WebTemplate("users/entry.html", session);
 			t.replace("TITLE", "KtT Shop System: User Info %llu".printf(id));
 			t.menu_set_active("users");
 
@@ -223,6 +223,20 @@ public class WebServer {
 			var userauth = db.get_user_auth(id);
 			t.replace("DISABLED", userauth.disabled ? "true" : "false");
 			t.replace("ISSUPERUSER", userauth.superuser ? "true" : "false");
+
+			var postdata = Soup.Form.decode_multipart(msg, null, null, null, null);
+			if(postdata != null && postdata.contains("password1") && postdata.contains("password2")) {
+				if(postdata["password1"] != postdata["password2"]) {
+					t.replace("MESSAGE", "<div class=\"alert alert-error\">Error! Passwords do not match!</div>");
+				} else if(postdata["password1"] == "") {
+					t.replace("MESSAGE", "<div class=\"alert alert-error\">Error! Empty Password not allowed!</div>");
+				} else {
+					db.set_user_password(session.user, postdata["password1"]);
+					t.replace("MESSAGE", "<div class=\"alert alert-success\">Password Changed!</div>");
+				}
+			} else {
+				t.replace("MESSAGE", "");
+			}
 
 			msg.set_response("text/html", Soup.MemoryUse.COPY, t.data);
 		} catch(TemplateError e) {
