@@ -152,9 +152,6 @@ public class Database {
 	private static Gee.HashMap<string,string> queries = new Gee.HashMap<string,string>();
 	private static Gee.HashMap<string,Statement> statements = new Gee.HashMap<string,Statement>();
 
-	int32 user = 0;
-	bool logged_in = false;
-
 	public Database(string file) {
 		int rc;
 
@@ -205,18 +202,6 @@ public class Database {
 		foreach(var entry in queries.entries) {
 			statements[entry.key] = new Statement(db, entry.value);
 		}
-	}
-
-	public bool login(int32 id) {
-		this.user = id;
-		this.logged_in = true;
-		return true;
-	}
-
-	public bool logout() {
-		this.user = 0;
-		this.logged_in = false;
-		return true;
 	}
 
 	public Gee.HashMap<string,string> get_products() {
@@ -397,24 +382,20 @@ public class Database {
 		return result;
 	}
 
-	public bool buy(uint64 article) {
-		if(is_logged_in()) {
-			int rc = 0;
-			int64 timestamp = (new DateTime.now_utc()).to_unix();
+	public bool buy(int32 user, uint64 article) {
+		int rc = 0;
+		int64 timestamp = (new DateTime.now_utc()).to_unix();
 
-			statements["purchase"].reset();
-			statements["purchase"].bind_text(1, "%d".printf(user));
-			statements["purchase"].bind_text(2, "%llu".printf(article));
-			statements["purchase"].bind_text(3, "%llu".printf(timestamp));
+		statements["purchase"].reset();
+		statements["purchase"].bind_int(1, user);
+		statements["purchase"].bind_text(2, "%llu".printf(article));
+		statements["purchase"].bind_text(3, "%llu".printf(timestamp));
 
-			rc = statements["purchase"].step();
-			if(rc != Sqlite.DONE)
-				error("[internal error: %d]".printf(rc));
+		rc = statements["purchase"].step();
+		if(rc != Sqlite.DONE)
+			error("[internal error: %d]".printf(rc));
 
-			return true;
-		} else {
-			return false;
-		}
+		return true;
 	}
 
 	public string get_product_name(uint64 article) {
@@ -451,7 +432,7 @@ public class Database {
 		}
 	}
 
-	public int get_product_price(uint64 article) {
+	public Price get_product_price(int user, uint64 article) {
 		int64 timestamp = (new DateTime.now_utc()).to_unix();
 		bool member = user != 0;
 
@@ -476,38 +457,34 @@ public class Database {
 		}
 	}
 
-	public bool undo() {
-		if(is_logged_in()) {
-			uint64 pid = 0;
-			int rc = 0;
+	public bool undo(int32 user) {
+		uint64 pid = 0;
+		int rc = 0;
 
-			statements["last_purchase"].reset();
-			statements["last_purchase"].bind_text(1, "%d".printf(user));
+		statements["last_purchase"].reset();
+		statements["last_purchase"].bind_int(1, user);
 
-			rc = statements["last_purchase"].step();
-			switch(rc) {
-				case Sqlite.ROW:
-					pid = uint64.parse(statements["last_purchase"].column_text(0));
-					write_to_log("remove purchase of %llu", pid);
-					break;
-				case Sqlite.DONE:
-					write_to_log("undo not possible without purchases");
-					return false;
-				default:
-					error("[internal error: %d]".printf(rc));
-			}
-
-			statements["undo"].reset();
-			statements["undo"].bind_text(1, "%d".printf(user));
-
-			rc = statements["undo"].step();
-			if(rc != Sqlite.DONE)
+		rc = statements["last_purchase"].step();
+		switch(rc) {
+			case Sqlite.ROW:
+				pid = uint64.parse(statements["last_purchase"].column_text(0));
+				write_to_log("Remove purchase of %llu", pid);
+				break;
+			case Sqlite.DONE:
+				write_to_log("Error: undo not possible without purchases");
+				return false;
+			default:
 				error("[internal error: %d]".printf(rc));
-
-			return true;
 		}
 
-		return false;
+		statements["undo"].reset();
+		statements["undo"].bind_int(1, user);
+
+		rc = statements["undo"].step();
+		if(rc != Sqlite.DONE)
+			error("[internal error: %d]".printf(rc));
+
+		return true;
 	}
 
 	public bool restock(int user, uint64 product, uint amount, uint price) {
@@ -561,10 +538,6 @@ public class Database {
 		}
 
 		return true;
-	}
-
-	public bool is_logged_in() {
-		return this.logged_in;
 	}
 
 	public bool check_user_password(int32 user, string password) {

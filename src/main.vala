@@ -17,6 +17,7 @@ public Device dev;
 public Database db;
 public AudioPlayer audio;
 public CSVMemberFile csvimport;
+public ScannerSession localsession;
 public MainLoop loop;
 
 public static int main(string[] args) {
@@ -31,14 +32,13 @@ public static int main(string[] args) {
 	Unix.signal_add(Posix.SIGTERM, handle_signals);
 	Unix.signal_add(Posix.SIGINT,  handle_signals);
 
-
 	dev   = new Device(args[1], 9600, 8, 1);
 	db    = new Database("shop.db");
 	audio = new AudioPlayer();
 	loop  = new MainLoop();
 
 	dev.received_barcode.connect((data) => {
-		if(interpret(data))
+		if(localsession.interpret(data))
 			dev.blink(10);
 	});
 
@@ -71,66 +71,6 @@ public void write_to_log(string format, ...) {
 	var message = format.vprintf(arguments);
 
 	stdout.printf(message + "\n");
-}
-
-public static bool interpret(string data) {
-	if(data.has_prefix("USER ")) {
-		string str_id = data.substring(5);
-		int32 id = int.parse(str_id);
-
-		/* check if data has valid format */
-		if(data != "USER %d".printf(id)) {
-			write_to_log("ungültige Benutzernummer: %s", data);
-			return false;
-		}
-
-		if(db.is_logged_in()) {
-			write_to_log("Last User forgot to logout!");
-			db.logout();
-		}
-
-		write_to_log("Login: %d", id);
-		return db.login(id);
-	} else if(data == "GUEST") {
-		if(db.is_logged_in()) {
-			write_to_log("Last User forgot to logout!");
-			db.logout();
-		}
-
-		write_to_log("Login: Guest");
-		return db.login(0);
-	} else if(data == "UNDO") {
-		if(!db.is_logged_in()) {
-			write_to_log("Can't undo if not logged in!");
-			return false;
-		} else {
-			write_to_log("Undo last purchase!");
-			return db.undo();
-		}
-	} else if(data == "LOGOUT") {
-		if(db.is_logged_in()) {
-			write_to_log("Logout!");
-			return db.logout();
-		}
-
-		return false;
-	} else {
-		uint64 id = uint64.parse(data);
-
-		/* check if data has valid format */
-		if(data != "%llu".printf(id)) {
-			write_to_log("ungültiges Produkt: %s", data);
-			return false;
-		}
-
-		if(db.buy(id)) {
-			write_to_log("gekaufter Artikel: %s (%d,%02d €)", db.get_product_name(id), db.get_product_price(id)/100, db.get_product_price(id) % 100);
-			return true;
-		} else {
-			write_to_log("Kauf fehlgeschlagen!");
-			return false;
-		}
-	}
 }
 
 bool handle_signals() {
