@@ -36,6 +36,7 @@ public static int main(string[] args) {
 	});
 
 	write_to_log("KtT Shop System has been started");
+	audio.play("system/startup.ogg");
 
 	/* attach webserver to mainloop */
 	new WebServer();

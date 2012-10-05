@@ -21,7 +21,7 @@ public class AudioPlayer {
 	}
 
 	public void play(string file) {
-		p.uri = file;
+		p.uri = "file://"+Environment.get_current_dir()+"/sounds/"+file;
 		p.set_state(Gst.State.PLAYING);
 	}
 }
