@@ -194,7 +194,7 @@ public class WebServer {
 
 			var userauth = db.get_user_auth(id);
 			t.replace("DISABLED", userauth.disabled ? "true" : "false");
-			t.replace("SUPERUSER", userauth.superuser ? "true" : "false");
+			t.replace("ISSUPERUSER", userauth.superuser ? "true" : "false");
 
 			msg.set_response("text/html", Soup.MemoryUse.COPY, t.data);
 		} catch(TemplateError e) {
