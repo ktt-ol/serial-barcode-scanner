@@ -77,6 +77,7 @@ public class WebSession {
 	public void logout() {
 		if(logged_in) {
 			db.set_sessionid(user, "");
+			superuser = false;
 			logged_in = false;
 		}
 	}
