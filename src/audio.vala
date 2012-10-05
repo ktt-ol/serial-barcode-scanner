@@ -16,11 +16,25 @@
 public class AudioPlayer {
 	private dynamic Gst.Element p;
 
+	public signal void end_of_stream();
+
+	private bool bus_callback(Gst.Bus bus, Gst.Message message) {
+		switch (message.type) {
+			case Gst.MessageType.EOS:
+				end_of_stream();
+				break;
+		}
+
+		return true;
+	}
+
 	public AudioPlayer() {
 		p = Gst.ElementFactory.make("playbin", "play");
+		p.get_bus().add_watch(bus_callback);
 	}
 
 	public void play(string file) {
+		p.set_state(Gst.State.NULL);
 		p.uri = "file://"+Environment.get_current_dir()+"/sounds/"+file;
 		p.set_state(Gst.State.PLAYING);
 	}

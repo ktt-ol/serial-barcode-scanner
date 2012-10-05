@@ -728,6 +728,6 @@ public class WebServer {
 		srv.add_handler("/users", handler_users);
 		srv.add_handler("/users/import", handler_user_import);
 
-		srv.run();
+		srv.run_async();
 	}
 }

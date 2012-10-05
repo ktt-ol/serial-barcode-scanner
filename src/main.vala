@@ -17,6 +17,7 @@ public Device dev;
 public Database db;
 public AudioPlayer audio;
 public CSVMemberFile csvimport;
+public MainLoop loop;
 
 public static int main(string[] args) {
 	Gst.init(ref args);
@@ -26,9 +27,15 @@ public static int main(string[] args) {
 		return 1;
 	}
 
-	dev = new Device(args[1], 9600, 8, 1);
-	db = new Database("shop.db");
+	/* handle unix signals */
+	Unix.signal_add(Posix.SIGTERM, handle_signals);
+	Unix.signal_add(Posix.SIGINT,  handle_signals);
+
+
+	dev   = new Device(args[1], 9600, 8, 1);
+	db    = new Database("shop.db");
 	audio = new AudioPlayer();
+	loop  = new MainLoop();
 
 	dev.received_barcode.connect((data) => {
 		if(interpret(data))
@@ -42,11 +49,19 @@ public static int main(string[] args) {
 	new WebServer();
 
 	/* run mainloop */
-	new MainLoop().run();
+	loop.run();
 
-	/* call destructors */
-	dev = null;
-	db  = null;
+	write_to_log("Stopping Shop System");
+	audio.play("system/shutdown.ogg");
+
+	/* we need to run the mainloop to play audio */
+	audio.end_of_stream.connect(() => { loop.quit(); });
+	loop.run();
+
+	/* explicitly call destructors */
+	dev   = null;
+	db    = null;
+	audio = null;
 
 	return 0;
 }
@@ -116,4 +131,9 @@ public static bool interpret(string data) {
 			return false;
 		}
 	}
+}
+
+bool handle_signals() {
+	loop.quit();
+	return false;
 }
