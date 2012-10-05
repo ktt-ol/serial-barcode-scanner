@@ -1,6 +1,6 @@
 SRC=src/main.vala src/device.vala src/scannersession.vala  src/db.vala src/audio.vala src/web.vala src/graph-data.vala src/template.vala src/websession.vala src/admin.vala src/price.vapi
 DEPS=--pkg posix --pkg linux --pkg libsoup-2.4 --pkg sqlite3 --pkg gee-1.0 --pkg gio-2.0 --pkg gstreamer-0.10
-FLAGS=-X -w --enable-experimental
+FLAGS=-X -w --enable-experimental --thread
 
 barcode-scanner: $(SRC)
 	valac-0.16 --output $@ $(FLAGS) $(DEPS) $^

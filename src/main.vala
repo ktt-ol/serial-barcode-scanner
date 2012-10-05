@@ -20,11 +20,37 @@ public CSVMemberFile csvimport;
 public ScannerSession localsession;
 public MainLoop loop;
 
-public static int main(string[] args) {
-	Gst.init(ref args);
+const OptionEntry[] option_entries = {
+	{ "version", 'v', OptionFlags.IN_MAIN, OptionArg.NONE, ref opt_version, "output version information and exit", null },
+	{ "", 0, 0, OptionArg.FILENAME_ARRAY, ref files, "serial device", "DEVICE" },
+	{null}
+};
 
-	if(args.length < 2) {
-		stderr.printf("%s <device>\n", args[0]);
+/* parameters */
+static string[] files;
+static bool opt_version;
+
+public static int main(string[] args) {
+	/* parse parameters from shell */
+	var context = new OptionContext("- KtT Shop System");
+	context.set_help_enabled(true);
+	context.add_main_entries(option_entries, "shop");
+	context.add_group(Gst.init_get_option_group());
+
+	try {
+		context.parse(ref args);
+	} catch(OptionError e) {
+		stderr.puts(e.message + "\n");
+		return 1;
+	}
+
+	if(opt_version) {
+		stdout.puts("Ktt Shop System 0.1\n");
+		return 0;
+	}
+
+	if(files == null || files[0] == null) {
+		stderr.puts("Please specify serial device!\n");
 		return 1;
 	}
 
@@ -32,7 +58,7 @@ public static int main(string[] args) {
 	Unix.signal_add(Posix.SIGTERM, handle_signals);
 	Unix.signal_add(Posix.SIGINT,  handle_signals);
 
-	dev   = new Device(args[1], 9600, 8, 1);
+	dev   = new Device(files[0], 9600, 8, 1);
 	db    = new Database("shop.db");
 	audio = new AudioPlayer();
 	loop  = new MainLoop();
