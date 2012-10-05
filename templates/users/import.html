@@ -1,0 +1,39 @@
+<h2>Import Users</h2>
+
+<div class="alert alert-success" style="display: {{{STEP3}}}">
+	<b>CSV Import Done!</b> The System's Database has been updated.
+</div>
+
+<div style="display: {{{STEP1}}}">
+	<form action="#" method="POST" enctype="multipart/form-data" class="form-horizontal">
+		<div class="control-group">
+			<label class="control-label" for="file">CSV File</label>
+			<div class="controls">
+				<input type="file" accept="text/csv" name="file"></input>
+				<input type="hidden" name="step" value="1"></input>
+			</div>
+		</div>
+
+		<button class="btn btn-primary" type="submit">Import</button>
+	</form>
+</div>
+
+<div style="display: {{{STEP23}}}">
+	<table class="table table-bordered">
+		<thead>
+			<tr><th><i class="icon-wrench"></i></th><th>ID</th><th>Firstname</th><th>Lastname</th><th>E-Mail</th><th>Gender</th><th>Street</th><th>Postcode</th><th>City</th></tr>
+		</thead>
+		<tbody>
+			{{{DATA1}}}
+		</tbody>
+	</table>
+
+	{{{DATA2}}}.
+
+	<div style="display: {{{STEP2}}}">
+		<form action="#" method="POST" enctype="multipart/form-data" class="form-horizontal">
+			<input type="hidden" name="step" value="2"></input>
+			<button class="btn btn-primary" type="submit">Apply Changes to Database</button>
+		</form>
+	</div>
+</div>

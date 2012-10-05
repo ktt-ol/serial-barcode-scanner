@@ -42,8 +42,32 @@ public struct UserInfo {
 	public string email;
 	public string gender;
 	public string street;
-	public int plz;
+	public int postcode;
 	public string city;
+
+	public bool equals(UserInfo x) {
+		if(id != x.id) return false;
+		if(firstname != x.firstname) return false;
+		if(lastname != x.lastname) return false;
+		if(email != x.email) return false;
+		if(gender != x.gender) return false;
+		if(street != x.street) return false;
+		if(postcode != x.postcode) return false;
+		if(city != x.city) return false;
+
+		return true;
+	}
+
+	public bool exists_in_db() {
+		if(id in db.get_member_ids())
+			return true;
+		else
+			return false;
+	}
+
+	public bool equals_db() {
+		return this.equals(db.get_user_info(id));
+	}
 }
 
 public struct UserAuth {
@@ -171,6 +195,10 @@ public class Database {
 		queries["stock_value"]       = "SELECT SUM(amount * price) FROM products INNER JOIN purchaseprices ON products.id = purchaseprices.product";
 		queries["total_sales"]       = "SELECT SUM(price) FROM invoice WHERE user >= 0 AND timestamp >= ?";
 		queries["total_profit"]      = "SELECT SUM(price - (SELECT price FROM purchaseprices WHERE product = productid)) FROM invoice WHERE user >= 0 AND timestamp >= ?";
+		queries["user_get_ids"]      = "SELECT id FROM users WHERE id > 0";
+		queries["user_replace"]      = "INSERT OR REPLACE INTO users ('id', 'email', 'firstname', 'lastname', 'gender', 'street', 'plz', 'city') VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+		queries["user_auth_create"]	 = "INSERT OR IGNORE INTO authentication (user) VALUES (?)";
+		queries["user_disable"]		 = "UPDATE authentication SET disabled = ? WHERE user = ?";
 
 		/* compile queries into statements */
 		foreach(var entry in queries.entries) {
@@ -380,7 +408,7 @@ public class Database {
 
 			rc = statements["purchase"].step();
 			if(rc != Sqlite.DONE)
-				error("[interner Fehler: %d]".printf(rc));
+				error("[internal error: %d]".printf(rc));
 
 			return true;
 		} else {
@@ -400,7 +428,7 @@ public class Database {
 			case Sqlite.DONE:
 				return "unbekanntes Produkt: %llu".printf(article);
 			default:
-				return "[interner Fehler: %d]".printf(rc);
+				return "[internal error: %d]".printf(rc);
 		}
 	}
 
@@ -417,7 +445,7 @@ public class Database {
 				warning("unbekanntes Produkt: %llu".printf(article));
 				return -1;
 			default:
-				warning("[interner Fehler: %d]".printf(rc));
+				warning("[internal error: %d]".printf(rc));
 				return -1;
 		}
 	}
@@ -442,7 +470,7 @@ public class Database {
 				write_to_log("unbekanntes Produkt: %llu\n", article);
 				return 0;
 			default:
-				write_to_log("[interner Fehler: %d]\n", rc);
+				write_to_log("[internal error: %d]\n", rc);
 				return 0;
 		}
 	}
@@ -465,7 +493,7 @@ public class Database {
 					write_to_log("undo not possible without purchases");
 					return false;
 				default:
-					error("[interner Fehler: %d]".printf(rc));
+					error("[internal error: %d]".printf(rc));
 			}
 
 			statements["undo"].reset();
@@ -473,7 +501,7 @@ public class Database {
 
 			rc = statements["undo"].step();
 			if(rc != Sqlite.DONE)
-				error("[interner Fehler: %d]".printf(rc));
+				error("[internal error: %d]".printf(rc));
 
 			return true;
 		}
@@ -495,7 +523,7 @@ public class Database {
 
 			rc = statements["stock"].step();
 			if(rc != Sqlite.DONE)
-				error("[interner Fehler: %d]".printf(rc));
+				error("[internal error: %d]".printf(rc));
 
 			return true;
 		}
@@ -511,7 +539,7 @@ public class Database {
 		int rc = statements["product_create"].step();
 
 		if(rc != Sqlite.DONE) {
-			warning("[interner Fehler: %d]".printf(rc));
+			warning("[internal error: %d]".printf(rc));
 			return false;
 		}
 
@@ -527,7 +555,7 @@ public class Database {
 		int rc = statements["price_create"].step();
 
 		if(rc != Sqlite.DONE) {
-			warning("[interner Fehler: %d]".printf(rc));
+			warning("[internal error: %d]".printf(rc));
 			return false;
 		}
 
@@ -561,7 +589,7 @@ public class Database {
 
 		int rc = statements["session_set"].step();
 		if(rc != Sqlite.DONE)
-			error("[interner Fehler: %d]".printf(rc));
+			error("[internal error: %d]".printf(rc));
 	}
 
 	public int get_user_by_sessionid(string sessionid) throws WebSessionError {
@@ -587,7 +615,7 @@ public class Database {
 			result.email     = statements["userinfo"].column_text(2);
 			result.gender    = statements["userinfo"].column_text(3);
 			result.street    = statements["userinfo"].column_text(4);
-			result.plz       = statements["userinfo"].column_int(5);
+			result.postcode  = statements["userinfo"].column_int(5);
 			result.city      = statements["userinfo"].column_text(6);
 		}
 
@@ -597,6 +625,8 @@ public class Database {
 	public UserAuth get_user_auth(int user) {
 		var result = UserAuth();
 		result.id = user;
+		result.disabled = false;
+		result.superuser = false;
 
 		statements["userauth"].reset();
 		statements["userauth"].bind_int(1, user);
@@ -736,5 +766,54 @@ public class Database {
 			result.profit_per_month = statements["total_profit"].column_int(0) / 4;
 
 		return result;
+	}
+
+	public Gee.List<int> get_member_ids() {
+		var result = new Gee.ArrayList<int>();
+
+		statements["user_get_ids"].reset();
+		while(statements["user_get_ids"].step() == Sqlite.ROW)
+			result.add(statements["user_get_ids"].column_int(0));
+
+		return result;
+	}
+
+	public void user_disable(int user, bool value) {
+		int rc;
+
+		/* create user auth line if not existing */
+		statements["user_auth_create"].reset();
+		statements["user_auth_create"].bind_int(1, user);
+		rc = statements["user_auth_create"].step();
+		if(rc != Sqlite.DONE)
+			error("[internal error: %d]".printf(rc));
+
+		/* set disabled flag */
+		statements["user_disable"].reset();
+		statements["user_disable"].bind_int(1, value ? 1 : 0);
+		statements["user_disable"].bind_int(2, user);
+		rc = statements["user_disable"].step();
+		if(rc != Sqlite.DONE)
+			error("[internal error: %d]".printf(rc));
+	}
+
+	public void user_replace(UserInfo u) {
+		statements["user_replace"].reset();
+		statements["user_replace"].bind_int(1, u.id);
+		statements["user_replace"].bind_text(2, u.email);
+		statements["user_replace"].bind_text(3, u.firstname);
+		statements["user_replace"].bind_text(4, u.lastname);
+		statements["user_replace"].bind_text(5, u.gender);
+		statements["user_replace"].bind_text(6, u.street);
+		statements["user_replace"].bind_int(7, u.postcode);
+		statements["user_replace"].bind_text(8, u.city);
+
+		int rc = statements["user_replace"].step();
+		if(rc != Sqlite.DONE)
+			error("[internal error: %d]".printf(rc));
+	}
+
+	public bool user_is_disabled(int user) {
+		return get_user_auth(user).disabled;
 	}
 }

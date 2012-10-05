@@ -72,6 +72,104 @@ public class WebServer {
 		}
 	}
 
+	void handler_user_import(Soup.Server server, Soup.Message msg, string path, GLib.HashTable<string,string>? query, Soup.ClientContext client) {
+		try {
+			var session = new WebSession(server, msg, path, query, client);
+			if(!session.superuser) {
+				handler_403(server, msg, path, query, client);
+				return;
+			}
+			var t = new WebTemplate("users/import.html", session);
+			t.replace("TITLE", "KtT Shop System: User Import");
+			t.menu_set_active("users");
+
+			Soup.Buffer filedata;
+			var postdata = Soup.Form.decode_multipart(msg, "file", null, null, out filedata);
+			if(postdata == null || !postdata.contains("step")) {
+				t.replace("DATA1", "");
+				t.replace("DATA2", "");
+				t.replace("STEP1",  "block");
+				t.replace("STEP2",  "none");
+				t.replace("STEP23", "none");
+				t.replace("STEP3",  "none");
+				msg.set_response("text/html", Soup.MemoryUse.COPY, t.data);
+				return;
+			} else {
+				if(filedata != null) {
+					string text = (string) filedata.data;
+					text = text.substring(0,(long) filedata.length-1);
+					csvimport = new CSVMemberFile(text);
+				}
+
+				if(csvimport == null) {
+					handler_403(server, msg, path, query, client);
+					return;
+				}
+
+				/* new & changed users */
+				string data1 = "";
+				foreach(var member in csvimport.get_members()) {
+					if(member.exists_in_db() && !member.equals_db()) {
+						var dbmember = db.get_user_info(member.id);
+						data1 += @"<tr class=\"error\"><td><i class=\"icon-minus-sign\"></i><td>$(dbmember.id)</td><td>$(dbmember.firstname)</td><td>$(dbmember.lastname)</td><td>$(dbmember.email)</td><td>$(dbmember.gender)</td><td>$(dbmember.street)</td><td>$(dbmember.postcode)</td><td>$(dbmember.city)</td></tr>";
+					}
+					if(!member.exists_in_db() || !member.equals_db()) {
+						data1 += @"<tr class=\"success\"><td><i class=\"icon-plus-sign\"></td><td>$(member.id)</td><td>$(member.firstname)</td><td>$(member.lastname)</td><td>$(member.email)</td><td>$(member.gender)</td><td>$(member.street)</td><td>$(member.postcode)</td><td>$(member.city)</td></tr>";
+					}
+				}
+				t.replace("DATA1", data1);
+
+				/* removed users */
+				Gee.List<int> blockedusers = csvimport.missing_unblocked_members();
+				if(blockedusers.size > 0) {
+					string data2 = "<b>Disabling the following users</b>, because they are no longer found in the member CSV: <ul>";
+
+					foreach(var member in blockedusers) {
+						try {
+							string name = db.get_username(member);
+							data2 += @"<li>$name ($member)</li>";
+						} catch(Error e) {}
+					}
+
+					data2 += "</ul>";
+					t.replace("DATA2", data2);
+				} else {
+					t.replace("DATA2", "");
+				}
+
+				/* show correct blocks */
+				t.replace("STEP1",  "none");
+				t.replace("STEP23", "block");
+				if(postdata["step"] == "1") {
+					t.replace("STEP2",  "block");
+					t.replace("STEP3",  "none");
+				} else {
+					t.replace("STEP2",  "none");
+					t.replace("STEP3",  "block");
+				}
+
+				if(postdata["step"] == "2") {
+					/* disable users */
+					foreach(var member in csvimport.missing_unblocked_members()) {
+						db.user_disable(member, true);
+					}
+
+					/* update users */
+					foreach(var member in csvimport.get_members()) {
+						db.user_replace(member);
+					}
+
+					csvimport = null;
+				}
+			}
+
+			msg.set_response("text/html", Soup.MemoryUse.COPY, t.data);
+		} catch(TemplateError e) {
+			stderr.printf(e.message+"\n");
+			handler_404(server, msg, path, query, client);
+		}
+	}
+
 	void handler_user_entry(Soup.Server server, Soup.Message msg, string path, GLib.HashTable? query, Soup.ClientContext client, int id) {
 		try {
 			var l = new WebSession(server, msg, path, query, client);
@@ -91,7 +189,7 @@ public class WebServer {
 			t.replace("EMAIL", userinfo.email);
 			t.replace("GENDER", userinfo.gender);
 			t.replace("STREET", userinfo.street);
-			t.replace("POSTALCODE", "%d".printf(userinfo.plz));
+			t.replace("POSTALCODE", "%d".printf(userinfo.postcode));
 			t.replace("CITY", userinfo.city);
 
 			var userauth = db.get_user_auth(id);
@@ -586,6 +684,7 @@ public class WebServer {
 
 		/* users */
 		srv.add_handler("/users", handler_users);
+		srv.add_handler("/users/import", handler_user_import);
 
 		srv.run();
 	}

@@ -15,8 +15,12 @@
 
 public Device dev;
 public Database db;
+public AudioPlayer audio;
+public CSVMemberFile csvimport;
 
 public static int main(string[] args) {
+	Gst.init(ref args);
+
 	if(args.length < 2) {
 		stderr.printf("%s <device>\n", args[0]);
 		return 1;
@@ -24,6 +28,7 @@ public static int main(string[] args) {
 
 	dev = new Device(args[1], 9600, 8, 1);
 	db = new Database("shop.db");
+	audio = new AudioPlayer();
 
 	dev.received_barcode.connect((data) => {
 		if(interpret(data))
