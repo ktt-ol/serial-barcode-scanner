@@ -306,7 +306,7 @@ public class WebServer {
 			}
 
 			t.replace("DATA", table);
-			t.replace("SUM", @"$sum");
+			t.replace("SUM", @"$sum €");
 
 			msg.set_response("text/html", Soup.MemoryUse.COPY, t.data);
 		} catch(TemplateError e) {
