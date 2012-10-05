@@ -47,7 +47,7 @@ public class WebServer {
 		string[] pathparts = path.split("/");
 
 		if(pathparts.length <= 2) {
-			handler_todo(server, msg, path, query, client);
+			handler_user_list(server, msg, path, query, client);
 		} else {
 			int id = int.parse(pathparts[2]);
 
@@ -69,6 +69,34 @@ public class WebServer {
 						break;
 				}
 			}
+		}
+	}
+
+	void handler_user_list(Soup.Server server, Soup.Message msg, string path, GLib.HashTable<string,string>? query, Soup.ClientContext client) {
+		try {
+			var session = new WebSession(server, msg, path, query, client);
+			if(!session.superuser) {
+				handler_403(server, msg, path, query, client);
+				return;
+			}
+
+			var t = new WebTemplate("users/index.html", session);
+			t.replace("TITLE", "KtT Shop System: User");
+			t.menu_set_active("users");
+			var data = "";
+			foreach(var m in db.get_member_ids()) {
+				try {
+					var name = db.get_username(m);
+					data += @"<tr><td>$m</td><td><a href=\"/users/$m\">$name</a></td></tr>";
+				} catch(WebSessionError e) {
+				}
+			}
+			t.replace("DATA", data);
+
+			msg.set_response("text/html", Soup.MemoryUse.COPY, t.data);
+		} catch(TemplateError e) {
+			stderr.printf(e.message+"\n");
+			handler_404(server, msg, path, query, client);
 		}
 	}
 
