@@ -34,6 +34,11 @@ public class ScannerSession {
 		private set;
 		default = false;
 	}
+	public string theme {
+		get;
+		private set;
+		default = "beep";
+	}
 
 	public void logout() {
 		logged_in = false;
@@ -48,6 +53,7 @@ public class ScannerSession {
 			return false;
 		}
 		this.logged_in = true;
+		this.theme = audio.get_random_user_theme();
 
 		return true;
 	}
@@ -62,7 +68,7 @@ public class ScannerSession {
 
 			/* check if scannerdata has valid format */
 			if(scannerdata != "USER %d".printf(id)) {
-				audio.play("system/error.ogg");
+				audio.play_system("error.ogg");
 				write_to_log("Error: Invalid User ID: %s", scannerdata);
 				return false;
 			}
@@ -73,11 +79,11 @@ public class ScannerSession {
 			}
 
 			if(login(id)) {
-				/* TODO: play audio */
+				audio.play_user(theme, "login");
 				write_to_log("Login: %s (%d)", name, user);
 				return true;
 			} else {
-				audio.play("system/error.ogg");
+				audio.play_system("error.ogg");
 				write_to_log("Error: Login failed (User ID = %d)", id);
 				return false;
 			}
@@ -88,33 +94,33 @@ public class ScannerSession {
 			}
 
 			if(login(0)) {
-				/* TODO: play audio */
+				audio.play_user(theme, "login");
 				write_to_log("Login: %s (%d)", name, user);
 				return true;
 			} else {
-				audio.play("system/error.ogg");
+				audio.play_system("error.ogg");
 				write_to_log("Error: Login failed (User ID = 0)");
 				return false;
 			}
 		} else if(scannerdata == "UNDO") {
 			if(!logged_in) {
-				audio.play("system/error.ogg");
+				audio.play_system("error.ogg");
 				write_to_log("Error: Can't undo if not logged in!");
 				return false;
 			} else {
 				if(db.undo(user)) {
-					/* TODO: play audio */
+					audio.play_user(theme, "purchase");
 					write_to_log("Undo last purchase!");
 					return true;
 				} else {
-					/* TODO: play audio */
+					audio.play_user(theme, "error");
 					write_to_log("Error: Couldn't undo last purchase!");
 					return false;
 				}
 			}
 		} else if(scannerdata == "LOGOUT") {
 			if(logged_in) {
-				/* TODO: play audio */
+				audio.play_user(theme, "logout");
 				write_to_log("Logout!");
 				logout();
 				return true;
@@ -126,19 +132,25 @@ public class ScannerSession {
 
 			/* check if scannerdata has valid format */
 			if(scannerdata != "%llu".printf(id)) {
-				/* TODO: play audio */
+				audio.play_user(theme, "error");
 				write_to_log("Error: invalid product: %s", scannerdata);
 				return false;
 			}
 
+			if(!logged_in) {
+				audio.play_system("error.ogg");
+				write_to_log("Error: Login Required!");
+				return false;
+			}
+
 			if(db.buy(user, id)) {
-				/* TODO: play audio */
+				audio.play_user(theme, "purchase");
 				var name  = db.get_product_name(id);
 				var price = db.get_product_price(user, id);
 				write_to_log(@"article bought: $name ($price €)");
 				return true;
 			} else {
-				/* TODO: play audio */
+				audio.play_user(theme, "error");
 				write_to_log("Error: purchase failed!");
 				return false;
 			}

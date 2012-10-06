@@ -62,6 +62,7 @@ public static int main(string[] args) {
 	db    = new Database("shop.db");
 	audio = new AudioPlayer();
 	loop  = new MainLoop();
+	localsession = new ScannerSession();
 
 	dev.received_barcode.connect((data) => {
 		if(localsession.interpret(data))
@@ -69,7 +70,7 @@ public static int main(string[] args) {
 	});
 
 	write_to_log("KtT Shop System has been started");
-	audio.play("system/startup.ogg");
+	audio.play_system("startup.ogg");
 
 	/* attach webserver to mainloop */
 	new WebServer();
@@ -78,7 +79,7 @@ public static int main(string[] args) {
 	loop.run();
 
 	write_to_log("Stopping Shop System");
-	audio.play("system/shutdown.ogg");
+	audio.play_system("shutdown.ogg");
 
 	/* we need to run the mainloop to play audio */
 	audio.end_of_stream.connect(() => { loop.quit(); });
