@@ -31,7 +31,10 @@ public class AudioPlayer {
 
 	public AudioPlayer() {
 		path = Environment.get_current_dir()+"/sounds/";
-		p = Gst.ElementFactory.make("playbin", "play");
+
+		var alsa = Gst.ElementFactory.make("alsasink", "alsa");
+		p = Gst.ElementFactory.make("playbin2", "play");
+		p.set("audio-sink", alsa);
 		p.get_bus().add_watch(bus_callback);
 	}
 
