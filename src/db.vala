@@ -548,8 +548,6 @@ public class Database {
 			var pwhash_db = statements["password_get"].column_text(0);
 			var pwhash_user = Checksum.compute_for_string(ChecksumType.SHA256, password);
 
-			stdout.printf("tried login: %s\n", pwhash_user);
-
 			return pwhash_db == pwhash_user;
 		} else {
 			return false;
