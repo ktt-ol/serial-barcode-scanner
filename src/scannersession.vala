@@ -131,7 +131,7 @@ public class ScannerSession {
 			uint64 id = uint64.parse(scannerdata);
 
 			/* check if scannerdata has valid format */
-			if(scannerdata != "%llu".printf(id)) {
+			if(scannerdata != "%llu".printf(id) && scannerdata != "%08llu".printf(id) && scannerdata != "%013llu".printf(id)) {
 				audio.play_user(theme, "error");
 				write_to_log("Error: invalid product: %s", scannerdata);
 				return false;
