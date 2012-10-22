@@ -231,7 +231,7 @@ public class WebServer {
 				} else if(postdata["password1"] == "") {
 					t.replace("MESSAGE", "<div class=\"alert alert-error\">Error! Empty Password not allowed!</div>");
 				} else {
-					db.set_user_password(session.user, postdata["password1"]);
+					db.set_user_password(id, postdata["password1"]);
 					t.replace("MESSAGE", "<div class=\"alert alert-success\">Password Changed!</div>");
 				}
 			} else {
