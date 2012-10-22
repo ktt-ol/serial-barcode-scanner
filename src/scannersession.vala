@@ -128,7 +128,8 @@ public class ScannerSession {
 
 			return false;
 		} else {
-			uint64 id = uint64.parse(scannerdata);
+			uint64 id = 0;
+			scannerdata.scanf("%llu", out id);
 
 			/* check if scannerdata has valid format */
 			if(scannerdata != "%llu".printf(id) && scannerdata != "%08llu".printf(id) && scannerdata != "%013llu".printf(id)) {
