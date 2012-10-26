@@ -138,16 +138,21 @@ public class ScannerSession {
 				return false;
 			}
 
+			var name  = db.get_product_name(id);
+
 			if(!logged_in) {
+				var mprice = db.get_product_price(user, 0);
+				var gprice = db.get_product_price(user, 1);
+
 				audio.play_system("error.ogg");
-				write_to_log("Error: Login Required!");
+				write_to_log(@"article info: $name (Member: $mprice €, Guest: $gprice €)");
+				write_to_log("Error: Login required for purchase!");
 				return false;
 			}
 
 			if(db.buy(user, id)) {
-				audio.play_user(theme, "purchase");
-				var name  = db.get_product_name(id);
 				var price = db.get_product_price(user, id);
+				audio.play_user(theme, "purchase");
 				write_to_log(@"article bought: $name ($price €)");
 				return true;
 			} else {
