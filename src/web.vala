@@ -472,8 +472,8 @@ public class WebServer {
 			if(query != null && query.contains("name") && query.contains("id") && query.contains("memberprice") && query.contains("guestprice")) {
 				var name = query["name"];
 				var ean = uint64.parse(query["id"]);
-				Price memberprice = int.parse(query["memberprice"]);
-				Price guestprice = int.parse(query["guestprice"]);
+				Price memberprice = Price.parse(query["memberprice"]);
+				Price guestprice  = Price.parse(query["guestprice"]);
 
 				if(ean > 0 && memberprice > 0 && guestprice > 0 && db.new_product(ean, name, memberprice, guestprice)) {
 					template.replace("NAME", name);
@@ -516,7 +516,7 @@ public class WebServer {
 
 			if(query != null && query.contains("amount") && query.contains("price")) {
 				int amount = int.parse(query["amount"]);
-				Price price =  int.parse(query["price"]);
+				Price price =  Price.parse(query["price"]);
 
 				if(amount >= 1 && price >= 1) {
 					if(db.restock(session.user, id, amount, price)) {

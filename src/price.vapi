@@ -6,4 +6,13 @@ public struct Price : int {
 	public new string to_string() {
 		return "%d.%02d".printf(this / 100, this % 100);
 	}
+
+	public static Price parse(string data) {
+		if("." in data) {
+			var parts = data.split(".");
+			return int.parse(parts[0])*100 + int.parse(parts[1]);
+		} else {
+			return int.parse(data);
+		}
+	}
 }
