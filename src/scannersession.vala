@@ -141,8 +141,8 @@ public class ScannerSession {
 			var name  = db.get_product_name(id);
 
 			if(!logged_in) {
-				var mprice = db.get_product_price(user, 0);
-				var gprice = db.get_product_price(user, 1);
+				var mprice = db.get_product_price(0, id);
+				var gprice = db.get_product_price(1, id);
 
 				audio.play_system("error.ogg");
 				write_to_log(@"article info: $name (Member: $mprice €, Guest: $gprice €)");
