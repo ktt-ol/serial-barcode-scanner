@@ -13,13 +13,21 @@
 	{{{PRICES}}}
 </table>
 
+<div id="new_price" style="display: {{{ISADMIN}}};">
+	<form action="/products/{{{EAN}}}/newprice" class="form-horizontal">
+		<input class="input-small" name="member" type="number" min="1" placeholder="Member" />
+		<input class="input-small" name="guest"  type="number" min="1" placeholder="Guest" />
+		<button type="submit" class="btn btn-primary">Add new Prices</button>
+	</form>
+</div>
+
 <h2>Restock</h2>
 <table class="table table-bordered table-nonfluid">
 	<tr><th>Date</th><th>Amount</th><th>Unit Price</th></tr>
 	{{{RESTOCKS}}}
 </table>
 
-<div id="restock" style="display: {{{RESTOCK}}};">
+<div id="restock" style="display: {{{ISADMIN}}};">
 	<form action="/products/{{{EAN}}}/restock" class="form-horizontal">
 		<input class="input-small" name="amount" type="number" min="1" placeholder="Amount" />
 		<input class="input-small" name="price" type="number" min="1" placeholder="Price" />

@@ -372,6 +372,9 @@ public class WebServer {
 					case "restock":
 						handler_product_restock(server, msg, path, query, client, id);
 						break;
+					case "newprice":
+						handler_product_newprice(server, msg, path, query, client, id);
+						break;
 					default:
 						handler_product_entry(server, msg, path, query, client, id);
 						break;
@@ -426,9 +429,9 @@ public class WebServer {
 			t.replace("AMOUNT", "%d".printf(db.get_product_amount(id)));
 
 			if(l.superuser)
-				t.replace("RESTOCK", "block");
+				t.replace("ISADMIN", "block");
 			else
-				t.replace("RESTOCK", "none");
+				t.replace("ISADMIN", "none");
 
 			/* prices */
 			string prices = "";
@@ -539,6 +542,48 @@ public class WebServer {
 			handler_404(server, msg, path, query, client);
 		}
 	}
+
+	void handler_product_newprice(Soup.Server server, Soup.Message msg, string path, GLib.HashTable<string,string>? query, Soup.ClientContext client, uint64 id) {
+		try {
+			var session = new WebSession(server, msg, path, query, client);
+			int64 timestamp = (new DateTime.now_utc()).to_unix();
+
+			if(!session.superuser) {
+				handler_403(server, msg, path, query, client);
+				return;
+			}
+
+			var template = new WebTemplate("products/newprice.html", session);
+			template.replace("TITLE", "KtT Shop System: New Price for Product %llu".printf(id));
+			template.replace("NAME", db.get_product_name(id));
+			template.menu_set_active("products");
+
+			if(query != null && query.contains("guest") && query.contains("member")) {
+				Price member = Price.parse(query["member"]);
+				Price guest =  Price.parse(query["guest"]);
+
+				if(guest >= 1 && member >= 1) {
+					if(db.new_price(id, timestamp, member, guest)) {
+						template.replace("GUEST", @"$guest");
+						template.replace("MEMBER", @"$guest");
+						template.replace("NEWPRICE.OK", "block");
+						template.replace("NEWPRICE.FAIL", "none");
+						msg.set_response("text/html", Soup.MemoryUse.COPY, template.data);
+						return;
+					}
+				}
+			}
+
+			template.replace("NEWPRICE.OK", "none");
+			template.replace("NEWPRICE.FAIL", "block");
+			msg.set_response("text/html", Soup.MemoryUse.COPY, template.data);
+			return;
+		} catch(TemplateError e) {
+			stderr.printf(e.message+"\n");
+			handler_404(server, msg, path, query, client);
+		}
+	}
+
 
 	void handler_stats(Soup.Server server, Soup.Message msg, string path, GLib.HashTable? query, Soup.ClientContext client) {
 		try {

@@ -1,0 +1,18 @@
+<h2>Restock: {{{NAME}}}</h2>
+
+<div id="newprice-successful" class="alert alert-success" style="display: {{{NEWPRICE.OK}}};">
+	Successfully added new prices to <b>{{{NAME}}}</b>. New prices valid from now on:
+	<ul>
+		<li>Member: {{{MEMBER}}}€</li>
+		<li>Guest: {{{GUEST}}}€</li>
+	</ul>
+</div>
+
+<div id="newprice-failed" class="alert alert-error" style="display: {{{NEWPRICE.FAIL}}};">
+	<h4>Error</h4>
+	Adding new price for <b>{{{NAME}}}</b> failed. Please make sure you
+	have sufficient permissions and gave valid prices for members and
+	guests.
+</div>
+
+<a href=".">Back to {{{NAME}}}</a>
