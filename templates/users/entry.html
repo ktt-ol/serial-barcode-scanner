@@ -5,6 +5,13 @@
 <form method="POST" enctype="multipart/form-data" action="#">
 	<table class="table table-bordered table-nonfluid">
 		<tr><th>ID</th><td>{{{UID}}}</td></tr>
+		<tr>
+			<th>Barcode</th>
+			<td>
+				<canvas id="barcode"></canvas><br>
+				<a href="#" onclick="window.open(code39_url());">Download</a>
+			</td>
+		</tr>
 		<tr><th>Firstname</th><td>{{{FIRSTNAME}}}</td></tr>
 		<tr><th>Lastname</th><td>{{{LASTNAME}}}</td></tr>
 		<tr><th>E-Mail</th><td>{{{EMAIL}}}</td></tr>
@@ -20,3 +27,8 @@
 		<tr><td><input type="submit" value="Change Password" /></td></tr>
 	</table>
 </form>
+
+<script language="JavaScript">
+	code39_init();
+	code39_draw("USER {{{UID}}}", true);
+</script>
