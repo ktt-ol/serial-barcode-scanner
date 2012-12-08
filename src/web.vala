@@ -139,10 +139,10 @@ public class WebServer {
 				foreach(var member in csvimport.get_members()) {
 					if(member.exists_in_db() && !member.equals_db()) {
 						var dbmember = db.get_user_info(member.id);
-						data1 += @"<tr class=\"error\"><td><i class=\"icon-minus-sign\"></i><td>$(dbmember.id)</td><td>$(dbmember.firstname)</td><td>$(dbmember.lastname)</td><td>$(dbmember.email)</td><td>$(dbmember.gender)</td><td>$(dbmember.street)</td><td>$(dbmember.postcode)</td><td>$(dbmember.city)</td></tr>";
+						data1 += @"<tr class=\"error\"><td><i class=\"icon-minus-sign\"></i><td>$(dbmember.id)</td><td>$(dbmember.firstname)</td><td>$(dbmember.lastname)</td><td>$(dbmember.email)</td><td>$(dbmember.gender)</td><td>$(dbmember.street)</td><td>$(dbmember.postcode)</td><td>$(dbmember.city)</td><td>$(dbmember.pgp)</td></tr>";
 					}
 					if(!member.exists_in_db() || !member.equals_db()) {
-						data1 += @"<tr class=\"success\"><td><i class=\"icon-plus-sign\"></td><td>$(member.id)</td><td>$(member.firstname)</td><td>$(member.lastname)</td><td>$(member.email)</td><td>$(member.gender)</td><td>$(member.street)</td><td>$(member.postcode)</td><td>$(member.city)</td></tr>";
+						data1 += @"<tr class=\"success\"><td><i class=\"icon-plus-sign\"></td><td>$(member.id)</td><td>$(member.firstname)</td><td>$(member.lastname)</td><td>$(member.email)</td><td>$(member.gender)</td><td>$(member.street)</td><td>$(member.postcode)</td><td>$(member.city)</td><td>$(member.pgp)</td></tr>";
 					}
 				}
 				t.replace("DATA1", data1);
@@ -219,6 +219,7 @@ public class WebServer {
 			t.replace("STREET", userinfo.street);
 			t.replace("POSTALCODE", "%d".printf(userinfo.postcode));
 			t.replace("CITY", userinfo.city);
+			t.replace("PGPKEYID", userinfo.pgp);
 
 			var userauth = db.get_user_auth(id);
 			t.replace("DISABLED", userauth.disabled ? "true" : "false");

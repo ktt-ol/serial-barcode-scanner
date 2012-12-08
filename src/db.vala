@@ -44,6 +44,7 @@ public struct UserInfo {
 	public string street;
 	public int postcode;
 	public string city;
+	public string pgp;
 
 	public bool equals(UserInfo x) {
 		if(id != x.id) return false;
@@ -54,6 +55,7 @@ public struct UserInfo {
 		if(street != x.street) return false;
 		if(postcode != x.postcode) return false;
 		if(city != x.city) return false;
+		if(pgp != x.pgp) return false;
 
 		return true;
 	}
@@ -182,7 +184,7 @@ public class Database {
 		queries["username"]          = "SELECT firstname, lastname FROM users WHERE id = ?";
 		queries["password_get"]      = "SELECT password FROM authentication WHERE user = ?";
 		queries["password_set"]      = "UPDATE authentication SET password=? WHERE user = ?";
-		queries["userinfo"]          = "SELECT firstname, lastname, email, gender, street, plz, city FROM users WHERE id = ?";
+		queries["userinfo"]          = "SELECT firstname, lastname, email, gender, street, plz, city, pgp FROM users WHERE id = ?";
 		queries["userauth"]          = "SELECT disabled, superuser FROM authentication WHERE user = ?";
 		queries["profit_by_product"] = "SELECT name, SUM(memberprice - (SELECT price FROM purchaseprices WHERE product = purch.product)) AS price FROM sales purch, prices, products WHERE purch.product = products.id AND purch.product = prices.product AND purch.user > 0 AND purch.timestamp > ? AND purch.timestamp < ? AND prices.valid_from = (SELECT valid_from FROM prices WHERE product = purch.product AND valid_from < purch.timestamp ORDER BY valid_from DESC LIMIT 1) GROUP BY name ORDER BY price;";
 		queries["invoice"]           = "SELECT timestamp, productid, productname, price FROM invoice WHERE user = ? AND timestamp >= ? AND timestamp < ?;";
@@ -194,7 +196,7 @@ public class Database {
 		queries["total_sales"]       = "SELECT SUM(price) FROM invoice WHERE user >= 0 AND timestamp >= ?";
 		queries["total_profit"]      = "SELECT SUM(price - (SELECT price FROM purchaseprices WHERE product = productid)) FROM invoice WHERE user >= 0 AND timestamp >= ?";
 		queries["user_get_ids"]      = "SELECT id FROM users WHERE id > 0";
-		queries["user_replace"]      = "INSERT OR REPLACE INTO users ('id', 'email', 'firstname', 'lastname', 'gender', 'street', 'plz', 'city') VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+		queries["user_replace"]      = "INSERT OR REPLACE INTO users ('id', 'email', 'firstname', 'lastname', 'gender', 'street', 'plz', 'city', 'pgp') VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
 		queries["user_auth_create"]	 = "INSERT OR IGNORE INTO authentication (user) VALUES (?)";
 		queries["user_disable"]		 = "UPDATE authentication SET disabled = ? WHERE user = ?";
 
@@ -609,6 +611,7 @@ public class Database {
 			result.street    = statements["userinfo"].column_text(4);
 			result.postcode  = statements["userinfo"].column_int(5);
 			result.city      = statements["userinfo"].column_text(6);
+			result.pgp       = statements["userinfo"].column_text(7);
 		}
 
 		return result;
@@ -799,6 +802,7 @@ public class Database {
 		statements["user_replace"].bind_text(6, u.street);
 		statements["user_replace"].bind_int(7, u.postcode);
 		statements["user_replace"].bind_text(8, u.city);
+		statements["user_replace"].bind_text(9, u.pgp);
 
 		int rc = statements["user_replace"].step();
 		if(rc != Sqlite.DONE)
