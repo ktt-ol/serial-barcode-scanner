@@ -12,15 +12,15 @@ CREATE TRIGGER IF NOT EXISTS update_product_amount_on_restock_update AFTER UPDAT
 	UPDATE products SET amount = products.amount + NEW.amount WHERE products.id = NEW.product;
 END;
 
-CREATE TRIGGER IF NOT EXISTS update_product_amount_on_sells_insert AFTER INSERT ON sells BEGIN
+CREATE TRIGGER IF NOT EXISTS update_product_amount_on_sales_insert AFTER INSERT ON sales BEGIN
 	UPDATE products SET amount = products.amount - 1 WHERE products.id = NEW.product;
 END;
 
-CREATE TRIGGER IF NOT EXISTS update_product_amount_on_sells_delete AFTER DELETE ON sells BEGIN
+CREATE TRIGGER IF NOT EXISTS update_product_amount_on_sales_delete AFTER DELETE ON sales BEGIN
 	UPDATE products SET amount = products.amount + 1 WHERE products.id = OLD.product;
 END;
 
-CREATE TRIGGER IF NOT EXISTS update_product_amount_on_sells_update AFTER UPDATE ON sells BEGIN
+CREATE TRIGGER IF NOT EXISTS update_product_amount_on_sales_update AFTER UPDATE ON sales BEGIN
 	UPDATE products SET amount = products.amount + 1 WHERE products.id = OLD.product;
 	UPDATE products SET amount = products.amount - 1 WHERE products.id = NEW.product;
 END;

@@ -17,6 +17,6 @@ CREATE VIEW IF NOT EXISTS invoice AS
 					WHERE product = id AND valid_from <= timestamp
 					ORDER BY valid_from DESC LIMIT 1)
 			END AS price
-		FROM sells INNER JOIN products ON sells.product = products.id
+		FROM sales INNER JOIN products ON sales.product = products.id
 		ORDER BY timestamp;
 COMMIT;
