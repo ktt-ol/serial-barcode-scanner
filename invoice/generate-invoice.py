@@ -307,8 +307,15 @@ def monthly(timestamp = time.time()):
 	# timestamps for previous month
 	dstop = requested.replace(hour = 8, minute = 0, second = 0, day = 16) - datetime.timedelta(seconds = 1)
 	if dstop > requested:
-		dstop = dstop.replace(month = dstop.month -1)
-	dstart = dstop.replace(month = dstop.month -1)
+		if dstop.month > 1:
+			dstop = dstop.replace(month = dstop.month -1)
+		else:
+			dstop = dstop.replace(month = 12)
+	if dstop.month > 1:
+		dstart = dstop.replace(month = dstop.month -1)
+	else:
+		dstart = dstop.replace(month = 12)
+
 	stop = int(dstop.strftime("%s"))
 	start = int(dstart.strftime("%s"))
 
