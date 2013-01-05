@@ -411,8 +411,7 @@ def gen_stock_mail():
 	return msg
 
 def weekly():
-	send_mail(gen_stock_mail(), "sre@ring0.de")
-	#send_mail(gen_stock_mail(), "einkauf@kreativitaet-trifft-technik.de")
+	send_mail(gen_stock_mail(), "einkauf@kreativitaet-trifft-technik.de")
 
 if sys.argv[1] == "daily":
 	daily()
