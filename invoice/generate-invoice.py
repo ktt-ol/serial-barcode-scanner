@@ -254,7 +254,8 @@ def generate_pdf(data):
 def send_mail(mail, receiver):
 	server = smtplib.SMTP(SMTPSERVERNAME, SMTPSERVERPORT)
 	server.starttls()
-	server.login(SMTPSERVERUSER, SMTPSERVERPASS)
+	if SMTPSERVERUSER != "":
+		server.login(SMTPSERVERUSER, SMTPSERVERPASS)
 	maildata = mail.as_string()
 	server.sendmail(mail["From"], receiver, maildata)
 	server.quit()
@@ -410,7 +411,8 @@ def gen_stock_mail():
 	return msg
 
 def weekly():
-	send_mail(gen_stock_mail(), "einkauf@kreativitaet-trifft-technik.de")
+	send_mail(gen_stock_mail(), "sre@ring0.de")
+	#send_mail(gen_stock_mail(), "einkauf@kreativitaet-trifft-technik.de")
 
 if sys.argv[1] == "daily":
 	daily()
