@@ -191,25 +191,18 @@ def generate_invoice_text(user, title, subject, start=0, stop=0, temporary=False
 	return result
 
 def get_invoice_amount(user, start=0, stop=0):
-	if user < 0:
-		return 0
-	else:
-		query = "SELECT SUM(memberprice) FROM users, sales purch, prices \
-				WHERE users.id = ? AND users.id = purch.user AND purch.product = prices.product \
-				AND purch.timestamp >= ? AND purch.timestamp <= ? AND prices.valid_from = \
-				(SELECT valid_from FROM prices WHERE product = purch.product AND \
-				valid_from < purch.timestamp ORDER BY valid_from DESC LIMIT 1) GROUP BY users.id"
-		amount = 0
+	query = "SELECT SUM(price) FROM invoice WHERE user = ? AND timestamp >= ? AND timestamp <= ?";
+	amount = 0
 
-		connection = sqlite3.connect('shop.db')
-		c = connection.cursor()
-		c.execute(query, (user, start, stop))
+	connection = sqlite3.connect('shop.db')
+	c = connection.cursor()
+	c.execute(query, (user, start, stop))
 
-		for row in c:
-			amount += row[0]
+	for row in c:
+		amount += row[0]
 
-		c.close()
-		return amount
+	c.close()
+	return amount
 
 def generate_mail(receiver, subject, message, pdfdata, timestamp=time.time(), cc = None):
 	msg = MIMEMultipart()
