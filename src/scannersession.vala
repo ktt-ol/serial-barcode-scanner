@@ -110,7 +110,6 @@ public class ScannerSession {
 			} else {
 				if(db.undo(user)) {
 					audio.play_user(theme, "purchase");
-					write_to_log("Undo last purchase!");
 					return true;
 				} else {
 					audio.play_user(theme, "error");
