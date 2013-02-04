@@ -329,10 +329,10 @@ public class WebServer {
 				start = new DateTime.local(selectedyear, selectedmonth, selectedday, 8, 0, 0);
 				stop = start.add_days(1);
 			} else if(selectedmonth != 0) {
-				start = new DateTime.local(selectedyear, selectedmonth, 16, 8, 0, 0);
+				start = new DateTime.local(selectedyear, selectedmonth, 1, 0, 0, 0);
 				stop = start.add_months(1);
 			} else {
-				start = new DateTime.local(selectedyear, 1, 16, 8, 0, 0);
+				start = new DateTime.local(selectedyear, 1, 1, 0, 0, 0);
 				stop = start.add_years(1);
 			}
 

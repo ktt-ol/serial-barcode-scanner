@@ -470,7 +470,8 @@ public class Database {
 		switch(rc) {
 			case Sqlite.ROW:
 				pid = uint64.parse(statements["last_purchase"].column_text(0));
-				write_to_log("Remove purchase of %llu", pid);
+				string pname = get_product_name(pid);
+				write_to_log("Remove purchase of %s", pname);
 				break;
 			case Sqlite.DONE:
 				write_to_log("Error: undo not possible without purchases");
@@ -693,7 +694,7 @@ public class Database {
 
 		DateTime now = new DateTime.now_local();
 		DateTime today = new DateTime.local(now.get_year(), now.get_month(), now.get_hour() < 8 ? now.get_day_of_month()-1 : now.get_day_of_month(), 8, 0, 0);
-		DateTime month = new DateTime.local(now.get_year(), now.get_day_of_month() < 16 ? now.get_month()-1 : now.get_month(), 16, 8, 0, 0);
+		DateTime month = new DateTime.local(now.get_year(), now.get_month(), 1, 0, 0, 0);
 
 		DateTime last4weeks = now.add_days(-28);
 		DateTime last4months = now.add_months(-4);
