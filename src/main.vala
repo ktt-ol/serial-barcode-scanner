@@ -80,6 +80,11 @@ public static int main(string[] args) {
 			dev.blink(10);
 	});
 
+	while(!check_valid_time()) {
+		write_to_log("Invalid System Time! Retry in 1 minute...");
+		Posix.sleep(60);
+	}
+
 	write_to_log("KtT Shop System has been started");
 	audio.play_system("startup.ogg");
 
@@ -102,6 +107,10 @@ public static int main(string[] args) {
 	audio = null;
 
 	return 0;
+}
+
+public bool check_valid_time() {
+	return time_t() > db.get_timestamp_of_last_purchase();
 }
 
 public void write_to_log(string format, ...) {

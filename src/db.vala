@@ -197,8 +197,9 @@ public class Database {
 		queries["total_profit"]      = "SELECT SUM(price - (SELECT price FROM purchaseprices WHERE product = productid)) FROM invoice WHERE user >= 0 AND timestamp >= ?";
 		queries["user_get_ids"]      = "SELECT id FROM users WHERE id > 0";
 		queries["user_replace"]      = "INSERT OR REPLACE INTO users ('id', 'email', 'firstname', 'lastname', 'gender', 'street', 'plz', 'city', 'pgp') VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
-		queries["user_auth_create"]	 = "INSERT OR IGNORE INTO authentication (user) VALUES (?)";
-		queries["user_disable"]		 = "UPDATE authentication SET disabled = ? WHERE user = ?";
+		queries["user_auth_create"]  = "INSERT OR IGNORE INTO authentication (user) VALUES (?)";
+		queries["user_disable"]      = "UPDATE authentication SET disabled = ? WHERE user = ?";
+		queries["last_timestamp"]    = "SELECT timestamp FROM sales ORDER BY timestamp DESC LIMIT 1";
 
 		/* compile queries into statements */
 		foreach(var entry in queries.entries) {
@@ -812,5 +813,12 @@ public class Database {
 
 	public bool user_is_disabled(int user) {
 		return get_user_auth(user).disabled;
+	}
+
+	public int64 get_timestamp_of_last_purchase() {
+		statements["last_timestamp"].reset();
+		if(statements["last_timestamp"].step() != Sqlite.ROW)
+			return 0;
+		return statements["last_timestamp"].column_int64(0);
 	}
 }
