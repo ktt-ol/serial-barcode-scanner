@@ -19,6 +19,8 @@ public AudioPlayer audio;
 public CSVMemberFile csvimport;
 public ScannerSession localsession;
 public MainLoop loop;
+public PGPKeyArchive pgp;
+public KeyFile cfg;
 
 const OptionEntry[] option_entries = {
 	{ "version", 'v', OptionFlags.IN_MAIN, OptionArg.NONE, ref opt_version, "output version information and exit", null },
@@ -63,6 +65,15 @@ public static int main(string[] args) {
 	audio = new AudioPlayer();
 	loop  = new MainLoop();
 	localsession = new ScannerSession();
+
+	try {
+		cfg = new KeyFile();
+		cfg.load_from_file("ktt-shopsystem.cfg", KeyFileFlags.NONE);
+	} catch(Error e) {
+		error("Could not load configuration file: %s", e.message);
+	}
+
+	pgp = new PGPKeyArchive(cfg);
 
 	dev.received_barcode.connect((data) => {
 		if(localsession.interpret(data))
