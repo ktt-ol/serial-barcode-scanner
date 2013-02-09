@@ -103,12 +103,14 @@ namespace GPG {
 		/**
 		 * The key's subkeys
 		 */
-		public SubKey* subkeys;
+		[CCode(array_null_terminated = true)]
+		public SubKey[] subkeys;
 
 		/**
 		 * The key's user ids
 		 */
-		public UserID* uids;
+		[CCode(array_null_terminated = true)]
+		public UserID[] uids;
 
 		public KeylistMode keylist_mode;
 	}
@@ -904,6 +906,60 @@ namespace GPG {
 		 * Get result of last op_import.
 		 */
 		public unowned ImportResult op_import_result();
+
+		/**
+		 * Initiates a key listing operation. It sets everything up, so that
+		 * subsequent invocations of op_keylist_next() return the keys in the list.
+		 *
+		 * If pattern is NULL, all available keys are returned. Otherwise, pattern
+		 * contains an engine specific expression that is used to limit the list to
+		 * all keys matching the pattern.
+		 *
+		 * If secret_only is not 0, the list is restricted to secret keys only.
+		 *
+		 * The context will be busy until either all keys are received (and
+		 * op_keylist_next() returns GPG_ERR_EOF), or gpgme_op_keylist_end is called
+		 * to finish the operation.
+		 *
+		 * The function returns the error code GPG_ERR_INV_VALUE if ctx is not a valid
+		 * pointer, and passes through any errors that are reported by the crypto engine
+		 * support routines.
+		 */
+		public GPGError.ErrorCode op_keylist_start(string? pattern = null, int secret_only = 0);
+
+		/**
+		 * returns the next key in the list created by a previous op_keylist_start()
+		 * operation in the context ctx. The key will have one reference for the user.
+		 *
+		 * If the last key in the list has already been returned, op_keylist_next()
+		 * returns GPG_ERR_EOF.
+		 *
+		 * The function returns the error code GPG_ERR_INV_VALUE if ctx or r_key is
+		 * not a valid pointer, and GPG_ERR_ENOMEM if there is not enough memory for
+		 * the operation.
+		 */
+		public GPGError.ErrorCode op_keylist_next(out Key key);
+
+		/**
+		 * ends a pending key list operation in the context.
+		 *
+		 * After the operation completed successfully, the result of the key listing
+		 * operation can be retrieved with op_keylist_result().
+		 *
+		 * The function returns the error code GPG_ERR_INV_VALUE if ctx is not a valid
+		 * pointer, and GPG_ERR_ENOMEM if at some time during the operation there was
+		 * not enough memory available.
+		 */
+		public GPGError.ErrorCode op_keylist_end();
+
+		/**
+		 * The function op_keylist_result() returns a KeylistResult holding the result of
+		 * a op_keylist_*() operation. The returned KeylistResult is only valid if the last
+		 * operation on the context was a key listing operation, and if this operation
+		 * finished successfully. The returned KeylistResult is only valid until the next
+		 * operation is started on the context.
+		 */
+		public KeylistResult op_keylist_result();
 	}
 
 	[Compact]
@@ -981,6 +1037,13 @@ namespace GPG {
 		 * gpgme_import_status_t imports
 		 */
 	}
+
+	[Compact]
+	[CCode (cname = "struct _gpgme_op_keylist_result")]
+	public class KeylistResult {
+		uint truncated;
+	}
+
 
 	/**
 	 * Data Object, contains encrypted and/or unencrypted data
