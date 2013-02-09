@@ -106,7 +106,8 @@ public class PGPKeyArchive {
 		gpg.set_armor(true);
 	}
 
-	public void read() {
+	public string[] import_archive(uint8[] data) {
+		string[] result = {};
 		unowned Archive.Entry entry;
 		var archive = new Archive.Read();
 
@@ -115,9 +116,8 @@ public class PGPKeyArchive {
 		archive.support_format_all();
 
 		/* load test archive for now */
-		/* TODO: use archive.open_memory(void *buffer, size_t size) */
-		if(archive.open_filename("pgp-test.tar.gz", 4096) != Archive.Result.OK)
-			return;
+		if(archive.open_memory(data, data.length) != Archive.Result.OK)
+			return result;
 
 		while(archive.next_header(out entry) == Archive.Result.OK) {
 			var name = entry.pathname();
@@ -142,8 +142,19 @@ public class PGPKeyArchive {
 
 				/* import keys */
 				gpg.op_import(gpgdata);
+
+				/* get result */
+				unowned GPG.ImportResult importresult = gpg.op_import_result();
+
+				/* add imported fingerprints to result */
+				for(unowned GPG.ImportStatus st = importresult.imports; st != null; st = st.next) {
+					if(!(st.fpr in result) && (st.status & GPG.ImportStatusFlags.NEW) != 0)
+						result += st.fpr;
+				}
 			}
 		}
+
+		return result;
 	}
 
 	public string[] list_keys() {
