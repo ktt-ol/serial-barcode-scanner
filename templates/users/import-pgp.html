@@ -1,0 +1,22 @@
+<h2>Import PGP Keys</h2>
+
+<div style="display: {{{STEP1}}}">
+	<form action="#" method="POST" enctype="multipart/form-data" class="form-horizontal">
+		<div class="control-group">
+			<label class="control-label" for="file">Archive File (zip, tar.gz, ...) containing PGP keys</label>
+			<div class="controls">
+				<input type="file" accept="text/csv" name="file"></input>
+				<input type="hidden" name="step" value="1"></input>
+			</div>
+		</div>
+
+		<button class="btn btn-primary" type="submit">Import</button>
+	</form>
+</div>
+
+
+<div style="display: {{{STEP2}}}">
+	<p>The following keys have been found in the archive and imported into the keyring:</p>
+
+	{{{DATA}}}
+</div>

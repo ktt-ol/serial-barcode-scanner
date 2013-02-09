@@ -100,6 +100,53 @@ public class WebServer {
 		}
 	}
 
+	void handler_user_pgp_import(Soup.Server server, Soup.Message msg, string path, GLib.HashTable<string,string>? query, Soup.ClientContext client) {
+		try {
+			var session = new WebSession(server, msg, path, query, client);
+			if(!session.superuser) {
+				handler_403(server, msg, path, query, client);
+				return;
+			}
+
+			var t = new WebTemplate("users/import-pgp.html", session);
+			t.replace("TITLE", "KtT Shop System: PGP Key Import");
+			t.menu_set_active("users");
+
+			Soup.Buffer filedata;
+			var postdata = Soup.Form.decode_multipart(msg, "file", null, null, out filedata);
+
+			if(postdata == null || !postdata.contains("step")) {
+				t.replace("DATA", "");
+				t.replace("STEP1",  "block");
+				t.replace("STEP2",  "none");
+				msg.set_response("text/html", Soup.MemoryUse.COPY, t.data);
+				return;
+			} else {
+				var keylist = pgp.import_archive(filedata.data);
+				string keylisttemplate;
+
+				if(keylist.length > 0) {
+					keylisttemplate = "<ul>\n";
+					foreach(string s in keylist) {
+						keylisttemplate += "<li>"+s+"</li>\n";
+					}
+					keylisttemplate += "</ul>\n";
+				} else {
+					keylisttemplate = "<p><b>No new keys!</b></p>";
+				}
+
+				t.replace("DATA", keylisttemplate);
+				t.replace("STEP1",  "none");
+				t.replace("STEP2",  "block");
+				msg.set_response("text/html", Soup.MemoryUse.COPY, t.data);
+				return;
+			}
+		} catch(TemplateError e) {
+			stderr.printf(e.message+"\n");
+			handler_404(server, msg, path, query, client);
+		}
+	}
+
 	void handler_user_import(Soup.Server server, Soup.Message msg, string path, GLib.HashTable<string,string>? query, Soup.ClientContext client) {
 		try {
 			var session = new WebSession(server, msg, path, query, client);
@@ -773,6 +820,7 @@ public class WebServer {
 		/* users */
 		srv.add_handler("/users", handler_users);
 		srv.add_handler("/users/import", handler_user_import);
+		srv.add_handler("/users/import-pgp", handler_user_pgp_import);
 
 		srv.run_async();
 	}
