@@ -962,6 +962,63 @@ namespace GPG {
 		public KeylistResult op_keylist_result();
 	}
 
+	[Flags]
+	[CCode (cname="unsigned int")]
+	public enum ImportStatusFlags {
+		/**
+		 * The key was new.
+		 */
+		[CCode (cname = "GPGME_IMPORT_NEW")]
+		NEW,
+		/**
+		 * The key contained new user IDs.
+		 */
+		[CCode (cname = "GPGME_IMPORT_UID")]
+		UID,
+		/**
+		 * The key contained new signatures.
+		 */
+		[CCode (cname = "GPGME_IMPORT_SIG")]
+		SIG,
+		/**
+		 * The key contained new sub keys.
+		 */
+		[CCode (cname = "GPGME_IMPORT_SUBKEY")]
+		SUBKEY,
+		/**
+		 * The key contained a secret key.
+		 */
+		[CCode (cname = "GPGME_IMPORT_SECRET")]
+		SECRET
+	}
+
+	[Compact]
+	[CCode (cname = "struct _gpgme_import_status")]
+	public class ImportStatus {
+		/**
+		 * This is a pointer to the next status structure in the linked list, or null
+		 * if this is the last element.
+		 */
+		public ImportStatus? next;
+
+		/**
+		 * fingerprint of the key that was considered.
+		 */
+		public string fpr;
+
+		/**
+		 * If the import was not successful, this is the error value that caused the
+		 * import to fail. Otherwise the error code is GPG_ERR_NO_ERROR.
+		 */
+		public GPGError.ErrorCode result;
+
+		/**
+		 * Flags what parts of the key have been imported. May be 0, if the key has
+		 * already been known.
+		 */
+		public ImportStatusFlags status;
+	}
+
 	[Compact]
 	[CCode (cname = "struct _gpgme_op_import_result")]
 	public class ImportResult {
@@ -1031,11 +1088,11 @@ namespace GPG {
 		public int not_imported;
 
 		/*
-		 * A list of gpgme import status t objects which
-		 * contain more information about the keys for
+		 * A linked list of ImportStatus objects which
+		 * contains more information about the keys for
 		 * which an import was attempted.
-		 * gpgme_import_status_t imports
 		 */
+		public ImportStatus imports;
 	}
 
 	[Compact]
