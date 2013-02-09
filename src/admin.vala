@@ -101,6 +101,9 @@ public class PGPKeyArchive {
 		/* set home directory */
 		var info = gpg.get_engine_info();
 		gpg.set_engine_info(info.protocol, info.file_name, keyring);
+
+		/* enable ascii armor */
+		gpg.set_armor(true);
 	}
 
 	public void read() {
@@ -143,11 +146,35 @@ public class PGPKeyArchive {
 		}
 	}
 
-	/* TODO: implement method, which list all keys available in the gpg keyring */
+	public string[] list_keys() {
+		string[] result = {};
+		GPG.Key key;
 
-	/* TODO: implement method, which gets a key by keyid from gpg keyring */
+		gpg.op_keylist_start();
 
-	/* TODO: implement method, which signs a message */
+		while(gpg.op_keylist_next(out key) == GPGError.ErrorCode.NO_ERROR) {
+			result += key.subkeys[0].fpr;
+		}
 
-	/* TODO: implement method, which signs & encrypts a message */
+		gpg.op_keylist_end();
+
+		return result;
+	}
+
+	public string get_key(string fingerprint) {
+		GPG.Data keydata;
+		GPG.Data.create(out keydata);
+
+		if(gpg.op_export(fingerprint, 0, keydata) == GPGError.ErrorCode.NO_ERROR) {
+			long size = keydata.seek(0, Posix.FILE.SEEK_END);
+			keydata.seek(0, Posix.FILE.SEEK_SET);
+			stdout.printf("size: %ld\n", size);
+			uint8[] data = new uint8[size];
+			keydata.read(data);
+			return (string) data;
+		} else {
+			stdout.printf("error!\n");
+			return "";
+		}
+	}
 }
