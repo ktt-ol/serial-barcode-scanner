@@ -11,6 +11,10 @@ from config import *
 
 db = DB()
 
+if sys.hexversion < 0x03000000:
+	print("Please use Python 3.0 or newer!")
+	sys.exit()
+
 def generate_invoice_tex(user, title, subject, start=0, stop=0, temporary=False):
 	userinfo = db.get_user_info(user)
 
