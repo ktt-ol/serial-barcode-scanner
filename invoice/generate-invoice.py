@@ -271,8 +271,7 @@ def daily(timestamp = time.time()):
 			receiver = "%s %s <%s>" % (userinfo["firstname"], userinfo["lastname"], userinfo["email"])
 			msg  = generate_invoice_text(user, title, subject, start, stop, True)
 			mail = generate_mail(receiver, title, msg, None, timestamp)
-			#send_mail(mail, userinfo["email"])
-			print("Sent invoice to", userinfo["firstname"], userinfo["lastname"])
+			send_mail(mail, userinfo["email"])
 		else:
 			print("Can't send invoice for missing user with the following id:", user)
 
