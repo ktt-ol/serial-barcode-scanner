@@ -360,51 +360,9 @@ def backup():
 
 	send_mail(msg, "shop-backup@kreativitaet-trifft-technik.de")
 
-def get_stock_data():
-	connection = sqlite3.connect('shop.db')
-	c = connection.cursor()
-	result = []
-
-	c.execute("SELECT name,amount FROM products")
-
-	for row in c:
-		result.append((row[0],row[1]))
-
-	c.close()
-
-	return result
-
-def gen_stock_asciitable():
-	stock = get_stock_data()
-	longest_name = 0
-	longest_amount = 0
-	asciitable = ""
-	for element in stock:
-		if len(element[0]) > longest_name:
-			longest_name = len(element[0])
-		if len(str(element[1])) > longest_amount:
-			longest_amount = len(str(element[1]))
-
-	asciitable = "+-" + longest_name * "-" + "-+-" + longest_amount * "-" + "-+\n"
-	asciitable += "| " + "Produkt" + (longest_name - len("Produkt")) * " " + " | " + (longest_amount - 1) * " " + "#" + " |\n"
-	asciitable += "+-" + longest_name * "-" + "-+-" + longest_amount * "-" + "-+\n"
-	for product in stock:
-		asciitable += "| " + product[0] + (longest_name - len(product[0])) * " " + " | " + (longest_amount - len(str(product[1]))) * " " + str(product[1]) + " |\n"
-	asciitable += "+-" + longest_name * "-" + "-+-" + longest_amount * "-" + "-+\n"
-
-	return asciitable
-
-def gen_stock_mail():
-	msg = MIMEMultipart()
-	msg["From"] = "KtT-Shopsystem <shop@kreativitaet-trifft-technik.de>"
-	msg["To"] = "KtT Einkaufsteam <einkauf@kreativitaet-trifft-technik.de>"
-	msg["Subject"] = Header("Aktueller Warenbestand", 'utf-8')
-	msg.preamble = "Please use a MIME aware email client!"
-	msg.attach(MIMEText(gen_stock_asciitable(), 'plain', 'utf-8'))
-	return msg
-
 def weekly():
-	send_mail(gen_stock_mail(), "einkauf@kreativitaet-trifft-technik.de")
+	#send_mail("", "einkauf@kreativitaet-trifft-technik.de")
+	pass
 
 if sys.argv[1] == "daily":
 	daily()
