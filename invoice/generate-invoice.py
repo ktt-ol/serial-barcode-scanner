@@ -184,9 +184,8 @@ def daily(timestamp = time.time()):
 		if userinfo is not None:
 			receiver = "%s %s <%s>" % (userinfo["firstname"], userinfo["lastname"], userinfo["email"])
 			msg  = generate_invoice_text(user, title, subject, start, stop, True)
-			print(msg)
 			mail = mailer.generate_mail(receiver, title, msg, None, timestamp)
-			#mailer.send_mail(mail, userinfo["email"])
+			mailer.send_mail(mail, userinfo["email"])
 		else:
 			print("Can't send invoice for missing user with the following id:", user)
 
