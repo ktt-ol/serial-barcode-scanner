@@ -360,15 +360,9 @@ def backup():
 
 	send_mail(msg, "shop-backup@kreativitaet-trifft-technik.de")
 
-def weekly():
-	#send_mail("", "einkauf@kreativitaet-trifft-technik.de")
-	pass
-
 if sys.argv[1] == "daily":
 	daily()
 	backup()
-elif sys.argv[1] == "weekly":
-	weekly()
 elif sys.argv[1] == "monthly":
 	monthly()
 else:
