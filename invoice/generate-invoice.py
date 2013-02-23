@@ -6,14 +6,49 @@ from email.mime.application import MIMEApplication
 from email.mime.text import MIMEText
 from email.header import Header
 from dbhelper import DB
+from mailhelper import MAIL
 
 from config import *
 
 db = DB()
+mail = MAIL(SMTPSERVERNAME, SMTPSERVERPORT, SMTPSERVERUSER, SMTPSERVERPASS)
 
 if sys.hexversion < 0x03000000:
 	print("Please use Python 3.0 or newer!")
 	sys.exit()
+
+def get_timespan(type, timestamp = time.time()):
+	requested = datetime.datetime.fromtimestamp(timestamp)
+
+	if type == "previous day":
+		# previous day, day from 08:00 - 7:59
+		stop  = requested.replace(hour = 8, minute = 0, second = 0) - datetime.timedelta(seconds = 1)
+		start = requested.replace(hour = 8, minute = 0, second = 0) - datetime.timedelta(days = 1)
+		if stop > requested:
+			stop  -= datetime.timedelta(days = 1)
+			start -= datetime.timedelta(days = 1)
+		return (start, stop)
+	elif type == "previous month":
+		# previous month, day from 00:00 - 23:59
+		stop  = requested.replace(hour = 0, minute = 0, second = 0, day = 1) - datetime.timedelta(seconds = 1)
+		start = stop.replace(day = 1, hour = 0, minute = 0, second = 0)
+		return (start, stop)
+	elif type == "current month":
+		# current month, day from 00:00 - 23:59
+		if requested.month == 12:
+			stop = requested.replace(month = 0, year = requested.year + 1)
+		else:
+			stop = requested.replace(month = requested.month + 1)
+		stop  = stop.replace(day = 1, hour = 0, minute = 0, second = 0) - datetime.timedelta(seconds = 1)
+		start = requested.replace(day = 1, hour = 0, minute = 0, second = 0)
+		return (start, stop)
+	else:
+		return None
+
+def generate_pdf(data):
+	rubber = subprocess.Popen("rubber-pipe -d", shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+	pdf, stderr = rubber.communicate(input=data.encode('utf-8'))
+	return pdf
 
 def generate_invoice_tex(user, title, subject, start=0, stop=0, temporary=False):
 	userinfo = db.get_user_info(user)
@@ -132,65 +167,10 @@ def generate_invoice_text(user, title, subject, start=0, stop=0, temporary=False
 
 	return result
 
-def generate_mail(receiver, subject, message, pdfdata = None, timestamp=time.time(), cc = None):
-	msg = MIMEMultipart()
-	msg["From"] = "KtT-Shopsystem <shop@kreativitaet-trifft-technik.de>"
-	msg["Date"] = email.utils.formatdate(timestamp, True)
-
-	try:
-		if receiver.encode("ascii"):
-			msg["To"] = receiver
-	except UnicodeError:
-		msg["To"] = Header(receiver, 'utf-8')
-
-	if cc != None:
-		msg["Cc"] = cc
-	msg["Subject"] = Header(subject, 'utf-8')
-	msg.preamble = "Please use a MIME aware email client!"
-
-	msg.attach(MIMEText(message, 'plain', 'utf-8'))
-
-	if isinstance(pdfdata, dict):
-		for name, data in pdfdata.items():
-			if name.endswith("pdf"):
-				pdf = MIMEApplication(data, 'pdf')
-				pdf.add_header('Content-Disposition', 'attachment', filename = name)
-				msg.attach(pdf)
-			else:
-				txt = MIMEText(data, 'plain', 'utf-8')
-				txt.add_header('Content-Disposition', 'attachment', filename = name)
-				msg.attach(txt)
-	elif pdfdata is not None:
-		pdf = MIMEApplication(pdfdata, 'pdf')
-		pdf.add_header('Content-Disposition', 'attachment', filename = 'rechnung.pdf')
-		msg.attach(pdf)
-
-	return msg
-
-def generate_pdf(data):
-	rubber = subprocess.Popen("rubber-pipe -d", shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
-	pdf, stderr = rubber.communicate(input=data.encode('utf-8'))
-	return pdf
-
-def send_mail(mail, receiver):
-	server = smtplib.SMTP(SMTPSERVERNAME, SMTPSERVERPORT)
-	server.starttls()
-	if SMTPSERVERUSER != "":
-		server.login(SMTPSERVERUSER, SMTPSERVERPASS)
-	maildata = mail.as_string()
-	server.sendmail(mail["From"], receiver, maildata)
-	server.quit()
-
 def daily(timestamp = time.time()):
-	requested = datetime.datetime.fromtimestamp(timestamp)
-
 	# timestamps for previous day
-	dstop = requested.replace(hour = 8, minute = 0, second = 0) - datetime.timedelta(seconds = 1)
-	dstart = requested.replace(hour = 8, minute = 0, second = 0) - datetime.timedelta(days = 1)
-	if dstop > requested:
-		dstop -= datetime.timedelta(days = 1)
-		dstart -= datetime.timedelta(days = 1)
-	stop = int(dstop.strftime("%s"))
+	dstart, dstop = get_timespan("previous day", timestamp)
+	stop  = int(dstop.strftime("%s"))
 	start = int(dstart.strftime("%s"))
 
 	title = "Getränkerechnung %04d-%02d-%02d" % (dstart.year, dstart.month, dstart.day)
@@ -201,17 +181,14 @@ def daily(timestamp = time.time()):
 		if userinfo is not None:
 			receiver = "%s %s <%s>" % (userinfo["firstname"], userinfo["lastname"], userinfo["email"])
 			msg  = generate_invoice_text(user, title, subject, start, stop, True)
-			mail = generate_mail(receiver, title, msg, None, timestamp)
-			send_mail(mail, userinfo["email"])
+			mail = mail.generate_mail(receiver, title, msg, None, timestamp)
+			mail.send_mail(mail, userinfo["email"])
 		else:
 			print("Can't send invoice for missing user with the following id:", user)
 
 def monthly(timestamp = time.time()):
-	requested = datetime.datetime.fromtimestamp(timestamp)
-
 	# timestamps for previous month
-	dstop  = requested.replace(hour = 0, minute = 0, second = 0, day = 1) - datetime.timedelta(seconds = 1)
-	dstart = dstop.replace(day = 1, hour = 0, minute = 0, second = 0)
+	dstart, dstop = get_timespan("previous month", timestamp)
 	stop   = int(dstop.strftime("%s"))
 	start  = int(dstart.strftime("%s"))
 
@@ -233,8 +210,8 @@ def monthly(timestamp = time.time()):
 			invoices["%04d%02d5%03d_%s_%s.pdf" % (dstart.year, dstart.month, number, userinfo["firstname"], userinfo["lastname"])] = pdf
 			amount = db.get_invoice_amount(user, start, stop)
 			invoicedata.append({"userid": user, "lastname": userinfo["lastname"], "firstname": userinfo["firstname"], "invoiceid": "%04d%02d5%03d" % (dstart.year, dstart.month, number), "amount": amount})
-			mail = generate_mail(receiver, title, msg, pdf, timestamp)
-			send_mail(mail, userinfo["email"])
+			mail = mail.generate_mail(receiver, title, msg, pdf, timestamp)
+			mail.send_mail(mail, userinfo["email"])
 			print("Sent invoice to", userinfo["firstname"], userinfo["lastname"])
 		else:
 			print("Can't send invoice for missing user with the following id:", user)
@@ -244,10 +221,10 @@ def monthly(timestamp = time.time()):
 		csvinvoicedata += "%d,%s,%s,%s,%d.%02d\n" % (entry["userid"], entry["lastname"], entry["firstname"], entry["invoiceid"], entry["amount"] / 100, entry["amount"] % 100)
 	invoices["invoicedata.csv"] = csvinvoicedata
 
-	mail = generate_mail("Schatzmeister <schatzmeister@kreativitaet-trifft-technik.de>",
+	mail = mail.generate_mail("Schatzmeister <schatzmeister@kreativitaet-trifft-technik.de>",
 		"Rechnungen %04d%02d" % (dstart.year, dstart.month),
 		None, invoices, timestamp)
-	send_mail(mail, "schatzmeister@kreativitaet-trifft-technik.de")
+	mail.send_mail(mail, "schatzmeister@kreativitaet-trifft-technik.de")
 
 def backup():
 	timestamp = time.time()
@@ -268,7 +245,7 @@ def backup():
 	msg.attach(attachment)
 	dbfile.close()
 
-	send_mail(msg, "shop-backup@kreativitaet-trifft-technik.de")
+	mail.send_mail(msg, "shop-backup@kreativitaet-trifft-technik.de")
 
 if sys.argv[1] == "daily":
 	daily()
