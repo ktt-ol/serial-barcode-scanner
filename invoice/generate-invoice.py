@@ -1,17 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-import datetime, os, sys, smtplib, subprocess, time, tempfile, email.utils
-from email.mime.multipart import MIMEMultipart
-from email.mime.application import MIMEApplication
-from email.mime.text import MIMEText
-from email.header import Header
+import datetime, os, sys, subprocess, time, tempfile
 from dbhelper import DB
 from mailhelper import MAIL
 
 from config import *
 
 db = DB()
-mail = MAIL(SMTPSERVERNAME, SMTPSERVERPORT, SMTPSERVERUSER, SMTPSERVERPASS)
+mailer = MAIL(SMTPSERVERNAME, SMTPSERVERPORT, SMTPSERVERUSER, SMTPSERVERPASS)
 
 if sys.hexversion < 0x03000000:
 	print("Please use Python 3.0 or newer!")
@@ -161,6 +157,13 @@ def generate_invoice_text(user, title, subject, start=0, stop=0, temporary=False
 		result += "Bei dieser Abrechnung handelt es sich lediglich um einen Zwischenstand. Die\n"
 		result += "Hauptrechnung wird einmal monatlich getrennt zugestellt und der Gesamtbetrag\n"
 		result += "wird dann vom angegebenen Bankkonto eingezogen.\n\n"
+
+		dstop, dstart = get_timespan("current month")
+		start         = int(dstop.strftime("%s"))
+		stop          = int(dstart.strftime("%s"))
+		monthprice    = db.get_invoice_amount(user, start, stop)
+
+		result += "Der Gesamtbetrag für den aktuellen Monat beträgt bisher: %3d,%02d €\n\n" % (monthprice / 100, monthprice % 100)
 	else:
 		result += "Der Gesamtbetrag wird in 10 Tagen von dem angegebenen Bankkonto\n"
 		result += "eingezogen.\n\n"
@@ -181,8 +184,9 @@ def daily(timestamp = time.time()):
 		if userinfo is not None:
 			receiver = "%s %s <%s>" % (userinfo["firstname"], userinfo["lastname"], userinfo["email"])
 			msg  = generate_invoice_text(user, title, subject, start, stop, True)
-			mail = mail.generate_mail(receiver, title, msg, None, timestamp)
-			mail.send_mail(mail, userinfo["email"])
+			print(msg)
+			mail = mailer.generate_mail(receiver, title, msg, None, timestamp)
+			#mailer.send_mail(mail, userinfo["email"])
 		else:
 			print("Can't send invoice for missing user with the following id:", user)
 
@@ -210,8 +214,8 @@ def monthly(timestamp = time.time()):
 			invoices["%04d%02d5%03d_%s_%s.pdf" % (dstart.year, dstart.month, number, userinfo["firstname"], userinfo["lastname"])] = pdf
 			amount = db.get_invoice_amount(user, start, stop)
 			invoicedata.append({"userid": user, "lastname": userinfo["lastname"], "firstname": userinfo["firstname"], "invoiceid": "%04d%02d5%03d" % (dstart.year, dstart.month, number), "amount": amount})
-			mail = mail.generate_mail(receiver, title, msg, pdf, timestamp)
-			mail.send_mail(mail, userinfo["email"])
+			mail = mailer.generate_mail(receiver, title, msg, pdf, timestamp)
+			mailer.send_mail(mail, userinfo["email"])
 			print("Sent invoice to", userinfo["firstname"], userinfo["lastname"])
 		else:
 			print("Can't send invoice for missing user with the following id:", user)
@@ -221,31 +225,24 @@ def monthly(timestamp = time.time()):
 		csvinvoicedata += "%d,%s,%s,%s,%d.%02d\n" % (entry["userid"], entry["lastname"], entry["firstname"], entry["invoiceid"], entry["amount"] / 100, entry["amount"] % 100)
 	invoices["invoicedata.csv"] = csvinvoicedata
 
-	mail = mail.generate_mail("Schatzmeister <schatzmeister@kreativitaet-trifft-technik.de>",
+	mail = mailer.generate_mail("Schatzmeister <schatzmeister@kreativitaet-trifft-technik.de>",
 		"Rechnungen %04d%02d" % (dstart.year, dstart.month),
 		None, invoices, timestamp)
-	mail.send_mail(mail, "schatzmeister@kreativitaet-trifft-technik.de")
+	mailer.send_mail(mail, "schatzmeister@kreativitaet-trifft-technik.de")
 
 def backup():
 	timestamp = time.time()
 	dt = datetime.datetime.fromtimestamp(timestamp)
 
-	msg = MIMEMultipart()
-	msg["From"] = "KtT-Shopsystem <shop@kreativitaet-trifft-technik.de>"
-	msg["Date"] = email.utils.formatdate(timestamp, True)
-	msg["To"]   = "KtT-Shopsystem Backups <shop-backup@kreativitaet-trifft-technik.de>"
-	msg["Subject"] = "Backup KtT-Shopsystem %04d-%02d-%02d %02d:%02d" % (dt.year, dt.month, dt.day, dt.hour, dt.minute)
-	msg.preamble = "Please use a MIME aware email client!"
-
-	msg.attach(MIMEText("You can find a backup of 'shop.db' attached to this mail.", 'plain', 'utf-8'))
-
+	receiver="KtT-Shopsystem Backups <shop-backup@kreativitaet-trifft-technik.de>"
+	subject="Backup KtT-Shopsystem %04d-%02d-%02d %02d:%02d" % (dt.year, dt.month, dt.day, dt.hour, dt.minute)
+	message="You can find a backup of 'shop.db' attached to this mail."
 	dbfile = open('shop.db', 'rb')
-	attachment = MIMEApplication(dbfile.read())
-	attachment.add_header('Content-Disposition', 'attachment', filename = 'shop.db')
-	msg.attach(attachment)
+	attachments={"shop.db": dbfile.read()}
 	dbfile.close()
 
-	mail.send_mail(msg, "shop-backup@kreativitaet-trifft-technik.de")
+	msg = mailer.generate_mail(receiver, subject, message, attachments, timestamp)
+	mailer.send_mail(msg, "shop-backup@kreativitaet-trifft-technik.de")
 
 if sys.argv[1] == "daily":
 	daily()

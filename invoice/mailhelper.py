@@ -1,7 +1,11 @@
 #!/usr/bin/env python3
 #-*- coding: utf-8 -*-
+from email.mime.multipart import MIMEMultipart
+from email.mime.application import MIMEApplication
+from email.mime.text import MIMEText
+from email.header import Header
 
-import time
+import time, email.utils, smtplib
 
 class MAIL(object):
 	def __init__(self, server, port, username, password):
@@ -35,6 +39,10 @@ class MAIL(object):
 					pdf = MIMEApplication(data, 'pdf')
 					pdf.add_header('Content-Disposition', 'attachment', filename = name)
 					msg.attach(pdf)
+				if name.endswith("db"):
+					file = MIMEApplication(data)
+					file.add_header('Content-Disposition', 'attachment', filename = name)
+					msg.attach(file)
 				else:
 					txt = MIMEText(data, 'plain', 'utf-8')
 					txt.add_header('Content-Disposition', 'attachment', filename = name)
