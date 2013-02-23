@@ -29,24 +29,6 @@ def get_user_info(userid):
 			"city": row[7]
 		}
 
-def get_price_info(product, timestamp, member = True):
-	result = 0
-	connection = sqlite3.connect('shop.db')
-	c = connection.cursor()
-
-	field = "memberprice"
-	if not member:
-		field = "guestprice"
-
-	c.execute("SELECT "+ field +" FROM prices WHERE product = ? AND valid_from <= ? ORDER BY valid_from DESC LIMIT 1;", (product,timestamp,))
-
-	for row in c:
-		result = int(row[0])
-
-	c.close()
-
-	return result
-
 def get_invoice_data(user, start=0, stop=0):
 	connection = sqlite3.connect('shop.db')
 	c = connection.cursor()
@@ -58,7 +40,7 @@ def get_invoice_data(user, start=0, stop=0):
 	if stop > 0:
 		stopcondition = " AND timestamp <= %d" % stop
 
-	c.execute("SELECT date(timestamp, 'unixepoch', 'localtime'), time(timestamp, 'unixepoch', 'localtime'), products.name, sales.product, sales.timestamp FROM sales, products WHERE user = ? AND products.id = sales.product" + startcondition + stopcondition + " ORDER BY timestamp;", (user,))
+	c.execute("SELECT date(timestamp, 'unixepoch', 'localtime'), time(timestamp, 'unixepoch', 'localtime'), productname, price FROM invoice WHERE user = ?" + startcondition + stopcondition + " ORDER BY timestamp;", (user,))
 
 	result = []
 	for row in c:
@@ -66,8 +48,37 @@ def get_invoice_data(user, start=0, stop=0):
 			"date": row[0],
 			"time": row[1],
 			"product": row[2],
-			"price": int(get_price_info(row[3], row[4], user != 0)),
+			"price": row[3],
 		})
+
+	c.close()
+
+	return result
+
+def get_invoice_amount(user, start=0, stop=0):
+	query = "SELECT SUM(price) FROM invoice WHERE user = ? AND timestamp >= ? AND timestamp <= ?";
+	amount = 0
+
+	connection = sqlite3.connect('shop.db')
+	c = connection.cursor()
+	c.execute(query, (user, start, stop))
+
+	for row in c:
+		amount += row[0]
+
+	c.close()
+	return amount
+
+def get_users_with_purchases(start, stop):
+	result = []
+
+	connection = sqlite3.connect('shop.db')
+	c = connection.cursor()
+
+	c.execute("SELECT user FROM sales WHERE timestamp >= ? AND timestamp <= ? GROUP BY user ORDER BY user;", (start,stop))
+
+	for row in c:
+		result.append(row[0])
 
 	c.close()
 
@@ -190,21 +201,7 @@ def generate_invoice_text(user, title, subject, start=0, stop=0, temporary=False
 
 	return result
 
-def get_invoice_amount(user, start=0, stop=0):
-	query = "SELECT SUM(price) FROM invoice WHERE user = ? AND timestamp >= ? AND timestamp <= ?";
-	amount = 0
-
-	connection = sqlite3.connect('shop.db')
-	c = connection.cursor()
-	c.execute(query, (user, start, stop))
-
-	for row in c:
-		amount += row[0]
-
-	c.close()
-	return amount
-
-def generate_mail(receiver, subject, message, pdfdata, timestamp=time.time(), cc = None):
+def generate_mail(receiver, subject, message, pdfdata = None, timestamp=time.time(), cc = None):
 	msg = MIMEMultipart()
 	msg["From"] = "KtT-Shopsystem <shop@kreativitaet-trifft-technik.de>"
 	msg["Date"] = email.utils.formatdate(timestamp, True)
@@ -253,21 +250,6 @@ def send_mail(mail, receiver):
 	server.sendmail(mail["From"], receiver, maildata)
 	server.quit()
 
-def get_users_with_purchases(start, stop):
-	result = []
-
-	connection = sqlite3.connect('shop.db')
-	c = connection.cursor()
-
-	c.execute("SELECT user FROM sales WHERE timestamp >= ? AND timestamp <= ? GROUP BY user ORDER BY user;", (start,stop))
-
-	for row in c:
-		result.append(row[0])
-
-	c.close()
-
-	return result
-
 def daily(timestamp = time.time()):
 	requested = datetime.datetime.fromtimestamp(timestamp)
 
@@ -287,11 +269,9 @@ def daily(timestamp = time.time()):
 		userinfo = get_user_info(user)
 		if userinfo is not None:
 			receiver = "%s %s <%s>" % (userinfo["firstname"], userinfo["lastname"], userinfo["email"])
-			tex  = generate_invoice_tex(user, title, subject, start, stop, True)
 			msg  = generate_invoice_text(user, title, subject, start, stop, True)
-			pdf  = generate_pdf(tex)
-			mail = generate_mail(receiver, title, msg, pdf, timestamp)
-			send_mail(mail, userinfo["email"])
+			mail = generate_mail(receiver, title, msg, None, timestamp)
+			#send_mail(mail, userinfo["email"])
 			print("Sent invoice to", userinfo["firstname"], userinfo["lastname"])
 		else:
 			print("Can't send invoice for missing user with the following id:", user)
