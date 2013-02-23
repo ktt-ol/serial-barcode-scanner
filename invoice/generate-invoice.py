@@ -182,7 +182,7 @@ def daily(timestamp = time.time()):
 	for user in db.get_users_with_purchases(start, stop):
 		userinfo = db.get_user_info(user)
 		if userinfo is not None:
-			receiver = "%s %s <%s>" % (userinfo["firstname"], userinfo["lastname"], userinfo["email"])
+			receiver = ("%s %s" % (userinfo["firstname"], userinfo["lastname"]), userinfo["email"])
 			msg  = generate_invoice_text(user, title, subject, start, stop, True)
 			mail = mailer.generate_mail(receiver, title, msg, None, timestamp)
 			mailer.send_mail(mail, userinfo["email"])
@@ -206,7 +206,7 @@ def monthly(timestamp = time.time()):
 		subject = "Rechnung Nr. %04d%02d5%03d" % (dstart.year, dstart.month, number)
 		userinfo = db.get_user_info(user)
 		if userinfo is not None:
-			receiver = "%s %s <%s>" % (userinfo["firstname"], userinfo["lastname"], userinfo["email"])
+			receiver = ("%s %s" % (userinfo["firstname"], userinfo["lastname"]), userinfo["email"])
 			tex  = generate_invoice_tex(user, title, subject, start, stop, False)
 			msg  = generate_invoice_text(user, title, subject, start, stop, False)
 			pdf  = generate_pdf(tex)
@@ -224,7 +224,7 @@ def monthly(timestamp = time.time()):
 		csvinvoicedata += "%d,%s,%s,%s,%d.%02d\n" % (entry["userid"], entry["lastname"], entry["firstname"], entry["invoiceid"], entry["amount"] / 100, entry["amount"] % 100)
 	invoices["invoicedata.csv"] = csvinvoicedata
 
-	mail = mailer.generate_mail("Schatzmeister <schatzmeister@kreativitaet-trifft-technik.de>",
+	mail = mailer.generate_mail(("Schatzmeister", "schatzmeister@kreativitaet-trifft-technik.de"),
 		"Rechnungen %04d%02d" % (dstart.year, dstart.month),
 		None, invoices, timestamp)
 	mailer.send_mail(mail, "schatzmeister@kreativitaet-trifft-technik.de")
@@ -233,7 +233,7 @@ def backup():
 	timestamp = time.time()
 	dt = datetime.datetime.fromtimestamp(timestamp)
 
-	receiver="KtT-Shopsystem Backups <shop-backup@kreativitaet-trifft-technik.de>"
+	receiver=("KtT-Shopsystem Backups", "shop-backup@kreativitaet-trifft-technik.de")
 	subject="Backup KtT-Shopsystem %04d-%02d-%02d %02d:%02d" % (dt.year, dt.month, dt.day, dt.hour, dt.minute)
 	message="You can find a backup of 'shop.db' attached to this mail."
 	dbfile = open('shop.db', 'rb')

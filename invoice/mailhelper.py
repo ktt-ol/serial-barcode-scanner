@@ -21,10 +21,10 @@ class MAIL(object):
 		msg["Date"] = email.utils.formatdate(timestamp, True)
 
 		try:
-			if receiver.encode("ascii"):
-				msg["To"] = receiver
+			if receiver[0].encode("ascii"):
+				msg["To"] = receiver[0] + " <" + receiver[1] + ">"
 		except UnicodeError:
-			msg["To"] = Header(receiver, 'utf-8')
+			msg["To"] = Header(receiver[0], 'utf-8') + " <" + receiver[1] + ">"
 
 		if cc != None:
 			msg["Cc"] = cc
