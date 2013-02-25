@@ -21,6 +21,7 @@ public ScannerSession localsession;
 public MainLoop loop;
 public PGPKeyArchive pgp;
 public KeyFile cfg;
+public CursesUI ui;
 
 const OptionEntry[] option_entries = {
 	{ "version", 'v', OptionFlags.IN_MAIN, OptionArg.NONE, ref opt_version, "output version information and exit", null },
@@ -80,6 +81,8 @@ public static int main(string[] args) {
 			dev.blink(10);
 	});
 
+	ui = new CursesUI();
+
 	while(!check_valid_time()) {
 		write_to_log("Invalid System Time! Retry in 1 minute...");
 		Posix.sleep(60);
@@ -105,6 +108,7 @@ public static int main(string[] args) {
 	dev   = null;
 	db    = null;
 	audio = null;
+	ui.exit();
 
 	return 0;
 }
@@ -117,7 +121,7 @@ public void write_to_log(string format, ...) {
 	var arguments = va_list();
 	var message = format.vprintf(arguments);
 
-	stdout.printf(message + "\n");
+	ui.log(message);
 }
 
 bool handle_signals() {
