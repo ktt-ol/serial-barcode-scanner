@@ -33,6 +33,18 @@ public struct RestockEntry {
 	public int64 timestamp;
 	public int amount;
 	public string price;
+	public int supplier;
+	public int64 best_before_date;
+}
+
+public struct Supplier {
+	public int64 id;
+	public string name;
+	public string postal_code;
+	public string city;
+	public string street;
+	public string phone;
+	public string website;
 }
 
 public struct UserInfo {
@@ -125,6 +137,10 @@ public class Database {
 			return stmt.step();
 		}
 
+		public int bind_null(int index) {
+			return stmt.bind_null(index);
+		}
+
 		public int bind_int(int index, int value) {
 			return stmt.bind_int(index, value);
 		}
@@ -171,10 +187,10 @@ public class Database {
 		queries["undo"]              = "DELETE FROM sales WHERE user = ? ORDER BY timestamp DESC LIMIT 1";
 		queries["product_create"]    = "INSERT INTO products ('id', 'name', 'amount') VALUES (?, ?, ?)";
 		queries["price_create"]      = "INSERT INTO prices ('product', 'valid_from', 'memberprice', 'guestprice') VALUES (?, ?, ?, ?)";
-		queries["stock"]             = "INSERT INTO restock ('user', 'product', 'amount', 'price', 'timestamp') VALUES (?, ?, ?, ?, ?)";
+		queries["stock"]             = "INSERT INTO restock ('user', 'product', 'amount', 'price', 'timestamp', 'supplier', 'best_before_date') VALUES (?, ?, ?, ?, ?, ?, ?)";
 		queries["price"]             = "SELECT memberprice, guestprice FROM prices WHERE product = ? AND valid_from <= ? ORDER BY valid_from DESC LIMIT 1";
 		queries["prices"]            = "SELECT valid_from, memberprice, guestprice FROM prices WHERE product = ? ORDER BY valid_from ASC;";
-		queries["restocks"]          = "SELECT timestamp, amount, price FROM restock WHERE product = ? ORDER BY timestamp ASC;";
+		queries["restocks"]          = "SELECT timestamp, amount, price, supplier, best_before_date FROM restock WHERE product = ? ORDER BY timestamp ASC;";
 		queries["profit_complex"]    = "SELECT SUM(memberprice - (SELECT price FROM purchaseprices WHERE product = purch.product)) FROM sales purch, prices WHERE purch.product = prices.product AND purch.user > 0 AND purch.timestamp > ? AND purch.timestamp < ? AND prices.valid_from = (SELECT valid_from FROM prices WHERE product = purch.product AND valid_from < purch.timestamp ORDER BY valid_from DESC LIMIT 1);";
 		queries["sales_complex"]     = "SELECT SUM(memberprice) FROM sales purch, prices WHERE purch.product = prices.product AND purch.user > 0 AND purch.timestamp > ? AND purch.timestamp < ? AND prices.valid_from = (SELECT valid_from FROM prices WHERE product = purch.product AND valid_from < purch.timestamp ORDER BY valid_from DESC LIMIT 1);";
 		queries["stock_status"]      = "SELECT id, name, amount, memberprice, guestprice FROM products, prices WHERE products.id = prices.product AND prices.valid_from = (SELECT valid_from FROM prices WHERE product = products.id ORDER BY valid_from DESC LIMIT 1) ORDER BY name";
@@ -200,6 +216,9 @@ public class Database {
 		queries["user_auth_create"]  = "INSERT OR IGNORE INTO authentication (user) VALUES (?)";
 		queries["user_disable"]      = "UPDATE authentication SET disabled = ? WHERE user = ?";
 		queries["last_timestamp"]    = "SELECT timestamp FROM sales ORDER BY timestamp DESC LIMIT 1";
+		queries["supplier_list"]     = "SELECT id, name, postal_code, city, street, phone, website FROM supplier";
+		queries["supplier_get"]      = "SELECT id, name, postal_code, city, street, phone, website FROM supplier WHERE id = ?";
+		queries["supplier_add"]      = "INSERT INTO supplier('name', 'postal_code', 'city', 'street', 'phone', 'website') VALUES (?, ?, ?, ?, ?, ?)";
 
 		/* compile queries into statements */
 		foreach(var entry in queries.entries) {
@@ -378,6 +397,8 @@ public class Database {
 
 			Price p = statements["restocks"].column_int(2);
 			entry.price = @"$p";
+			entry.supplier = statements["restocks"].column_int(3);
+			entry.best_before_date = statements["restocks"].column_int64(4);
 
 			result.add(entry);
 		}
@@ -491,7 +512,7 @@ public class Database {
 		return true;
 	}
 
-	public bool restock(int user, uint64 product, uint amount, uint price) {
+	public bool restock(int user, uint64 product, uint amount, uint price, int supplier, int64 best_before_date) {
 		if(user > 0) {
 			int rc = 0;
 			int64 timestamp = (new DateTime.now_utc()).to_unix();
@@ -502,6 +523,14 @@ public class Database {
 			statements["stock"].bind_text(3, @"$amount");
 			statements["stock"].bind_text(4, @"$price");
 			statements["stock"].bind_int64(5, timestamp);
+			if(supplier > 0)
+				statements["stock"].bind_int(6, supplier);
+			else
+				statements["stock"].bind_null(6);
+			if(best_before_date > 0)
+				statements["stock"].bind_int64(7, best_before_date);
+			else
+				statements["stock"].bind_null(7);
 
 			rc = statements["stock"].step();
 			if(rc != Sqlite.DONE)
@@ -820,5 +849,71 @@ public class Database {
 		if(statements["last_timestamp"].step() != Sqlite.ROW)
 			return 0;
 		return statements["last_timestamp"].column_int64(0);
+	}
+
+	public Gee.List<Supplier?> get_supplier_list() {
+		var result = new Gee.ArrayList<Supplier?>();
+		statements["supplier_list"].reset();
+
+		while(statements["supplier_list"].step() == Sqlite.ROW) {
+			Supplier entry = {
+				statements["supplier_list"].column_int64(0),
+				statements["supplier_list"].column_text(1),
+				statements["supplier_list"].column_text(2),
+				statements["supplier_list"].column_text(3),
+				statements["supplier_list"].column_text(4),
+				statements["supplier_list"].column_text(5),
+				statements["supplier_list"].column_text(6)
+			};
+
+			result.add(entry);
+		}
+
+		return result;
+	}
+
+	public Supplier get_supplier(int id) {
+		Supplier result = Supplier();
+
+		statements["supplier_get"].reset();
+		statements["supplier_get"].bind_int(1, id);
+
+		if(statements["supplier_get"].step() != Sqlite.ROW) {
+			result.id = 0;
+			result.name = "Unknown";
+			result.postal_code = "";
+			result.city = "";
+			result.street = "";
+			result.phone = "";
+			result.website = "";
+		} else {
+			result.id = statements["supplier_get"].column_int64(0);
+			result.name = statements["supplier_get"].column_text(1);
+			result.postal_code = statements["supplier_get"].column_text(2);
+			result.city = statements["supplier_get"].column_text(3);
+			result.street = statements["supplier_get"].column_text(4);
+			result.phone = statements["supplier_get"].column_text(5);
+			result.website = statements["supplier_get"].column_text(6);
+		}
+
+		return result;
+	}
+
+	public bool add_supplier(string name, string postal_code, string city, string street, string phone, string website) {
+		statements["supplier_add"].reset();
+		statements["supplier_add"].bind_text(1, name);
+		statements["supplier_add"].bind_text(2, postal_code);
+		statements["supplier_add"].bind_text(3, city);
+		statements["supplier_add"].bind_text(4, street);
+		statements["supplier_add"].bind_text(5, phone);
+		statements["supplier_add"].bind_text(6, website);
+		int rc = statements["supplier_add"].step();
+
+		if(rc != Sqlite.DONE) {
+			warning("[internal error: %d]".printf(rc));
+			return false;
+		}
+
+		return true;
 	}
 }

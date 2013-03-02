@@ -501,6 +501,13 @@ public class WebServer {
 			}
 			t.replace("RESTOCKS", restocks);
 
+			/* suppliers */
+			string suppliers = "<option value=\"0\">Unknown</option>";
+			foreach(var e in db.get_supplier_list()) {
+				suppliers += "<option value=\"%lld\">%s</option>".printf(e.id, e.name);
+			}
+			t.replace("SUPPLIERS", suppliers);
+
 			msg.set_response("text/html", Soup.MemoryUse.COPY, t.data);
 		} catch(TemplateError e) {
 			stderr.printf(e.message+"\n");
@@ -567,12 +574,24 @@ public class WebServer {
 
 			if(query != null && query.contains("amount") && query.contains("price")) {
 				int amount = int.parse(query["amount"]);
-				Price price =  Price.parse(query["price"]);
+				int supplier = int.parse(query["supplier"]);
+				string best_before_date = query["best_before_date"];
+				Price price = Price.parse(query["price"]);
+				DateTime bbd;
+
+				var dateparts = best_before_date.split("-");
+				if(dateparts.length == 3) {
+					bbd = new DateTime.local(int.parse(dateparts[0]), int.parse(dateparts[1]), int.parse(dateparts[2]), 0, 0, 0);
+				} else {
+					bbd = new DateTime.from_unix_local(0);
+				}
 
 				if(amount >= 1 && price >= 1) {
-					if(db.restock(session.user, id, amount, price)) {
+					if(db.restock(session.user, id, amount, price, supplier, bbd.to_unix())) {
 						template.replace("AMOUNT", @"$amount");
 						template.replace("PRICE", @"$price");
+						template.replace("BESTBEFORE", bbd.format("%Y-%m-%d"));
+						template.replace("SUPPLIER", db.get_supplier(supplier).name);
 						template.replace("RESTOCK.OK", "block");
 						template.replace("RESTOCK.FAIL", "none");
 						msg.set_response("text/html", Soup.MemoryUse.COPY, template.data);

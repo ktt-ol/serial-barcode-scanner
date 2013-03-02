@@ -1,8 +1,15 @@
 <h2>Restock: {{{NAME}}}</h2>
 
-<div id="restock-successful" class="alert alert-success" style="display: {{{RESTOCK.OK}}};">
-	Successfully restocked <b>{{{AMOUNT}}}</b> items of
-	product <b>{{{NAME}}}</b>. Price per item: <b>{{{PRICE}}}</b>.
+<div id="restock-successful" class="alert" style="display: {{{RESTOCK.OK}}};">
+	<p>Successfully restocked:</p>
+
+	<table class="table table-hover">
+		<tr><th>Name</th><td>{{{NAME}}}</td></tr>
+		<tr><th>Amount</th><td>{{{AMOUNT}}}</td></tr>
+		<tr><th>Price</th><td>{{{PRICE}}}</td></tr>
+		<tr><th>Supplier</th><td>{{{SUPPLIER}}}</td></tr>
+		<tr><th>Best Before Date</th><td>{{{BESTBEFORE}}}</td></tr>
+	</table>
 </div>
 
 <div id="restock-failed" class="alert alert-error" style="display: {{{RESTOCK.FAIL}}};">
