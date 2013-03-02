@@ -25,12 +25,10 @@ public CursesUI ui;
 
 const OptionEntry[] option_entries = {
 	{ "version", 'v', OptionFlags.IN_MAIN, OptionArg.NONE, ref opt_version, "output version information and exit", null },
-	{ "", 0, 0, OptionArg.FILENAME_ARRAY, ref files, "serial device", "DEVICE" },
 	{null}
 };
 
 /* parameters */
-static string[] files;
 static bool opt_version;
 
 public static int main(string[] args) {
@@ -48,24 +46,13 @@ public static int main(string[] args) {
 	}
 
 	if(opt_version) {
-		stdout.puts("Ktt Shop System 0.1\n");
+		stdout.puts("KtT Shop System 0.1\n");
 		return 0;
-	}
-
-	if(files == null || files[0] == null) {
-		stderr.puts("Please specify serial device!\n");
-		return 1;
 	}
 
 	/* handle unix signals */
 	Unix.signal_add(Posix.SIGTERM, handle_signals);
 	Unix.signal_add(Posix.SIGINT,  handle_signals);
-
-	dev   = new Device(files[0], 9600, 8, 1);
-	db    = new Database("shop.db");
-	audio = new AudioPlayer();
-	loop  = new MainLoop();
-	localsession = new ScannerSession();
 
 	try {
 		cfg = new KeyFile();
@@ -73,6 +60,20 @@ public static int main(string[] args) {
 	} catch(Error e) {
 		error("Could not load configuration file: %s", e.message);
 	}
+
+	string devicefile = "";
+	try {
+		devicefile = cfg.get_string("SERIAL", "device");
+	} catch(KeyFileError e) {
+		stderr.puts("Please specify serial device in the configuration file!\n");
+		return 1;
+	}
+
+	dev   = new Device(devicefile, 9600, 8, 1);
+	db    = new Database("shop.db");
+	audio = new AudioPlayer();
+	loop  = new MainLoop();
+	localsession = new ScannerSession();
 
 	pgp = new PGPKeyArchive(cfg);
 
