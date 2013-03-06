@@ -495,8 +495,16 @@ public class WebServer {
 			string restocks = "";
 			foreach(var e in db.get_restocks(id)) {
 				var time = new DateTime.from_unix_local(e.timestamp);
-				restocks += "<tr><td>%s</td><td>%d</td><td>%s€</td></tr>".printf(
-					time.format("%Y-%m-%d %H:%M"), e.amount, e.price
+				var supplier = db.get_supplier(e.supplier).name;
+				if(supplier == "Unknown")
+					supplier = "";
+				string bbd;
+				if(e.best_before_date > 0)
+					bbd = (new DateTime.from_unix_local(e.best_before_date)).format("%Y-%m-%d");
+				else
+					bbd = "";
+				restocks += "<tr><td>%s</td><td>%d</td><td>%s€</td><td>%s</td><td>%s</td></tr>".printf(
+					time.format("%Y-%m-%d %H:%M"), e.amount, e.price, supplier, bbd
 				);
 			}
 			t.replace("RESTOCKS", restocks);
