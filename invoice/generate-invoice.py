@@ -219,6 +219,8 @@ def monthly(timestamp = time.time()):
 		else:
 			print("Can't send invoice for missing user with the following id:", user)
 
+	print("Sent mails to all users done.")
+
 	csvinvoicedata = ""
 	for entry in invoicedata:
 		csvinvoicedata += "%d,%s,%s,%s,%d.%02d\n" % (entry["userid"], entry["lastname"], entry["firstname"], entry["invoiceid"], entry["amount"] / 100, entry["amount"] % 100)
@@ -228,6 +230,8 @@ def monthly(timestamp = time.time()):
 		"Rechnungen %04d%02d" % (dstart.year, dstart.month),
 		None, invoices, timestamp)
 	mailer.send_mail(mail, "schatzmeister@kreativitaet-trifft-technik.de")
+
+	print("Sent mail to treasurer done.")
 
 def backup():
 	timestamp = time.time()
