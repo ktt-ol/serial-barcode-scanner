@@ -68,7 +68,7 @@ def generate_invoice_tex(user, title, subject, start=0, stop=0, temporary=False)
 	else:
 		result+= "\t\t\\opening{Sehr geehrte/r Frau/Herr %s,}\n\n" % userinfo["lastname"]
 
-	result+= "\t\twir erlauben uns, Ihnen für den Verzehr von Speisen und Getränken wie folgt zu berechnen:\n\n"
+	result+= "\t\twir erlauben uns, Ihnen für den Verzehr von Speisen und Getränken den folgenden Betrag in Rechnung zu stellen:\n\n"
 
 	result += "\t\t\\begin{footnotesize}\n"
 	result += "\t\t\t\\begin{longtable}{|p{2cm}|p{1.8cm}|p{5cm}|p{2cm}|}\n"
@@ -150,8 +150,8 @@ def generate_invoice_text(user, title, subject, start=0, stop=0, temporary=False
 	result += " | Summe:                  " + namelength * " " + " | %3d,%02d € |\n" % (total / 100, total % 100)
 	result += " +-------------------------" + namelength * "-" + "-+----------+\n\n"
 
-	result += "Umsatzsteuer wird nicht erhoben, da Kreativität trifft Technik e.V. als Kleinunternehmen\n"
-	result += "der Regelung des § 19 Abs. 1 UStG unterfällt.\n\n"
+	result += "Umsatzsteuer wird nicht erhoben, da der Verein Kreativität trifft Technik e.V.\n"
+	result += "als Kleinunternehmen unter die Regelung des § 19 Abs. 1 UStG fällt.\n\n"
 
 	if temporary is True:
 		result += "Bei dieser Abrechnung handelt es sich lediglich um einen Zwischenstand. Die\n"
@@ -167,6 +167,8 @@ def generate_invoice_text(user, title, subject, start=0, stop=0, temporary=False
 	else:
 		result += "Der Gesamtbetrag wird in 10 Tagen von dem angegebenen Bankkonto\n"
 		result += "eingezogen.\n\n"
+		
+	result += "Grüße aus dem Mainframe,\ndas Shop-System\n"
 
 	return result
 
