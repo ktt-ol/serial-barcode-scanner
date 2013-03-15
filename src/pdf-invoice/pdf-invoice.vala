@@ -1,0 +1,674 @@
+[DBus (name = "io.mainframe.shopsystem.InvoicePDFError")]
+public errordomain InvoicePDFError {
+	/* missing invoice data */
+	NO_INVOICE_DATA,
+	NO_INVOICE_DATE,
+	NO_INVOICE_ID,
+	NO_INVOICE_RECIPIENT,
+
+	/* data not supported by renderer */
+	ARTICLE_NAME_TOO_LONG,
+	PRICE_TOO_HIGH,
+	TOO_FAR_IN_THE_FUTURE
+}
+
+public struct InvoiceRecipient {
+	public string firstname;
+	public string lastname;
+	public string street;
+	public string postal_code;
+	public string city;
+	public string gender;
+}
+
+public struct InvoiceEntry {
+	int timestamp;
+	string article;
+	Price price;
+}
+
+[DBus (name = "io.mainframe.shopsystem.InvoicePDF")]
+public class InvoicePDF {
+	/* A4 sizes (in points, 72 DPI) */
+	private const double width = 595.27559;  /* 210mm */
+	private const double height = 841.88976; /* 297mm */
+
+	/* invoice content, which should appear in the PDF */
+	public string invoice_id { set; get; }
+	public int64  invoice_date { set; get; }
+	public InvoiceRecipient invoice_recipient { set; get; }
+	public InvoiceEntry[] invoice_entries { set; get; }
+
+	/* pdf data */
+	private uint8[] data;
+	private uint useddatalength;
+
+	/* internal helper */
+	private DateTime previous_tm;
+
+	private const string[] calendermonths = {
+		"Januar",
+		"Februar",
+		"März",
+		"April",
+		"Mai",
+		"Juni",
+		"Juli",
+		"August",
+		"September",
+		"Oktober",
+		"November",
+		"Dezember"
+	};
+
+	public InvoicePDF() {
+	}
+
+	private void draw_footer(Cairo.Context ctx) {
+		/* TODO: get path from config file, support svg */
+		var footer = new Cairo.ImageSurface.from_png("../../invoice/footer-line.png");
+		ctx.set_source_surface(footer, 0, 817);
+		ctx.paint();
+	}
+
+	private void draw_logo(Cairo.Context ctx) {
+		/* TODO: get path from config file, support svg */
+		var logo = new Cairo.ImageSurface.from_png("../../invoice/logo.png");
+
+		var pattern = new Cairo.Pattern.for_surface(logo);
+		Cairo.Matrix scaler;
+		pattern.get_matrix(out scaler);
+		scaler.scale(1.41,1.41);
+		scaler.translate(-364.5,-22.5);
+		pattern.set_matrix(scaler);
+		pattern.set_filter(Cairo.Filter.BEST);
+
+		ctx.set_source(pattern);
+		ctx.paint();
+	}
+
+	private void draw_address(Cairo.Context ctx) {
+		ctx.save();
+		ctx.set_source_rgb(0, 0, 0);
+		ctx.set_line_width(1.0);
+
+		/* upper fold mark (20 mm left, 85 mm width, 51.5 mm top) */
+		ctx.move_to(56.69, 146);
+		ctx.line_to(297.59, 146);
+		ctx.stroke();
+
+		/* actually LMSans8 */
+		ctx.set_source_rgb(0, 0, 0);
+		ctx.select_font_face("LMSans10", Cairo.FontSlant.NORMAL, Cairo.FontWeight.NORMAL);
+		ctx.set_font_size(8.45);
+
+		ctx.move_to(56.5, 142);
+		/* TODO: get string from config file */
+		ctx.show_text("Kreativität trifft Technik e.V., Binsenstraße 3, 26129 Oldenburg");
+
+		/* actually LMRoman12 */
+		ctx.select_font_face("LMSans10", Cairo.FontSlant.NORMAL, Cairo.FontWeight.NORMAL);
+		ctx.set_font_size(12.3);
+
+		ctx.move_to(56.5, 184);
+		ctx.show_text(invoice_recipient.firstname + " " + invoice_recipient.lastname);
+
+		ctx.move_to(56.5, 198);
+		ctx.show_text(invoice_recipient.street);
+
+		/* actually LMRoman12 */
+		ctx.select_font_face("LMSans10", Cairo.FontSlant.NORMAL, Cairo.FontWeight.BOLD);
+		ctx.move_to(56.5, 227);
+		ctx.show_text(invoice_recipient.postal_code + " " + invoice_recipient.city);
+
+		ctx.restore();
+	}
+
+	private void draw_folding_marks(Cairo.Context ctx) {
+		ctx.save();
+		ctx.set_source_rgb(0, 0, 0);
+		ctx.set_line_width(1.0);
+
+		/* upper fold mark (105 mm) */
+		ctx.move_to(10, 297.65);
+		ctx.line_to(15, 297.65);
+		ctx.stroke();
+
+		/* middle fold mark (148.5 mm)*/
+		ctx.move_to(10, 420.912);
+		ctx.line_to(23, 420.912);
+		ctx.stroke();
+
+		/* lower fold mark (210 mm)*/
+		ctx.move_to(10, 595.3);
+		ctx.line_to(15, 595.3);
+		ctx.stroke();
+
+		ctx.restore();
+	}
+
+	private void draw_date(Cairo.Context ctx) {
+		ctx.save();
+		ctx.move_to(56.5, 280.0);
+		ctx.set_source_rgb(0, 0, 0);
+
+		/* get pango layout */
+		var layout = Pango.cairo_create_layout(ctx);
+
+		/* setup font */
+		var font = new Pango.FontDescription();
+		font.set_family("LMSans10");
+		font.set_size((int) 9.0 * Pango.SCALE);
+		layout.set_font_description(font);
+
+		/* right alignment */
+		layout.set_alignment(Pango.Alignment.RIGHT);
+		layout.set_wrap(Pango.WrapMode.WORD_CHAR);
+
+		/* set page width */
+		layout.set_width((int) 446 * Pango.SCALE);
+
+		/* write invoice date */
+		var invdate = new DateTime.from_unix_local(invoice_date);
+		var day = "%d".printf(invdate.get_day_of_month());
+		var month = invdate.get_month();
+		var year = "%d".printf(invdate.get_year());
+		var date = day + ". " + calendermonths[month-1] + " " + year;
+		layout.set_text(date, date.length);
+
+		/* render text */
+		Pango.cairo_update_layout(ctx, layout);
+		Pango.cairo_show_layout(ctx, layout);
+
+		ctx.restore();
+	}
+
+	private void draw_title(Cairo.Context ctx) {
+		ctx.save();
+
+		/* actually LMRoman12 */
+		ctx.set_source_rgb(0, 0, 0);
+		ctx.select_font_face("LMSans10", Cairo.FontSlant.NORMAL, Cairo.FontWeight.BOLD);
+		ctx.set_font_size(12.9);
+
+		ctx.move_to(56.5, 323);
+
+		/* TODO: get text from config file */
+		ctx.show_text(@"Rechnung Nr. $invoice_id");
+
+		ctx.restore();
+	}
+
+	private void draw_footer_text_left(Cairo.Context ctx) {
+		ctx.save();
+		ctx.move_to(64.0, 754.5);
+		ctx.set_source_rgb(0, 0, 0);
+
+		/* get pango layout */
+		var layout = Pango.cairo_create_layout(ctx);
+
+		/* setup font */
+		var font = new Pango.FontDescription();
+		font.set_family("LMRoman8");
+		font.set_size((int) 6.0 * Pango.SCALE);
+		layout.set_font_description(font);
+
+		/* left alignment */
+		layout.set_alignment(Pango.Alignment.LEFT);
+		layout.set_wrap(Pango.WrapMode.WORD_CHAR);
+
+		/* set line spacing */
+		layout.set_spacing((int) (-2.0 * Pango.SCALE));
+
+		/* set page width */
+		layout.set_width((int) 140 * Pango.SCALE);
+
+		/* TODO: get text from config file */
+		var text = "<b>Kreativität trifft Technik e.V.</b>\nBinsenstraße 3\n26129 Oldenburg\n\n<b>Amtsgericht Oldenburg</b>\nVR 201044";
+
+		/* write invoice date */
+		layout.set_markup(text, text.length);
+
+		/* render text */
+		Pango.cairo_update_layout(ctx, layout);
+		Pango.cairo_show_layout(ctx, layout);
+
+		ctx.restore();
+	}
+
+	private void draw_footer_text_middle(Cairo.Context ctx) {
+		ctx.save();
+		ctx.move_to(216.5, 754.5);
+		ctx.set_source_rgb(0, 0, 0);
+
+		/* get pango layout */
+		var layout = Pango.cairo_create_layout(ctx);
+
+		/* setup font */
+		var font = new Pango.FontDescription();
+		font.set_family("LMRoman8");
+		font.set_size((int) 6.0 * Pango.SCALE);
+		layout.set_font_description(font);
+
+		/* left alignment */
+		layout.set_alignment(Pango.Alignment.LEFT);
+		layout.set_wrap(Pango.WrapMode.WORD_CHAR);
+
+		/* set line spacing */
+		layout.set_spacing((int) (-2.0 * Pango.SCALE));
+
+		/* set page width */
+		layout.set_width((int) 195 * Pango.SCALE);
+
+		/* TODO: get text from config file */
+		var text = "<b>Mail:</b> vorstand@kreativitaet-trifft-technik.de\n<b>Web:</b> www.kreativitaet-trifft-technik.de\n<b>Twitter:</b> @KtT_OL\n\n<b>Vorstand</b>\nPatrick Günther, Martin Hilscher, Holger Cremer";
+
+		/* write invoice date */
+		layout.set_markup(text, text.length);
+
+		/* render text */
+		Pango.cairo_update_layout(ctx, layout);
+		Pango.cairo_show_layout(ctx, layout);
+
+		ctx.restore();
+	}
+
+	private void draw_footer_text_right(Cairo.Context ctx) {
+		ctx.save();
+		ctx.move_to(424.0, 754.5);
+		ctx.set_source_rgb(0, 0, 0);
+
+		/* get pango layout */
+		var layout = Pango.cairo_create_layout(ctx);
+
+		/* setup font */
+		var font = new Pango.FontDescription();
+		font.set_family("LMRoman8");
+		font.set_size((int) 6.0 * Pango.SCALE);
+		layout.set_font_description(font);
+
+		/* left alignment */
+		layout.set_alignment(Pango.Alignment.LEFT);
+		layout.set_wrap(Pango.WrapMode.WORD_CHAR);
+
+		/* set line spacing */
+		layout.set_spacing((int) (-2.0 * Pango.SCALE));
+
+		/* set page width */
+		layout.set_width((int) 150 * Pango.SCALE);
+
+		/* TODO: get text from config file */
+		var text = "<b>Raiffeisenbank Oldenburg</b>\n<b>Kontonummer:</b> 370 18 500\n<b>Bankleitzahl:</b> 280 602 28\n\n<b>Finanzamt Oldenburg</b>\n<b>Steuer Nr.:</b> 64/220/18413";
+
+		/* write invoice date */
+		layout.set_markup(text, text.length);
+
+		/* render text */
+		Pango.cairo_update_layout(ctx, layout);
+		Pango.cairo_show_layout(ctx, layout);
+
+		ctx.restore();
+	}
+
+	private Price get_sum() {
+		Price sum = 0;
+		foreach(var e in invoice_entries) {
+			sum += e.price;
+		}
+		return sum;
+	}
+
+	private string get_address() {
+		string address;
+		switch(invoice_recipient.gender) {
+			case "masculinum":
+				address = "Sehr geehrter Herr";
+				break;
+			case "femininum":
+				address = "Sehr geehrte Frau";
+				break;
+			default:
+				address = "Moin";
+				break;
+		}
+
+		return address;
+	}
+
+	private void draw_first_page_text(Cairo.Context ctx) {
+		ctx.save();
+		ctx.move_to(56.5, 352.5);
+		ctx.set_source_rgb(0, 0, 0);
+
+		/* get pango layout */
+		var layout = Pango.cairo_create_layout(ctx);
+
+		/* setup font */
+		var font = new Pango.FontDescription();
+		font.set_family("LMRoman12");
+		font.set_size((int) 9.0 * Pango.SCALE);
+		layout.set_font_description(font);
+
+		/* left alignment */
+		layout.set_alignment(Pango.Alignment.LEFT);
+		layout.set_wrap(Pango.WrapMode.WORD_CHAR);
+
+		/* set line spacing */
+		layout.set_spacing((int) (-2.1 * Pango.SCALE));
+
+		/* set page width */
+		layout.set_width((int) 446 * Pango.SCALE);
+
+		string address = get_address();
+		Price sum = get_sum();
+
+		/* load text template */
+		try {
+			var text = "";
+			FileUtils.get_contents("template.txt", out text);
+			text = text.replace("{{{ADDRESS}}}", address);
+			text = text.replace("{{{LASTNAME}}}", invoice_recipient.lastname);
+			text = text.replace("{{{SUM}}}", @"$sum");
+			layout.set_markup(text, text.length);
+		} catch(GLib.FileError e) {
+			error("File Error: %s\n", e.message);
+		}
+
+		/* render text */
+		Pango.cairo_update_layout(ctx, layout);
+		Pango.cairo_show_layout(ctx, layout);
+
+		ctx.restore();
+	}
+
+	private void draw_invoice_table_header(Cairo.Context ctx) {
+		ctx.save();
+
+		/* border & font color */
+		ctx.set_source_rgb(0, 0, 0);
+
+		/* line width of the border */
+		ctx.set_line_width(0.8);
+
+		/* header font */
+		ctx.select_font_face("LMSans10", Cairo.FontSlant.NORMAL, Cairo.FontWeight.BOLD);
+		ctx.set_font_size(12);
+
+		/* borders */
+		ctx.move_to(58, 50);
+		ctx.line_to(530, 50);
+		ctx.line_to(530, 65);
+		ctx.line_to(58, 65);
+		ctx.line_to(58, 50);
+		ctx.move_to(120, 50);
+		ctx.line_to(120, 65);
+		ctx.move_to(180, 50);
+		ctx.line_to(180, 65);
+		ctx.move_to(480, 50);
+		ctx.line_to(480, 65);
+		ctx.stroke();
+
+		/* header text */
+		ctx.move_to(62, 61.5);
+		ctx.show_text("Datum");
+		ctx.move_to(124, 61.5);
+		ctx.show_text("Uhrzeit");
+		ctx.move_to(184, 61.5);
+		ctx.show_text("Artikel");
+		ctx.move_to(484, 61.5);
+		ctx.show_text("Preis");
+
+		ctx.restore();
+	}
+
+	private void draw_invoice_table_footer(Cairo.Context ctx, double y) {
+		ctx.save();
+
+		/* border & font color */
+		ctx.set_source_rgb(0, 0, 0);
+
+		/* line width of the border */
+		ctx.set_line_width(0.8);
+
+		/* end of table is just a line */
+		ctx.move_to(58, y);
+		ctx.line_to(530, y);
+		ctx.stroke();
+
+		ctx.restore();
+	}
+
+	private bool draw_invoice_table_entry(Cairo.Context ctx, double y, InvoiceEntry e, out double newy) throws InvoicePDFError {
+		ctx.save();
+
+		/* border & font color */
+		ctx.set_source_rgb(0, 0, 0);
+
+		/* y remains the same by default */
+		newy = y;
+
+		/* generate strings for InvoiceEntry */
+		var tm = new DateTime.from_unix_local(e.timestamp);
+		var date = tm.format("%Y-%m-%d");
+		var time = tm.format("%H:%M:%S");
+		var article = e.article;
+		var price = @"$(e.price)€".replace(".", ",");
+
+		if(e.price > 999999) {
+			throw new InvoicePDFError.PRICE_TOO_HIGH("Prices > 9999.99€ are not supported!");
+		}
+
+		if(tm.get_year() > 9999) {
+			throw new InvoicePDFError.TOO_FAR_IN_THE_FUTURE("Years after 9999 are not supported!");
+		}
+
+		/* if date remains the same do not add it again */
+		if(previous_tm != null &&
+		   previous_tm.get_year() == tm.get_year() &&
+		   previous_tm.get_month() == tm.get_month() &&
+		   previous_tm.get_day_of_month() == tm.get_day_of_month()) {
+			date = "";
+		}
+
+		/* move to position for article text */
+		ctx.move_to(184, y);
+
+		/* get pango layout */
+		var layout = Pango.cairo_create_layout(ctx);
+
+		/* setup font */
+		var font = new Pango.FontDescription();
+		font.set_family("LMSans10");
+		font.set_size((int) 8 * Pango.SCALE);
+		layout.set_font_description(font);
+
+		/* left alignment */
+		layout.set_alignment(Pango.Alignment.LEFT);
+		layout.set_wrap(Pango.WrapMode.WORD_CHAR);
+
+		/* set line spacing */
+		layout.set_spacing((int) (-2.0 * Pango.SCALE));
+
+		/* set page width */
+		layout.set_width((int) 290 * Pango.SCALE);
+
+		/* write invoice date */
+		layout.set_text(article, article.length);
+
+		/* get height of text */
+		int w,h;
+		layout.get_size(out w, out h);
+		double height = h/Pango.SCALE;
+
+		/* verify that the text fits on the page */
+		if(750 < y + height)
+			return false;
+
+		/* render article text */
+		Pango.cairo_update_layout(ctx, layout);
+		Pango.cairo_show_layout(ctx, layout);
+
+		/* render date, time (toy font api uses different y than pango) */
+		ctx.select_font_face("LMSans10", Cairo.FontSlant.NORMAL, Cairo.FontWeight.NORMAL);
+		ctx.set_font_size(11);
+		ctx.move_to(62, y+12.0);
+		ctx.show_text(date);
+		ctx.move_to(124, y+12.0);
+		ctx.show_text(time);
+
+		/* render price */
+		ctx.move_to(484, y);
+		var pricelayout = Pango.cairo_create_layout(ctx);
+		pricelayout.set_font_description(font);
+		pricelayout.set_alignment(Pango.Alignment.RIGHT);
+		pricelayout.set_width((int) 42 * Pango.SCALE);
+		pricelayout.set_text(price, price.length);
+		Pango.cairo_update_layout(ctx, pricelayout);
+		Pango.cairo_show_layout(ctx, pricelayout);
+
+		/* add borders */
+		ctx.set_line_width(0.8);
+		ctx.move_to(58, y);
+		ctx.line_to(58, y+height);
+		ctx.move_to(120, y);
+		ctx.line_to(120, y+height);
+		ctx.move_to(180, y);
+		ctx.line_to(180, y+height);
+		ctx.move_to(480, y);
+		ctx.line_to(480, y+height);
+		ctx.move_to(530, y);
+		ctx.line_to(530, y+height);
+		ctx.stroke();
+
+		ctx.restore();
+
+		newy += height;
+		previous_tm = tm;
+
+		return true;
+	}
+
+	private void draw_invoice_table(Cairo.Context ctx) throws InvoicePDFError {
+		ctx.save();
+
+		draw_footer(ctx);
+		draw_invoice_table_header(ctx);
+
+		/* initial position for entries */
+		double y = 65;
+
+		foreach(var entry in invoice_entries) {
+			if(!draw_invoice_table_entry(ctx, y, entry, out y)) {
+				/* entry could not be added, because end of page has been reached */
+				draw_invoice_table_footer(ctx, y);
+				ctx.show_page();
+
+				/* draw page footer & table header on new page */
+				draw_footer(ctx);
+				draw_invoice_table_header(ctx);
+
+				/* reset position */
+				y = 65;
+
+				/* always print date on new pages */
+				previous_tm = null;
+
+				/* retry adding the entry */
+				if(!draw_invoice_table_entry(ctx, y, entry, out y)) {
+					throw new InvoicePDFError.ARTICLE_NAME_TOO_LONG("Article name \"%s\" does not fit on a single page!", entry.article);
+				}
+			}
+		}
+
+		draw_invoice_table_footer(ctx, y);
+		ctx.show_page();
+
+		ctx.restore();
+	}
+
+	private Cairo.Status pdf_write(uchar[] newdata) {
+		if(data == null) {
+			data = newdata;
+			useddatalength = newdata.length;
+		} else {
+			if(useddatalength + newdata.length > data.length) {
+				uint8[] alldata = new uint8[data.length + newdata.length + 512];
+				Posix.memcpy(alldata, data, data.length);
+				data = alldata;
+			}
+
+			Posix.memcpy((uint8*) data + useddatalength, newdata, newdata.length);
+			useddatalength += newdata.length;
+		}
+
+		return Cairo.Status.SUCCESS;
+	}
+
+	public uint8[] generate() throws InvoicePDFError {
+		var document = new Cairo.PdfSurface.for_stream(pdf_write, width, height);
+
+		var ctx = new Cairo.Context(document);
+
+		if(invoice_id == "")
+			throw new InvoicePDFError.NO_INVOICE_ID("No invoice ID given!");
+
+		if(invoice_entries == null)
+			throw new InvoicePDFError.NO_INVOICE_DATA("No invoice data given!");
+
+		if(invoice_date == 0)
+			throw new InvoicePDFError.NO_INVOICE_DATE("No invoice date given!");
+
+		if(invoice_recipient.firstname == "" || invoice_recipient.lastname == "")
+			throw new InvoicePDFError.NO_INVOICE_RECIPIENT("No invoice recipient given!");
+
+		/* first page */
+		draw_logo(ctx);
+		draw_address(ctx);
+		draw_folding_marks(ctx);
+		draw_footer(ctx);
+		draw_footer_text_left(ctx);
+		draw_footer_text_middle(ctx);
+		draw_footer_text_right(ctx);
+		draw_date(ctx);
+		draw_title(ctx);
+		draw_first_page_text(ctx);
+		ctx.show_page();
+
+		/* following pages: invoice table */
+		draw_invoice_table(ctx);
+
+		document.finish();
+		document.flush();
+
+		return data;
+	}
+
+	public void clear() {
+		invoice_date       = 0;
+		invoice_id         = "";
+		invoice_recipient  = {};
+		invoice_entries    = null;
+	}
+}
+
+public static int main(string[] args) {
+	Bus.own_name(
+		BusType.SESSION,
+		"io.mainframe.shopsystem.InvoicePDF",
+		BusNameOwnerFlags.NONE,
+		on_bus_aquired,
+		() => {},
+		() => stderr.printf ("Could not aquire name\n"));
+
+	new MainLoop ().run ();
+
+	return 0;
+}
+
+void on_bus_aquired(DBusConnection conn) {
+    try {
+        conn.register_object ("/io/mainframe/invoicepdf", new InvoicePDF());
+    } catch (IOError e) {
+        stderr.printf ("Could not register service\n");
+    }
+}
