@@ -820,6 +820,12 @@ public class WebServer {
 	void handler_json(Soup.Server server, Soup.Message msg, string path, GLib.HashTable<string,string>? query, Soup.ClientContext client) {
 		string action;
 
+		var gen = new Json.Generator();
+		var root = new Json.Node(Json.NodeType.ARRAY);
+		var array = new Json.Array();
+		root.set_array(array);
+		gen.set_root(root);
+
 		if(query != null && query.contains("action")) {
 			action = query.get("action");
 			if(action == "invoice" && query.contains("userid")) {
@@ -844,12 +850,6 @@ public class WebServer {
 					end = now;
 				}
 
-				var gen = new Json.Generator();
-				var root = new Json.Node(Json.NodeType.ARRAY);
-				var array = new Json.Array();
-				root.set_array(array);
-				gen.set_root(root);
-
 				foreach(var e in db.get_invoice(userid, begin.to_unix(), end.to_unix())) {
 					var o = new Json.Object();
 					o.set_int_member("timestamp", e.timestamp);
@@ -857,7 +857,18 @@ public class WebServer {
 					o.set_int_member("price", e.price);
 					array.add_object_element(o);
 				}
-
+				msg.set_response("application/json", Soup.MemoryUse.COPY, gen.to_data(null).data);
+			}
+			else if(action == "list") {
+				foreach(var e in db.get_stock()) {
+					var o = new Json.Object();
+					o.set_string_member("id", e.id);
+					o.set_string_member("name", e.name);
+					o.set_int_member("amount", e.amount);
+					o.set_int_member("guestprice", e.guestprice);
+					o.set_int_member("memberprice", e.memberprice);
+					array.add_object_element(o);
+				}
 				msg.set_response("application/json", Soup.MemoryUse.COPY, gen.to_data(null).data);
 			}
 		}
