@@ -846,8 +846,6 @@ public class WebServer {
 					end = now;
 				}
 
-
-				new Dialog("Begin: %s\nEnd: %s".printf(begin.to_string(), end.to_string()));
 				var gen = new Json.Generator();
 				var root = new Json.Node(Json.NodeType.ARRAY);
 				var array = new Json.Array();
