@@ -19,8 +19,8 @@ public struct StockEntry {
 	public string id;
 	public string name;
 	public int amount;
-	public string memberprice;
-	public string guestprice;
+	public Price memberprice;
+	public Price guestprice;
 }
 
 public struct PriceEntry {
@@ -350,15 +350,9 @@ public class Database {
 				statements["stock_status"].column_text(0),
 				statements["stock_status"].column_text(1),
 				statements["stock_status"].column_int(2),
-				null,
-				null
+				statements["stock_status"].column_int(3),
+				statements["stock_status"].column_int(4)
 			};
-
-			Price mprice = statements["stock_status"].column_int(3);
-			Price gprice = statements["stock_status"].column_int(4);
-
-			entry.memberprice = @"$mprice";
-			entry.guestprice  = @"$gprice";
 
 			result.add(entry);
 		}
