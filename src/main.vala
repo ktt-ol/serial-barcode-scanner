@@ -69,6 +69,26 @@ public static int main(string[] args) {
 		return 1;
 	}
 
+	if(Posix.getuid() == 0) {
+		try {
+			string user;
+			unowned Posix.Passwd pwd;
+
+			user = cfg.get_string("SYSTEM", "user");
+			if((pwd = Posix.getpwnam(user)) != null) {
+				if(Posix.setuid(pwd.pw_uid) != 0)
+					throw new IOError.FAILED("Failed to set uid");
+				if(Posix.setgid(pwd.pw_gid) != 0)
+					throw new IOError.FAILED("Failed to set gid");
+				if(Posix.setuid(0) != -1)
+					throw new IOError.FAILED("Failed to set uid/gid entirely");
+			}
+		} catch(Error e) {
+			stderr.puts(e.message + "\n");
+			return 1;
+		}
+	}
+
 	dev   = new Device(devicefile, 9600, 8, 1);
 	db    = new Database("shop.db");
 	audio = new AudioPlayer();
