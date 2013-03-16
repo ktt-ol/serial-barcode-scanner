@@ -819,6 +819,56 @@ public class WebServer {
 		}
 	}
 
+	void handler_json(Soup.Server server, Soup.Message msg, string path, GLib.HashTable<string,string>? query, Soup.ClientContext client) {
+		string action;
+
+		if(query != null && query.contains("action")) {
+			action = query.get("action");
+			if(action == "invoice" && query.contains("userid")) {
+				int userid = int.parse(query.get("userid"));
+				DateTime now, begin, end;
+
+				now = new DateTime.now_local();
+				if(query.contains("month")) {
+					int year, month = int.parse(query.get("month"));
+					if(query.contains("year"))
+						year = int.parse(query.get("year"));
+					else
+						year = now.get_year();
+
+					begin = new DateTime.local(year, month, 1, 0, 0, 0.0);
+					end = new DateTime.local(year, month, 1, 0, 0, 0.0);
+					end = end.add_months(1);
+					end = end.add_seconds(-1);
+				}
+				else {
+					begin = new DateTime.local(now.get_year(), now.get_month(), 1, 0, 0, 0.0);
+					end = now;
+				}
+
+
+				new Dialog("Begin: %s\nEnd: %s".printf(begin.to_string(), end.to_string()));
+				var gen = new Json.Generator();
+				var root = new Json.Node(Json.NodeType.ARRAY);
+				var array = new Json.Array();
+				root.set_array(array);
+				gen.set_root(root);
+
+				foreach(var e in db.get_invoice(userid, begin.to_unix(), end.to_unix())) {
+					var o = new Json.Object();
+					o.set_int_member("timestamp", e.timestamp);
+					o.set_string_member("product", e.product.name);
+					o.set_int_member("price", e.price);
+					array.add_object_element(o);
+				}
+
+				msg.set_response("application/json", Soup.MemoryUse.COPY, gen.to_data(null).data);
+			}
+		}
+		else
+			handler_404(server, msg, path, query, client);
+	}
+
 	public WebServer(int port = 8080) {
 		srv = new Soup.Server(Soup.SERVER_PORT, port);
 
@@ -848,6 +898,9 @@ public class WebServer {
 		srv.add_handler("/users", handler_users);
 		srv.add_handler("/users/import", handler_user_import);
 		srv.add_handler("/users/import-pgp", handler_user_pgp_import);
+
+		/* api */
+		srv.add_handler("/api/0.1/", handler_json);
 
 		srv.run_async();
 	}
