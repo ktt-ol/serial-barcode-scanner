@@ -440,9 +440,7 @@ public class WebServer {
 
 			string table = "";
 			foreach(var e in db.get_stock()) {
-				table += "<tr><td><a href=\"/products/%s\">%s</a></td><td><a href=\"/products/%s\">%s</a></td><td>%d</td><td>%s€</td><td>%s€</td></tr>".printf(
-					e.id, e.id, e.id, e.name, e.amount, e.memberprice, e.guestprice
-				);
+				table += @"<tr><td><a href=\"/products/$(e.id)\">$(e.id)</a></td><td><a href=\"/products/$(e.id)\">$(e.name)</a></td><td>$(e.amount)</td><td>$(e.memberprice)€</td><td>$(e.guestprice)€</td></tr>";
 			}
 
 			t.replace("DATA", table);
