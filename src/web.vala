@@ -785,6 +785,12 @@ public class WebServer {
 		return;
 	}
 
+	void handler_400(Soup.Server server, Soup.Message msg, string path, GLib.HashTable? query, Soup.ClientContext client) {
+		string result = "Invalid Request. Check API";
+		msg.set_status(400);
+		msg.set_response("text/plain", Soup.MemoryUse.COPY, result.data);
+	}
+
 	void handler_404(Soup.Server server, Soup.Message msg, string path, GLib.HashTable? query, Soup.ClientContext client) {
 		string result = "Page not Found\n";
 		msg.set_status(404);
@@ -802,7 +808,8 @@ public class WebServer {
 		} catch(TemplateError e) {
 			stderr.printf(e.message+"\n");
 			handler_404(server, msg, path, query, client);
-		}	}
+		}
+	}
 
 	void handler_todo(Soup.Server server, Soup.Message msg, string path, GLib.HashTable? query, Soup.ClientContext client) {
 		try {
@@ -818,20 +825,34 @@ public class WebServer {
 	}
 
 	void handler_json(Soup.Server server, Soup.Message msg, string path, GLib.HashTable<string,string>? query, Soup.ClientContext client) {
-		string action;
-
 		var gen = new Json.Generator();
-		var root = new Json.Node(Json.NodeType.ARRAY);
-		var array = new Json.Array();
-		root.set_array(array);
-		gen.set_root(root);
 
-		if(query != null && query.contains("action")) {
-			action = query.get("action");
-			if(action == "invoice" && query.contains("userid")) {
-				int userid = int.parse(query.get("userid"));
+		if(!query.contains("action")) {
+			handler_400(server, msg, path, query, client);
+			return;
+		}
+
+		switch(query.get("action")) {
+			/*
+			 *	Generates an invoice list for the userid and year/month
+			 *
+			 * Example: [{"timestamp":1361899591,"product":"Club Mate 0,5 Liter","price":150}]
+			 */
+			case "invoice":
+				int userid = 0;
 				DateTime now, begin, end;
 
+				if(!query.contains("userid") || (userid = int.parse(query.get("userid"))) == 0) {
+					handler_400(server, msg, path, query, client);
+					return;
+				}
+
+				var root = new Json.Node(Json.NodeType.ARRAY);
+				var array = new Json.Array();
+				root.set_array(array);
+				gen.set_root(root);
+
+				/* set correct timespan for the request based on the query */
 				now = new DateTime.now_local();
 				if(query.contains("month")) {
 					int year, month = int.parse(query.get("month"));
@@ -841,8 +862,7 @@ public class WebServer {
 						year = now.get_year();
 
 					begin = new DateTime.local(year, month, 1, 0, 0, 0.0);
-					end = new DateTime.local(year, month, 1, 0, 0, 0.0);
-					end = end.add_months(1);
+					end = begin.add_months(1);
 					end = end.add_seconds(-1);
 				}
 				else {
@@ -850,6 +870,7 @@ public class WebServer {
 					end = now;
 				}
 
+				/* build a list of invoices */
 				foreach(var e in db.get_invoice(userid, begin.to_unix(), end.to_unix())) {
 					var o = new Json.Object();
 					o.set_int_member("timestamp", e.timestamp);
@@ -857,9 +878,18 @@ public class WebServer {
 					o.set_int_member("price", e.price);
 					array.add_object_element(o);
 				}
-				msg.set_response("application/json", Soup.MemoryUse.COPY, gen.to_data(null).data);
-			}
-			else if(action == "list") {
+				break;
+			/*
+			 *	Returns a complete product list with availablity
+			 *
+			 * Example: [{"id":"4001686310229","name":"Haribo Weinland","amount":0,"guestprice":180,"memberprice":130}]
+			 */
+			case "list":
+				var root = new Json.Node(Json.NodeType.ARRAY);
+				var array = new Json.Array();
+				root.set_array(array);
+				gen.set_root(root);
+
 				foreach(var e in db.get_stock()) {
 					var o = new Json.Object();
 					o.set_string_member("id", e.id);
@@ -869,11 +899,12 @@ public class WebServer {
 					o.set_int_member("memberprice", e.memberprice);
 					array.add_object_element(o);
 				}
-				msg.set_response("application/json", Soup.MemoryUse.COPY, gen.to_data(null).data);
-			}
+				break;
+			default:
+				handler_400(server, msg, path, query, client);
+				return;
 		}
-		else
-			handler_404(server, msg, path, query, client);
+		msg.set_response("application/json", Soup.MemoryUse.COPY, gen.to_data(null).data);
 	}
 
 	public WebServer(int port = 8080) {
