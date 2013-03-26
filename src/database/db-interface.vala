@@ -53,8 +53,8 @@ public struct StockEntry {
 	public string id;
 	public string name;
 	public int amount;
-	public string memberprice;
-	public string guestprice;
+	public Price memberprice;
+	public Price guestprice;
 }
 
 public struct PriceEntry {
