@@ -1,4 +1,4 @@
-/* Copyright 2012, Sebastian Reichel <sre@ring0.de>
+/* Copyright 2012-2013, Sebastian Reichel <sre@ring0.de>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,109 +15,8 @@
 
 public const int day_in_seconds = 24*60*60;
 
-public struct StockEntry {
-	public string id;
-	public string name;
-	public int amount;
-	public string memberprice;
-	public string guestprice;
-}
-
-public struct PriceEntry {
-	public int64 valid_from;
-	public Price memberprice;
-	public Price guestprice;
-}
-
-public struct RestockEntry {
-	public int64 timestamp;
-	public int amount;
-	public string price;
-	public int supplier;
-	public int64 best_before_date;
-}
-
-public struct Supplier {
-	public int64 id;
-	public string name;
-	public string postal_code;
-	public string city;
-	public string street;
-	public string phone;
-	public string website;
-}
-
-public struct UserInfo {
-	public int id;
-	public string firstname;
-	public string lastname;
-	public string email;
-	public string gender;
-	public string street;
-	public int postcode;
-	public string city;
-	public string pgp;
-
-	public bool equals(UserInfo x) {
-		if(id != x.id) return false;
-		if(firstname != x.firstname) return false;
-		if(lastname != x.lastname) return false;
-		if(email != x.email) return false;
-		if(gender != x.gender) return false;
-		if(street != x.street) return false;
-		if(postcode != x.postcode) return false;
-		if(city != x.city) return false;
-		if(pgp != x.pgp) return false;
-
-		return true;
-	}
-
-	public bool exists_in_db() {
-		if(id in db.get_member_ids())
-			return true;
-		else
-			return false;
-	}
-
-	public bool equals_db() {
-		return this.equals(db.get_user_info(id));
-	}
-}
-
-public struct UserAuth {
-	public int id;
-	public bool disabled;
-	public bool superuser;
-}
-
-public struct Product {
-	public uint64 ean;
-	public string name;
-}
-
-public struct InvoiceEntry {
-	public int64 timestamp;
-	Product product;
-	Price price;
-}
-
-public struct StatsInfo {
-	public int count_articles;
-	public int count_users;
-	public Price stock_value;
-	public Price sales_total;
-	public Price profit_total;
-	public Price sales_today;
-	public Price profit_today;
-	public Price sales_this_month;
-	public Price profit_this_month;
-	public Price sales_per_day;
-	public Price profit_per_day;
-	public Price sales_per_month;
-	public Price profit_per_month;
-}
-
-public class Database {
+[DBus (name = "io.mainframe.shopsystem.Database")]
+public class DataBase : Object {
 	private class Statement {
 		private Sqlite.Statement stmt;
 
@@ -158,7 +57,8 @@ public class Database {
 		}
 
 		public string column_text(int index) {
-			return stmt.column_text(index);
+			var result = stmt.column_text(index);
+			return (result != null) ? result : "";
 		}
 
 		public int64 column_int64(int index) {
@@ -169,8 +69,10 @@ public class Database {
 	private Sqlite.Database db;
 	private static Gee.HashMap<string,string> queries = new Gee.HashMap<string,string>();
 	private static Gee.HashMap<string,Statement> statements = new Gee.HashMap<string,Statement>();
+	//private static HashTable<string,string> queries = new HashTable<string,string>(null, null);
+	//private static HashTable<string,Statement> statements = new HashTable<string,Statement>(null, null);
 
-	public Database(string file) {
+	public DataBase(string file) {
 		int rc;
 
 		rc = Sqlite.Database.open(file, out db);
@@ -224,10 +126,15 @@ public class Database {
 		foreach(var entry in queries.entries) {
 			statements[entry.key] = new Statement(db, entry.value);
 		}
+#if 0
+		foreach(var key in queries.get_keys()) {
+			statements[key] = new Statement(db, queries[key]);
+		}
+#endif
 	}
 
-	public Gee.HashMap<string,string> get_products() {
-		var result = new Gee.HashMap<string,string>(null, null);
+	public GLib.HashTable<string,string> get_products() {
+		var result = new GLib.HashTable<string,string>(null, null);
 		statements["products"].reset();
 
 		while(statements["products"].step() == Sqlite.ROW)
@@ -236,6 +143,7 @@ public class Database {
 		return result;
 	}
 
+#if 0
 	public stock get_stats_stock() {
 		var result = new stock();
 		var now = time_t();
@@ -265,7 +173,9 @@ public class Database {
 
 		return result;
 	}
+#endif
 
+#if 0
 	public profit_per_product get_stats_profit_per_products() {
 		var result = new profit_per_product();
 
@@ -281,7 +191,9 @@ public class Database {
 
 		return result;
 	}
+#endif
 
+#if 0
 	public profit_per_weekday get_stats_profit_per_weekday() {
 		var result = new profit_per_weekday();
 
@@ -313,7 +225,9 @@ public class Database {
 
 		return result;
 	}
+#endif
 
+#if 0
 	public profit_per_day get_stats_profit_per_day() {
 		var result = new profit_per_day();
 		var to   = time_t();
@@ -340,11 +254,12 @@ public class Database {
 
 		return result;
 	}
+#endif
 
-	public Gee.List<StockEntry?> get_stock() {
-		var result = new Gee.ArrayList<StockEntry?>();
+	public StockEntry[] get_stock() {
+		StockEntry[] result = {};
+
 		statements["stock_status"].reset();
-
 		while(statements["stock_status"].step() == Sqlite.ROW) {
 			StockEntry entry = {
 				statements["stock_status"].column_text(0),
@@ -360,17 +275,17 @@ public class Database {
 			entry.memberprice = @"$mprice";
 			entry.guestprice  = @"$gprice";
 
-			result.add(entry);
+			result += entry;
 		}
 
 		return result;
 	}
 
-	public Gee.List<PriceEntry?> get_prices(uint64 product) {
-		var result = new Gee.ArrayList<PriceEntry?>();
+	public PriceEntry[] get_prices(uint64 product) {
+		PriceEntry[] result = {};
+
 		statements["prices"].reset();
 		statements["prices"].bind_text(1, "%llu".printf(product));
-
 		while(statements["prices"].step() == Sqlite.ROW) {
 			PriceEntry entry = {
 				statements["prices"].column_int64(0),
@@ -378,17 +293,17 @@ public class Database {
 				statements["prices"].column_int(2)
 			};
 
-			result.add(entry);
+			result += entry;
 		}
 
 		return result;
 	}
 
-	public Gee.List<RestockEntry?> get_restocks(uint64 product) {
-		var result = new Gee.ArrayList<RestockEntry?>();
+	public RestockEntry[] get_restocks(uint64 product) {
+		RestockEntry[] result = {};
+
 		statements["restocks"].reset();
 		statements["restocks"].bind_text(1, "%llu".printf(product));
-
 		while(statements["restocks"].step() == Sqlite.ROW) {
 			RestockEntry entry = {
 				statements["restocks"].column_int64(0),
@@ -400,13 +315,13 @@ public class Database {
 			entry.supplier = statements["restocks"].column_int(3);
 			entry.best_before_date = statements["restocks"].column_int64(4);
 
-			result.add(entry);
+			result += entry;
 		}
 
 		return result;
 	}
 
-	public bool buy(int32 user, uint64 article) {
+	public bool buy(int32 user, uint64 article) throws DatabaseError {
 		int rc = 0;
 		int64 timestamp = (new DateTime.now_utc()).to_unix();
 
@@ -417,12 +332,12 @@ public class Database {
 
 		rc = statements["purchase"].step();
 		if(rc != Sqlite.DONE)
-			error("[internal error: %d]".printf(rc));
+			throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
 
 		return true;
 	}
 
-	public string get_product_name(uint64 article) {
+	public string get_product_name(uint64 article) throws DatabaseError {
 		statements["product_name"].reset();
 		statements["product_name"].bind_text(1, "%llu".printf(article));
 
@@ -432,13 +347,13 @@ public class Database {
 			case Sqlite.ROW:
 				return statements["product_name"].column_text(0);
 			case Sqlite.DONE:
-				return "unbekanntes Produkt: %llu".printf(article);
+				throw new DatabaseError.PRODUCT_NOT_FOUND("unknown product: %llu", article);
 			default:
-				return "[internal error: %d]".printf(rc);
+				throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
 		}
 	}
 
-	public int get_product_amount(uint64 article) {
+	public int get_product_amount(uint64 article) throws DatabaseError {
 		statements["product_amount"].reset();
 		statements["product_amount"].bind_text(1, "%llu".printf(article));
 
@@ -448,15 +363,13 @@ public class Database {
 			case Sqlite.ROW:
 				return statements["product_amount"].column_int(0);
 			case Sqlite.DONE:
-				warning("unbekanntes Produkt: %llu".printf(article));
-				return -1;
+				throw new DatabaseError.PRODUCT_NOT_FOUND("unknown product: %llu", article);
 			default:
-				warning("[internal error: %d]".printf(rc));
-				return -1;
+				throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
 		}
 	}
 
-	public Price get_product_price(int user, uint64 article) {
+	public Price get_product_price(int user, uint64 article) throws DatabaseError {
 		int64 timestamp = (new DateTime.now_utc()).to_unix();
 		bool member = user != 0;
 
@@ -473,15 +386,13 @@ public class Database {
 				else
 					return statements["price"].column_int(1);
 			case Sqlite.DONE:
-				write_to_log("unbekanntes Produkt: %llu\n", article);
-				return 0;
+				throw new DatabaseError.PRODUCT_NOT_FOUND("unknown product: %llu", article);
 			default:
-				write_to_log("[internal error: %d]\n", rc);
-				return 0;
+				throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
 		}
 	}
 
-	public bool undo(int32 user) {
+	public bool undo(int32 user) throws DatabaseError {
 		uint64 pid = 0;
 		int rc = 0;
 
@@ -496,10 +407,9 @@ public class Database {
 				write_to_log("Remove purchase of %s", pname);
 				break;
 			case Sqlite.DONE:
-				write_to_log("Error: undo not possible without purchases");
-				return false;
+				throw new DatabaseError.PRODUCT_NOT_FOUND("undo not possible without purchases");
 			default:
-				error("[internal error: %d]".printf(rc));
+				throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
 		}
 
 		statements["undo"].reset();
@@ -507,42 +417,37 @@ public class Database {
 
 		rc = statements["undo"].step();
 		if(rc != Sqlite.DONE)
-			error("[internal error: %d]".printf(rc));
+			throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
 
 		return true;
 	}
 
-	public bool restock(int user, uint64 product, uint amount, uint price, int supplier, int64 best_before_date) {
-		if(user > 0) {
-			int rc = 0;
-			int64 timestamp = (new DateTime.now_utc()).to_unix();
+	public void restock(int user, uint64 product, uint amount, uint price, int supplier, int64 best_before_date) throws DatabaseError {
+		int rc = 0;
+		int64 timestamp = (new DateTime.now_utc()).to_unix();
 
-			statements["stock"].reset();
-			statements["stock"].bind_int(1, user);
-			statements["stock"].bind_text(2, @"$product");
-			statements["stock"].bind_text(3, @"$amount");
-			statements["stock"].bind_text(4, @"$price");
-			statements["stock"].bind_int64(5, timestamp);
-			if(supplier > 0)
-				statements["stock"].bind_int(6, supplier);
-			else
-				statements["stock"].bind_null(6);
-			if(best_before_date > 0)
-				statements["stock"].bind_int64(7, best_before_date);
-			else
-				statements["stock"].bind_null(7);
+		statements["stock"].reset();
+		statements["stock"].bind_int(1, user);
+		statements["stock"].bind_text(2, @"$product");
+		statements["stock"].bind_text(3, @"$amount");
+		statements["stock"].bind_text(4, @"$price");
+		statements["stock"].bind_int64(5, timestamp);
+		if(supplier > 0)
+			statements["stock"].bind_int(6, supplier);
+		else
+			statements["stock"].bind_null(6);
+		if(best_before_date > 0)
+			statements["stock"].bind_int64(7, best_before_date);
+		else
+			statements["stock"].bind_null(7);
 
-			rc = statements["stock"].step();
-			if(rc != Sqlite.DONE)
-				error("[internal error: %d]".printf(rc));
+		rc = statements["stock"].step();
 
-			return true;
-		}
-
-		return false;
+		if(rc != Sqlite.DONE)
+			throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
 	}
 
-	public bool new_product(uint64 id, string name, int memberprice, int guestprice) {
+	public void new_product(uint64 id, string name, int memberprice, int guestprice) throws DatabaseError {
 		statements["product_create"].reset();
 		statements["product_create"].bind_text(1, @"$id");
 		statements["product_create"].bind_text(2, name);
@@ -550,14 +455,13 @@ public class Database {
 		int rc = statements["product_create"].step();
 
 		if(rc != Sqlite.DONE) {
-			warning("[internal error: %d]".printf(rc));
-			return false;
+			throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
 		}
 
-		return new_price(id, 0, memberprice, guestprice);
+		new_price(id, 0, memberprice, guestprice);
 	}
 
-	public bool new_price(uint64 product, int64 timestamp, int memberprice, int guestprice) {
+	public void new_price(uint64 product, int64 timestamp, int memberprice, int guestprice) throws DatabaseError {
 		statements["price_create"].reset();
 		statements["price_create"].bind_text(1, @"$product");
 		statements["price_create"].bind_int64(2, timestamp);
@@ -566,11 +470,8 @@ public class Database {
 		int rc = statements["price_create"].step();
 
 		if(rc != Sqlite.DONE) {
-			warning("[internal error: %d]".printf(rc));
-			return false;
+			throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
 		}
-
-		return true;
 	}
 
 	public bool check_user_password(int32 user, string password) {
@@ -587,7 +488,7 @@ public class Database {
 		}
 	}
 
-	public void set_user_password(int32 user, string password) {
+	public void set_user_password(int32 user, string password) throws DatabaseError {
 		var pwhash = Checksum.compute_for_string(ChecksumType.SHA256, password);
 		int rc;
 
@@ -596,7 +497,7 @@ public class Database {
 		statements["user_auth_create"].bind_int(1, user);
 		rc = statements["user_auth_create"].step();
 		if(rc != Sqlite.DONE)
-			error("[internal error: %d]".printf(rc));
+			throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
 
 		/* set password */
 		statements["password_set"].reset();
@@ -604,36 +505,37 @@ public class Database {
 		statements["password_set"].bind_int(2, user);
 		rc = statements["password_set"].step();
 		if(rc != Sqlite.DONE)
-			error("[internal error: %d]".printf(rc));
+			throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
 	}
 
-	public void set_sessionid(int user, string sessionid) {
+	public void set_sessionid(int user, string sessionid) throws DatabaseError {
 		statements["session_set"].reset();
 		statements["session_set"].bind_text(1, sessionid);
 		statements["session_set"].bind_int(2, user);
 
 		int rc = statements["session_set"].step();
 		if(rc != Sqlite.DONE)
-			error("[internal error: %d]".printf(rc));
+			throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
 	}
 
-	public int get_user_by_sessionid(string sessionid) throws WebSessionError {
+	public int get_user_by_sessionid(string sessionid) throws DatabaseError {
 		statements["session_get"].reset();
 		statements["session_get"].bind_text(1, sessionid);
 
 		if(statements["session_get"].step() == Sqlite.ROW) {
 			return statements["session_get"].column_int(0);
 		} else {
-			throw new WebSessionError.SESSION_NOT_FOUND("No such session available in database!");
+			throw new DatabaseError.SESSION_NOT_FOUND("No such session available in database!");
 		}
 	}
 
-	public UserInfo get_user_info(int user) {
+	public UserInfo get_user_info(int user) throws DatabaseError {
 		var result = UserInfo();
 		statements["userinfo"].reset();
 		statements["userinfo"].bind_int(1, user);
+		int rc = statements["userinfo"].step();
 
-		if(statements["userinfo"].step() == Sqlite.ROW) {
+		if(rc == Sqlite.ROW) {
 			result.id = user;
 			result.firstname = statements["userinfo"].column_text(0);
 			result.lastname  = statements["userinfo"].column_text(1);
@@ -643,12 +545,16 @@ public class Database {
 			result.postcode  = statements["userinfo"].column_int(5);
 			result.city      = statements["userinfo"].column_text(6);
 			result.pgp       = statements["userinfo"].column_text(7);
+		} else if(rc == Sqlite.DONE) {
+			throw new DatabaseError.USER_NOT_FOUND("user not found");
+		} else {
+			throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
 		}
 
 		return result;
 	}
 
-	public UserAuth get_user_auth(int user) {
+	public UserAuth get_user_auth(int user) throws DatabaseError {
 		var result = UserAuth();
 		result.id = user;
 		result.disabled = false;
@@ -656,27 +562,33 @@ public class Database {
 
 		statements["userauth"].reset();
 		statements["userauth"].bind_int(1, user);
-		if(statements["userauth"].step() == Sqlite.ROW) {
+		int rc = statements["userauth"].step();
+
+		if(rc == Sqlite.ROW) {
 			result.disabled  = statements["userauth"].column_int(0) == 1;
 			result.superuser = statements["userauth"].column_int(1) == 1;
+		} else if(rc == Sqlite.DONE) {
+			throw new DatabaseError.USER_NOT_FOUND("user not found");
+		} else {
+			throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
 		}
 
 		return result;
 	}
 
-	public string get_username(int user) throws WebSessionError {
+	public string get_username(int user) throws DatabaseError {
 		statements["username"].reset();
 		statements["username"].bind_int(1, user);
 
 		if(statements["username"].step() == Sqlite.ROW) {
 			return statements["username"].column_text(0)+" "+statements["username"].column_text(1);
 		} else {
-			throw new WebSessionError.USER_NOT_FOUND("No such user available in database!");
+			throw new DatabaseError.USER_NOT_FOUND("No such user available in database!");
 		}
 	}
 
-	public Gee.List<InvoiceEntry?> get_invoice(int user, int64 from=0, int64 to=-1) {
-		var result = new Gee.ArrayList<InvoiceEntry?>();
+	public InvoiceEntry[] get_invoice(int user, int64 from=0, int64 to=-1) throws DatabaseError {
+		InvoiceEntry[] result = {};
 
 		if(to == -1) {
 			to = time_t();
@@ -686,37 +598,44 @@ public class Database {
 		statements["invoice"].bind_int(1, user);
 		statements["invoice"].bind_int64(2, from);
 		statements["invoice"].bind_int64(3, to);
+		int rc = statements["invoice"].step();
 
-		while(statements["invoice"].step() == Sqlite.ROW) {
+		while(rc == Sqlite.ROW) {
 			InvoiceEntry entry = {};
 			entry.timestamp = statements["invoice"].column_int64(0);
 			entry.product.ean = uint64.parse(statements["invoice"].column_text(1));
 			entry.product.name = statements["invoice"].column_text(2);
 			entry.price = statements["invoice"].column_int(3);
-			result.add(entry);
+			result += entry;
+
+			rc = statements["invoice"].step();
+		}
+
+		if(rc != Sqlite.DONE) {
+			throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
 		}
 
 		return result;
 	}
 
-	public DateTime get_first_purchase(int user) {
+	public int64 get_first_purchase(int user) {
 		statements["purchase_first"].reset();
 		statements["purchase_first"].bind_int(1, user);
 
 		if(statements["purchase_first"].step() == Sqlite.ROW)
-			return new DateTime.from_unix_utc(statements["purchase_first"].column_int64(0));
+			return statements["purchase_first"].column_int64(0);
 		else
-			return new DateTime.from_unix_utc(0);
+			return 0;
 	}
 
-	public DateTime get_last_purchase(int user) {
+	public int64 get_last_purchase(int user) {
 		statements["purchase_last"].reset();
 		statements["purchase_last"].bind_int(1, user);
 
 		if(statements["purchase_last"].step() == Sqlite.ROW)
-			return new DateTime.from_unix_utc(statements["purchase_last"].column_int64(0));
+			return statements["purchase_last"].column_int64(0);
 		else
-			return new DateTime.from_unix_utc(0);
+			return 0;
 	}
 
 	public StatsInfo get_stats_info() {
@@ -794,17 +713,17 @@ public class Database {
 		return result;
 	}
 
-	public Gee.List<int> get_member_ids() {
-		var result = new Gee.ArrayList<int>();
+	public int[] get_member_ids() {
+		int[] result = {};
 
 		statements["user_get_ids"].reset();
 		while(statements["user_get_ids"].step() == Sqlite.ROW)
-			result.add(statements["user_get_ids"].column_int(0));
+			result += statements["user_get_ids"].column_int(0);
 
 		return result;
 	}
 
-	public void user_disable(int user, bool value) {
+	public void user_disable(int user, bool value) throws DatabaseError {
 		int rc;
 
 		/* create user auth line if not existing */
@@ -812,7 +731,7 @@ public class Database {
 		statements["user_auth_create"].bind_int(1, user);
 		rc = statements["user_auth_create"].step();
 		if(rc != Sqlite.DONE)
-			error("[internal error: %d]".printf(rc));
+			throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
 
 		/* set disabled flag */
 		statements["user_disable"].reset();
@@ -820,10 +739,10 @@ public class Database {
 		statements["user_disable"].bind_int(2, user);
 		rc = statements["user_disable"].step();
 		if(rc != Sqlite.DONE)
-			error("[internal error: %d]".printf(rc));
+			throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
 	}
 
-	public void user_replace(UserInfo u) {
+	public void user_replace(UserInfo u) throws DatabaseError {
 		statements["user_replace"].reset();
 		statements["user_replace"].bind_int(1, u.id);
 		statements["user_replace"].bind_text(2, u.email);
@@ -837,11 +756,22 @@ public class Database {
 
 		int rc = statements["user_replace"].step();
 		if(rc != Sqlite.DONE)
-			error("[internal error: %d]".printf(rc));
+			throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
 	}
 
-	public bool user_is_disabled(int user) {
+	public bool user_is_disabled(int user) throws DatabaseError {
 		return get_user_auth(user).disabled;
+	}
+
+	public bool user_exists(int user) throws DatabaseError {
+		if(user in get_member_ids())
+			return true;
+		return false;
+	}
+
+	public bool user_equals(UserInfo u) throws DatabaseError {
+		var dbu = get_user_info(u.id);
+		return u.equals(dbu);
 	}
 
 	public int64 get_timestamp_of_last_purchase() {
@@ -851,10 +781,10 @@ public class Database {
 		return statements["last_timestamp"].column_int64(0);
 	}
 
-	public Gee.List<Supplier?> get_supplier_list() {
-		var result = new Gee.ArrayList<Supplier?>();
-		statements["supplier_list"].reset();
+	public Supplier[] get_supplier_list() {
+		Supplier[] result = {};
 
+		statements["supplier_list"].reset();
 		while(statements["supplier_list"].step() == Sqlite.ROW) {
 			Supplier entry = {
 				statements["supplier_list"].column_int64(0),
@@ -866,7 +796,7 @@ public class Database {
 				statements["supplier_list"].column_text(6)
 			};
 
-			result.add(entry);
+			result += entry;
 		}
 
 		return result;
@@ -899,7 +829,7 @@ public class Database {
 		return result;
 	}
 
-	public bool add_supplier(string name, string postal_code, string city, string street, string phone, string website) {
+	public void add_supplier(string name, string postal_code, string city, string street, string phone, string website) throws DatabaseError {
 		statements["supplier_add"].reset();
 		statements["supplier_add"].bind_text(1, name);
 		statements["supplier_add"].bind_text(2, postal_code);
@@ -910,10 +840,7 @@ public class Database {
 		int rc = statements["supplier_add"].step();
 
 		if(rc != Sqlite.DONE) {
-			warning("[internal error: %d]".printf(rc));
-			return false;
+			throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
 		}
-
-		return true;
 	}
 }

@@ -1,4 +1,4 @@
-/* Copyright 2012, Sebastian Reichel <sre@ring0.de>
+/* Copyright 2012-2013, Sebastian Reichel <sre@ring0.de>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -13,14 +13,15 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-public class AudioPlayer {
+[DBus (name = "io.mainframe.shopsystem.AudioPlayer")]
+public class AudioPlayerImplementation {
 	private dynamic Gst.Element p;
 	string path;
 
 	public signal void end_of_stream();
 
 	private bool bus_callback(Gst.Bus bus, Gst.Message message) {
-		switch (message.type) {
+		switch(message.type) {
 			case Gst.MessageType.EOS:
 				end_of_stream();
 				break;
@@ -29,7 +30,7 @@ public class AudioPlayer {
 		return true;
 	}
 
-	public AudioPlayer() {
+	public AudioPlayerImplementation() {
 		path = Environment.get_current_dir()+"/sounds/";
 
 		var alsa = Gst.ElementFactory.make("alsasink", "alsa");
@@ -57,7 +58,8 @@ public class AudioPlayer {
 
 			return result;
 		} catch (Error e) {
-			write_to_log("Error: %s\n", e.message);
+			// TODO
+			//write_to_log("Error: %s\n", e.message);
 			return {};
 		}
 	}

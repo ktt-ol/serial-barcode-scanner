@@ -1,4 +1,4 @@
-/* Copyright 2012, Sebastian Reichel <sre@ring0.de>
+/* Copyright 2012-2013, Sebastian Reichel <sre@ring0.de>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -13,43 +13,45 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-public class ScannerSession {
-	public int user {
-		get;
-		private set;
-		default = 0;
-	}
-	public string name {
-		get;
-		private set;
-		default = "Guest";
-	}
-	public bool logged_in {
-		get;
-		private set;
-		default = false;
-	}
-	public bool disabled {
-		get;
-		private set;
-		default = false;
-	}
-	public string theme {
-		get;
-		private set;
-		default = "beep";
+[DBus (name = "io.mainframe.shopsystem.ScannerSession")]
+public class ScannerSessionImplementation {
+	private int user = 0;
+	private string name = "Guest";
+	private bool logged_in = false;
+	private bool disabled = false;
+	private string theme = "beep";
+
+	private Database db;
+	private AudioPlayer audio;
+
+	public signal void msg(MessageType type, string message);
+
+	public ScannerSessionImplementation() {
+		try {
+			db    = Bus.get_proxy_sync(BusType.SESSION, "io.mainframe.shopsystem.Database", "/io/mainframe/shopsystem/database");
+			audio = Bus.get_proxy_sync(BusType.SESSION, "io.mainframe.shopsystem.AudioPlayer", "/io/mainframe/shopsystem/audio");
+		} catch(IOError e) {
+			error("IOError: %s\n", e.message);
+		}
 	}
 
-	public void logout() {
+	private void send_message(MessageType type, string format, ...) {
+		var arguments = va_list();
+		var message = format.vprintf(arguments);
+
+		msg(type, message);
+	}
+
+	private void logout() {
 		logged_in = false;
 	}
 
-	public bool login(int user) {
+	private bool login(int user) {
 		this.user      = user;
 		try {
 			this.name      = db.get_username(user);
 			this.disabled  = db.get_user_auth(user).disabled;
-		} catch(WebSessionError e) {
+		} catch(DatabaseError e) {
 			return false;
 		}
 		this.logged_in = true;
@@ -58,10 +60,7 @@ public class ScannerSession {
 		return true;
 	}
 
-	public ScannerSession() {
-	}
-
-	public bool interpret(string scannerdata) {
+	private bool interpret(string scannerdata) {
 		if(scannerdata.has_prefix("USER ")) {
 			string str_id = scannerdata.substring(5);
 			int32 id = int.parse(str_id);
@@ -69,43 +68,43 @@ public class ScannerSession {
 			/* check if scannerdata has valid format */
 			if(scannerdata != "USER %d".printf(id)) {
 				audio.play_system("error.ogg");
-				write_to_log("Error: Invalid User ID: %s", scannerdata);
+				send_message(MessageType.ERROR, "Invalid User ID: %s", scannerdata);
 				return false;
 			}
 
 			if(logged_in) {
-				write_to_log("Warning: Last user forgot to logout");
+				send_message(MessageType.WARNING, "Last user forgot to logout");
 				logout();
 			}
 
 			if(login(id)) {
 				audio.play_user(theme, "login");
-				write_to_log("Login: %s (%d)", name, user);
+				send_message(MessageType.INFO, "Login: %s (%d)", name, user);
 				return true;
 			} else {
 				audio.play_system("error.ogg");
-				write_to_log("Error: Login failed (User ID = %d)", id);
+				send_message(MessageType.ERROR, "Login failed (User ID = %d)", id);
 				return false;
 			}
 		} else if(scannerdata == "GUEST") {
 			if(logged_in) {
-				write_to_log("Warning: Last user forgot to logout");
+				send_message(MessageType.WARNING, "Last user forgot to logout");
 				logout();
 			}
 
 			if(login(0)) {
 				audio.play_user(theme, "login");
-				write_to_log("Login: %s (%d)", name, user);
+				send_message(MessageType.INFO, "Login: %s (%d)", name, user);
 				return true;
 			} else {
 				audio.play_system("error.ogg");
-				write_to_log("Error: Login failed (User ID = 0)");
+				send_message(MessageType.ERROR, "Login failed (User ID = 0)");
 				return false;
 			}
 		} else if(scannerdata == "UNDO") {
 			if(!logged_in) {
 				audio.play_system("error.ogg");
-				write_to_log("Error: Can't undo if not logged in!");
+				send_message(MessageType.ERROR, "Can't undo if not logged in!");
 				return false;
 			} else {
 				if(db.undo(user)) {
@@ -113,14 +112,14 @@ public class ScannerSession {
 					return true;
 				} else {
 					audio.play_user(theme, "error");
-					write_to_log("Error: Couldn't undo last purchase!");
+					send_message(MessageType.ERROR, "Couldn't undo last purchase!");
 					return false;
 				}
 			}
 		} else if(scannerdata == "LOGOUT") {
 			if(logged_in) {
 				audio.play_user(theme, "logout");
-				write_to_log("Logout!");
+				send_message(MessageType.INFO, "Logout!");
 				logout();
 				return true;
 			}
@@ -133,7 +132,7 @@ public class ScannerSession {
 			/* check if scannerdata has valid format */
 			if(scannerdata != "%llu".printf(id) && scannerdata != "%08llu".printf(id) && scannerdata != "%013llu".printf(id)) {
 				audio.play_user(theme, "error");
-				write_to_log("Error: invalid product: %s", scannerdata);
+				send_message(MessageType.ERROR, "invalid product: %s", scannerdata);
 				return false;
 			}
 
@@ -144,19 +143,19 @@ public class ScannerSession {
 				var gprice = db.get_product_price(0, id);
 
 				audio.play_system("error.ogg");
-				write_to_log(@"article info: $name (Member: $mprice €, Guest: $gprice €)");
-				write_to_log("Error: Login required for purchase!");
+				send_message(MessageType.INFO, @"article info: $name (Member: $mprice €, Guest: $gprice €)");
+				send_message(MessageType.ERROR, "Login required for purchase!");
 				return false;
 			}
 
 			if(db.buy(user, id)) {
 				var price = db.get_product_price(user, id);
 				audio.play_user(theme, "purchase");
-				write_to_log(@"article bought: $name ($price €)");
+				send_message(MessageType.INFO, @"article bought: $name ($price €)");
 				return true;
 			} else {
 				audio.play_user(theme, "error");
-				write_to_log("Error: purchase failed!");
+				send_message(MessageType.ERROR, "purchase failed!");
 				return false;
 			}
 		}

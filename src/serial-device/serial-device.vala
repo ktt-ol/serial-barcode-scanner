@@ -1,4 +1,4 @@
-/* Copyright 2012, Sebastian Reichel <sre@ring0.de>
+/* Copyright 2012-2013, Sebastian Reichel <sre@ring0.de>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -13,12 +13,13 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+[DBus (name = "io.mainframe.shopsystem.SerialDevice")]
 public class Device {
 	private Posix.termios newtio;
 	private Posix.termios restoretio;
-	public int fd=-1;
+	private int fd=-1;
 	private IOChannel io_read;
-	public int byterate;
+	private int byterate;
 	private File lockfile;
 
 	public signal void received_barcode(string barcode);

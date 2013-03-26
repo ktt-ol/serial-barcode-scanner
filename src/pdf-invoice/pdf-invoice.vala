@@ -13,35 +13,6 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-[DBus (name = "io.mainframe.shopsystem.InvoicePDFError")]
-public errordomain InvoicePDFError {
-	/* missing invoice data */
-	NO_INVOICE_DATA,
-	NO_INVOICE_DATE,
-	NO_INVOICE_ID,
-	NO_INVOICE_RECIPIENT,
-
-	/* data not supported by renderer */
-	ARTICLE_NAME_TOO_LONG,
-	PRICE_TOO_HIGH,
-	TOO_FAR_IN_THE_FUTURE
-}
-
-public struct InvoiceRecipient {
-	public string firstname;
-	public string lastname;
-	public string street;
-	public string postal_code;
-	public string city;
-	public string gender;
-}
-
-public struct InvoiceEntry {
-	int timestamp;
-	string article;
-	Price price;
-}
-
 [DBus (name = "io.mainframe.shopsystem.InvoicePDF")]
 public class InvoicePDF {
 	/* A4 sizes (in points, 72 DPI) */
@@ -49,10 +20,10 @@ public class InvoicePDF {
 	private const double height = 841.88976; /* 297mm */
 
 	/* invoice content, which should appear in the PDF */
-	public string invoice_id { set; get; }
+	public string invoice_id { set; owned get; }
 	public int64  invoice_date { set; get; }
-	public InvoiceRecipient invoice_recipient { set; get; }
-	public InvoiceEntry[] invoice_entries { set; get; }
+	public InvoiceRecipient invoice_recipient { set; owned get; }
+	public InvoiceEntry[] invoice_entries { set; owned get; }
 
 	/* pdf data */
 	private uint8[] data;
@@ -77,29 +48,27 @@ public class InvoicePDF {
 	};
 
 	public InvoicePDF() {
+		clear();
+	}
+
+	private void render_svg(Cairo.Context ctx, string file) {
+		var svg = new Rsvg.Handle.from_file(file);
+		svg.render_cairo(ctx);
 	}
 
 	private void draw_footer(Cairo.Context ctx) {
-		/* TODO: get path from config file, support svg */
-		var footer = new Cairo.ImageSurface.from_png("../../invoice/footer-line.png");
-		ctx.set_source_surface(footer, 0, 817);
-		ctx.paint();
+		ctx.save();
+		ctx.translate(-20, 818);
+		ctx.scale(1.42, 1.42);
+		render_svg(ctx, "../../invoice/footer-line.svg");
+		ctx.restore();
 	}
 
 	private void draw_logo(Cairo.Context ctx) {
-		/* TODO: get path from config file, support svg */
-		var logo = new Cairo.ImageSurface.from_png("../../invoice/logo.png");
-
-		var pattern = new Cairo.Pattern.for_surface(logo);
-		Cairo.Matrix scaler;
-		pattern.get_matrix(out scaler);
-		scaler.scale(1.41,1.41);
-		scaler.translate(-364.5,-22.5);
-		pattern.set_matrix(scaler);
-		pattern.set_filter(Cairo.Filter.BEST);
-
-		ctx.set_source(pattern);
-		ctx.paint();
+		ctx.save();
+		ctx.translate(366,25);
+		render_svg(ctx, "../../invoice/logo.svg");
+		ctx.restore();
 	}
 
 	private void draw_address(Cairo.Context ctx) {
@@ -661,29 +630,14 @@ public class InvoicePDF {
 	public void clear() {
 		invoice_date       = 0;
 		invoice_id         = "";
-		invoice_recipient  = {};
+		invoice_recipient  = {
+			"",
+			"",
+			"",
+			"",
+			"",
+			"",
+		};
 		invoice_entries    = null;
 	}
-}
-
-public static int main(string[] args) {
-	Bus.own_name(
-		BusType.SESSION,
-		"io.mainframe.shopsystem.InvoicePDF",
-		BusNameOwnerFlags.NONE,
-		on_bus_aquired,
-		() => {},
-		() => stderr.printf ("Could not aquire name\n"));
-
-	new MainLoop ().run ();
-
-	return 0;
-}
-
-void on_bus_aquired(DBusConnection conn) {
-    try {
-        conn.register_object ("/io/mainframe/invoicepdf", new InvoicePDF());
-    } catch (IOError e) {
-        stderr.printf ("Could not register service\n");
-    }
 }

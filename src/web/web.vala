@@ -88,7 +88,8 @@ public class WebServer {
 				try {
 					var name = db.get_username(m);
 					data += @"<tr><td>$m</td><td><a href=\"/users/$m\">$name</a></td></tr>";
-				} catch(WebSessionError e) {
+				} catch(DatabaseError e) {
+					/* TODO: write error to log */
 				}
 			}
 			t.replace("DATA", data);
@@ -184,11 +185,11 @@ public class WebServer {
 				/* new & changed users */
 				string data1 = "";
 				foreach(var member in csvimport.get_members()) {
-					if(member.exists_in_db() && !member.equals_db()) {
+					if(db.user_exists(member.id) && db.user_equals(member)) {
 						var dbmember = db.get_user_info(member.id);
 						data1 += @"<tr class=\"error\"><td><i class=\"icon-minus-sign\"></i><td>$(dbmember.id)</td><td>$(dbmember.firstname)</td><td>$(dbmember.lastname)</td><td>$(dbmember.email)</td><td>$(dbmember.gender)</td><td>$(dbmember.street)</td><td>$(dbmember.postcode)</td><td>$(dbmember.city)</td><td>$(dbmember.pgp)</td></tr>";
 					}
-					if(!member.exists_in_db() || !member.equals_db()) {
+					if(!db.user_exists(member.id) || !db.user_equals(member)) {
 						data1 += @"<tr class=\"success\"><td><i class=\"icon-plus-sign\"></td><td>$(member.id)</td><td>$(member.firstname)</td><td>$(member.lastname)</td><td>$(member.email)</td><td>$(member.gender)</td><td>$(member.street)</td><td>$(member.postcode)</td><td>$(member.city)</td><td>$(member.pgp)</td></tr>";
 					}
 				}
@@ -325,8 +326,8 @@ public class WebServer {
 			t.menu_set_active("users");
 
 			/* years, in which something has been purchased by the user */
-			var first = db.get_first_purchase(id);
-			var last  = db.get_last_purchase(id);
+			var first = new DateTime.from_unix_local(db.get_first_purchase(id));
+			var last  = new DateTime.from_unix_local(db.get_last_purchase(id));
 			string years = "";
 			for(int i=first.get_year(); i <= last.get_year(); i++) {
 				years += @"<li><a href=\"/users/$id/invoice/$i/$selectedmonth/$selectedday\">$i</a></li>";
@@ -659,7 +660,7 @@ public class WebServer {
 		}
 	}
 
-
+#if 0
 	void handler_stats(Soup.Server server, Soup.Message msg, string path, GLib.HashTable? query, Soup.ClientContext client) {
 		try {
 			var l = new WebSession(server, msg, path, query, client);
@@ -749,6 +750,7 @@ public class WebServer {
 			handler_404(server, msg, path, query, client);
 		}
 	}
+#endif
 
 	void handler_js(Soup.Server server, Soup.Message msg, string path, GLib.HashTable? query, Soup.ClientContext client) {
 		try {
@@ -837,12 +839,14 @@ public class WebServer {
 		srv.add_handler("/products", handler_products);
 		srv.add_handler("/products/new", handler_products_new);
 
+#if 0
 		/* stats */
 		srv.add_handler("/stats", handler_stats);
 		srv.add_handler("/stats/stock", handler_stats_stock);
 		srv.add_handler("/stats/profit_per_day", handler_stats_profit_per_day);
 		srv.add_handler("/stats/profit_per_weekday", handler_stats_profit_per_weekday);
 		srv.add_handler("/stats/profit_per_product", handler_stats_profit_per_product);
+#endif
 
 		/* users */
 		srv.add_handler("/users", handler_users);

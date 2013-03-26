@@ -1,4 +1,4 @@
-/* Copyright 2012, Sebastian Reichel <sre@ring0.de>
+/* Copyright 2013, Sebastian Reichel <sre@ring0.de>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -13,88 +13,24 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-public class CSVMemberFile {
-	private UserInfo[] members;
-
-	public Gee.List<int> missing_unblocked_members() {
-		var result = new Gee.ArrayList<int>();
-		var dbusers = db.get_member_ids();
-
-		foreach(var u in dbusers) {
-			bool found=false;
-			foreach(var m in members) {
-				if(u == m.id) {
-					found=true;
-					break;
-				}
-			}
-
-			if(!found) {
-				if(!db.user_is_disabled(u))
-					result.add(u);
-			}
-		}
-
-		return result;
-	}
-
-	private string[] csv_split(string line) {
-		return /;(?=(?:[^\"]*\"[^\"]*\")*(?![^\"]*\"))/.split(line);
-	}
-
-	private string csv_value(string value) {
-		if(value[0] == '"' && value[value.length-1] == '"')
-			return value.substring(1,value.length-2);
-		else
-			return value;
-	}
-
-	public CSVMemberFile(string data) {
-		foreach(var line in data.split("\n")) {
-			var linedata = csv_split(line);
-			if(linedata.length >= 9) {
-				var m = UserInfo();
-				m.id = int.parse(csv_value(linedata[0]));
-				m.email = csv_value(linedata[1]);
-				m.firstname = csv_value(linedata[2]);
-				m.lastname = csv_value(linedata[3]);
-				m.street = csv_value(linedata[4]);
-				m.postcode = int.parse(csv_value(linedata[5]));
-				m.city = csv_value(linedata[6]);
-				m.gender = csv_value(linedata[7]) == "m" ? "masculinum" : csv_value(linedata[7]) == "w" ? "femininum" : "unknown";
-				m.pgp = csv_value(linedata[8]);
-				if(csv_value(linedata[0]) != "EXTERNEMITGLIEDSNUMMER")
-					members += m;
-			}
-		}
-	}
-
-	public UserInfo[] get_members() {
-		return members;
-	}
-}
-
+[DBus (name = "io.mainframe.shopsystem.PGP")]
 public class PGPKeyArchive {
 	private string keyring;
 	private GPG.Context gpg;
 
-	public PGPKeyArchive(KeyFile config) {
+	public PGPKeyArchive(string keyring) {
 		/* check version (important!) */
 		GPG.check_version();
 
 		/* initialize default context */
 		GPG.Context.Context(out gpg);
 
-		try {
-			keyring = config.get_string("PGP", "keyring");
-
-			/* remove quotes */
-			if(keyring.has_prefix("\"") && keyring.has_suffix("\""))
-				keyring = keyring.substring(1,keyring.length-2);
-		} catch(KeyFileError e) {
-			write_to_log("KeyFileError: %s", e.message);
-			return;
-		}
+		/* TODO TODO TODO */
+#if 0
+		if(keyring.has_prefix("\"") && keyring.has_suffix("\""))
+			this.keyring = keyring.substring(1,keyring.length-2);
+#endif
+		this.keyring = keyring;
 
 		/* TODO: check existence of keyring */
 
