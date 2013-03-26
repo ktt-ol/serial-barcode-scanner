@@ -16,7 +16,7 @@
 public class CSVMemberFile {
 	private UserInfo[] members;
 
-	public Gee.List<int> missing_unblocked_members() {
+	public Gee.List<int> missing_unblocked_members() throws DatabaseError, IOError {
 		var result = new Gee.ArrayList<int>();
 		var dbusers = db.get_member_ids();
 

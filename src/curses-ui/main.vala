@@ -14,24 +14,36 @@
  */
 
 public MainLoop loop;
+public AudioPlayer audio;
+
+private static void play(string file) {
+	try {
+		audio.play_system(file);
+	} catch(IOError e) { }
+}
 
 public static int main(string[] args) {
+
 	/* handle unix signals */
 	Unix.signal_add(Posix.SIGTERM, handle_signals);
 	Unix.signal_add(Posix.SIGINT,  handle_signals);
 
-	AudioPlayer audio = Bus.get_proxy_sync(BusType.SESSION, "io.mainframe.shopsystem.AudioPlayer", "/io/mainframe/shopsystem/audio");
+	try {
+		audio = Bus.get_proxy_sync(BusType.SESSION, "io.mainframe.shopsystem.AudioPlayer", "/io/mainframe/shopsystem/audio");
+	} catch(IOError e) {
+		error("IOError: %s\n", e.message);
+	}
 
 	var ui = new CursesUI();
 
 	ui.log("KtT Shop System has been started");
-	audio.play_system("startup.ogg");
+	play("startup.ogg");
 
 	/* run mainloop */
 	loop.run();
 
 	ui.log("Stopping Shop System");
-	audio.play_system("shutdown.ogg");
+	play("shutdown.ogg");
 
 	/* we need to run the mainloop to play audio */
 	audio.end_of_stream.connect(() => { loop.quit(); });

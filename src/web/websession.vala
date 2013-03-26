@@ -67,14 +67,14 @@ public class WebSession {
 		return result;
 	}
 
-	private void setup_auth(int user) {
+	private void setup_auth(int user) throws DatabaseError, IOError {
 		var auth = db.get_user_auth(user);
 		this.disabled  = auth.disabled;
 		this.superuser = auth.superuser;
 		this.logged_in = true;
 	}
 
-	public void logout() {
+	public void logout() throws DatabaseError, IOError {
 		if(logged_in) {
 			db.set_sessionid(user, "");
 			superuser = false;
@@ -82,7 +82,7 @@ public class WebSession {
 		}
 	}
 
-	public WebSession(Soup.Server server, Soup.Message msg, string path, GLib.HashTable<string,string>? query, Soup.ClientContext client) {
+	public WebSession(Soup.Server server, Soup.Message msg, string path, GLib.HashTable<string,string>? query, Soup.ClientContext client) throws DatabaseError, IOError {
 		var cookies = Soup.cookies_from_request(msg);
 
 		/* Check for existing session */
@@ -95,7 +95,7 @@ public class WebSession {
 					name = db.get_username(user);
 					setup_auth(user);
 					return;
-				} catch(WebSessionError e) {
+				} catch(DatabaseError e) {
 					/* invalid session, ignore */
 				}
 			}
@@ -128,7 +128,7 @@ public class WebSession {
 			user = userid;
 			try {
 				name = db.get_username(user);
-			} catch(WebSessionError e) {
+			} catch(DatabaseError e) {
 				name = "Unknown User";
 			}
 

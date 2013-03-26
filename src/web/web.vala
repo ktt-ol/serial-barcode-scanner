@@ -26,6 +26,12 @@ public class WebServer {
 		} catch(TemplateError e) {
 			stderr.printf(e.message+"\n");
 			handler_404(server, msg, path, query, client);
+		} catch(DatabaseError e) {
+			stderr.printf(e.message+"\n");
+			handler_400(server, msg, path, query, client);
+		} catch(IOError e) {
+			stderr.printf(e.message+"\n");
+			handler_400(server, msg, path, query, client);
 		}
 	}
 
@@ -40,6 +46,12 @@ public class WebServer {
 		} catch(TemplateError e) {
 			stderr.printf(e.message+"\n");
 			handler_404(server, msg, path, query, client);
+		} catch(DatabaseError e) {
+			stderr.printf(e.message+"\n");
+			handler_400(server, msg, path, query, client);
+		} catch(IOError e) {
+			stderr.printf(e.message+"\n");
+			handler_400(server, msg, path, query, client);
 		}
 	}
 
@@ -98,6 +110,12 @@ public class WebServer {
 		} catch(TemplateError e) {
 			stderr.printf(e.message+"\n");
 			handler_404(server, msg, path, query, client);
+		} catch(DatabaseError e) {
+			stderr.printf(e.message+"\n");
+			handler_400(server, msg, path, query, client);
+		} catch(IOError e) {
+			stderr.printf(e.message+"\n");
+			handler_400(server, msg, path, query, client);
 		}
 	}
 
@@ -145,6 +163,12 @@ public class WebServer {
 		} catch(TemplateError e) {
 			stderr.printf(e.message+"\n");
 			handler_404(server, msg, path, query, client);
+		} catch(DatabaseError e) {
+			stderr.printf(e.message+"\n");
+			handler_400(server, msg, path, query, client);
+		} catch(IOError e) {
+			stderr.printf(e.message+"\n");
+			handler_400(server, msg, path, query, client);
 		}
 	}
 
@@ -243,6 +267,12 @@ public class WebServer {
 		} catch(TemplateError e) {
 			stderr.printf(e.message+"\n");
 			handler_404(server, msg, path, query, client);
+		} catch(DatabaseError e) {
+			stderr.printf(e.message+"\n");
+			handler_400(server, msg, path, query, client);
+		} catch(IOError e) {
+			stderr.printf(e.message+"\n");
+			handler_400(server, msg, path, query, client);
 		}
 	}
 
@@ -291,6 +321,12 @@ public class WebServer {
 		} catch(TemplateError e) {
 			stderr.printf(e.message+"\n");
 			handler_404(server, msg, path, query, client);
+		} catch(DatabaseError e) {
+			stderr.printf(e.message+"\n");
+			handler_400(server, msg, path, query, client);
+		} catch(IOError e) {
+			stderr.printf(e.message+"\n");
+			handler_400(server, msg, path, query, client);
 		}
 	}
 
@@ -403,6 +439,12 @@ public class WebServer {
 		} catch(TemplateError e) {
 			stderr.printf(e.message+"\n");
 			handler_404(server, msg, path, query, client);
+		} catch(DatabaseError e) {
+			stderr.printf(e.message+"\n");
+			handler_400(server, msg, path, query, client);
+		} catch(IOError e) {
+			stderr.printf(e.message+"\n");
+			handler_400(server, msg, path, query, client);
 		}
 	}
 
@@ -455,6 +497,12 @@ public class WebServer {
 		} catch(TemplateError e) {
 			stderr.printf(e.message+"\n");
 			handler_404(server, msg, path, query, client);
+		} catch(DatabaseError e) {
+			stderr.printf(e.message+"\n");
+			handler_400(server, msg, path, query, client);
+		} catch(IOError e) {
+			stderr.printf(e.message+"\n");
+			handler_400(server, msg, path, query, client);
 		}
 	}
 
@@ -519,6 +567,12 @@ public class WebServer {
 		} catch(TemplateError e) {
 			stderr.printf(e.message+"\n");
 			handler_404(server, msg, path, query, client);
+		} catch(DatabaseError e) {
+			stderr.printf(e.message+"\n");
+			handler_400(server, msg, path, query, client);
+		} catch(IOError e) {
+			stderr.printf(e.message+"\n");
+			handler_400(server, msg, path, query, client);
 		}
 	}
 
@@ -562,6 +616,12 @@ public class WebServer {
 		} catch(TemplateError e) {
 			stderr.printf(e.message+"\n");
 			handler_404(server, msg, path, query, client);
+		} catch(DatabaseError e) {
+			stderr.printf(e.message+"\n");
+			handler_400(server, msg, path, query, client);
+		} catch(IOError e) {
+			stderr.printf(e.message+"\n");
+			handler_400(server, msg, path, query, client);
 		}
 	}
 
@@ -614,6 +674,12 @@ public class WebServer {
 		} catch(TemplateError e) {
 			stderr.printf(e.message+"\n");
 			handler_404(server, msg, path, query, client);
+		} catch(DatabaseError e) {
+			stderr.printf(e.message+"\n");
+			handler_400(server, msg, path, query, client);
+		} catch(IOError e) {
+			stderr.printf(e.message+"\n");
+			handler_400(server, msg, path, query, client);
 		}
 	}
 
@@ -655,6 +721,12 @@ public class WebServer {
 		} catch(TemplateError e) {
 			stderr.printf(e.message+"\n");
 			handler_404(server, msg, path, query, client);
+		} catch(DatabaseError e) {
+			stderr.printf(e.message+"\n");
+			handler_400(server, msg, path, query, client);
+		} catch(IOError e) {
+			stderr.printf(e.message+"\n");
+			handler_400(server, msg, path, query, client);
 		}
 	}
 
@@ -787,6 +859,12 @@ public class WebServer {
 		return;
 	}
 
+	void handler_400(Soup.Server server, Soup.Message msg, string path, GLib.HashTable? query, Soup.ClientContext client) {
+		string result = "Internal Server Error\n";
+		msg.set_status(400);
+		msg.set_response("text/plain", Soup.MemoryUse.COPY, result.data);
+	}
+
 	void handler_404(Soup.Server server, Soup.Message msg, string path, GLib.HashTable? query, Soup.ClientContext client) {
 		string result = "Page not Found\n";
 		msg.set_status(404);
@@ -804,7 +882,14 @@ public class WebServer {
 		} catch(TemplateError e) {
 			stderr.printf(e.message+"\n");
 			handler_404(server, msg, path, query, client);
-		}	}
+		} catch(DatabaseError e) {
+			stderr.printf(e.message+"\n");
+			handler_400(server, msg, path, query, client);
+		} catch(IOError e) {
+			stderr.printf(e.message+"\n");
+			handler_400(server, msg, path, query, client);
+		}
+	}
 
 	void handler_todo(Soup.Server server, Soup.Message msg, string path, GLib.HashTable? query, Soup.ClientContext client) {
 		try {
@@ -816,6 +901,12 @@ public class WebServer {
 		} catch(TemplateError e) {
 			stderr.printf(e.message+"\n");
 			handler_404(server, msg, path, query, client);
+		} catch(DatabaseError e) {
+			stderr.printf(e.message+"\n");
+			handler_400(server, msg, path, query, client);
+		} catch(IOError e) {
+			stderr.printf(e.message+"\n");
+			handler_400(server, msg, path, query, client);
 		}
 	}
 

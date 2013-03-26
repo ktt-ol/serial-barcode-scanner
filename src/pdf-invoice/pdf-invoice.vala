@@ -52,8 +52,12 @@ public class InvoicePDF {
 	}
 
 	private void render_svg(Cairo.Context ctx, string file) {
-		var svg = new Rsvg.Handle.from_file(file);
-		svg.render_cairo(ctx);
+		try {
+			var svg = new Rsvg.Handle.from_file(file);
+			svg.render_cairo(ctx);
+		} catch(Error e) {
+			error("Could not load SVG: %s\n", e.message);
+		}
 	}
 
 	private void draw_footer(Cairo.Context ctx) {

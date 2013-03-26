@@ -23,13 +23,17 @@ public class ScannerSessionImplementation {
 
 	private Database db;
 	private AudioPlayer audio;
+	private SerialDevice dev;
 
 	public signal void msg(MessageType type, string message);
 
 	public ScannerSessionImplementation() {
 		try {
 			db    = Bus.get_proxy_sync(BusType.SESSION, "io.mainframe.shopsystem.Database", "/io/mainframe/shopsystem/database");
+			dev   = Bus.get_proxy_sync(BusType.SESSION, "io.mainframe.shopsystem.SerialDevice", "/io/mainframe/shopsystem/device");
 			audio = Bus.get_proxy_sync(BusType.SESSION, "io.mainframe.shopsystem.AudioPlayer", "/io/mainframe/shopsystem/audio");
+
+			dev.received_barcode.connect(handle_barcode);
 		} catch(IOError e) {
 			error("IOError: %s\n", e.message);
 		}
@@ -46,7 +50,7 @@ public class ScannerSessionImplementation {
 		logged_in = false;
 	}
 
-	private bool login(int user) {
+	private bool login(int user) throws IOError {
 		this.user      = user;
 		try {
 			this.name      = db.get_username(user);
@@ -60,7 +64,18 @@ public class ScannerSessionImplementation {
 		return true;
 	}
 
-	private bool interpret(string scannerdata) {
+	private void handle_barcode(string scannerdata) {
+		try {
+			if(interpret(scannerdata))
+				dev.blink(1000);
+		} catch(IOError e) {
+			send_message(MessageType.ERROR, "IOError: %s", e.message);
+		} catch(DatabaseError e) {
+			send_message(MessageType.ERROR, "DatabaseError: %s", e.message);
+		}
+	}
+
+	private bool interpret(string scannerdata) throws DatabaseError, IOError {
 		if(scannerdata.has_prefix("USER ")) {
 			string str_id = scannerdata.substring(5);
 			int32 id = int.parse(str_id);
