@@ -15,11 +15,17 @@
 
 public MainLoop loop;
 public AudioPlayer audio;
+public ScannerSession scanner;
+public CursesUI ui;
 
 private static void play(string file) {
 	try {
 		audio.play_system(file);
 	} catch(IOError e) { }
+}
+
+public void msg_handler(MessageType type, string message) {
+	ui.log(message);
 }
 
 public static int main(string[] args) {
@@ -30,11 +36,14 @@ public static int main(string[] args) {
 
 	try {
 		audio = Bus.get_proxy_sync(BusType.SESSION, "io.mainframe.shopsystem.AudioPlayer", "/io/mainframe/shopsystem/audio");
+		scanner = Bus.get_proxy_sync(BusType.SESSION, "io.mainframe.shopsystem.ScannerSession", "/io/mainframe/shopsystem/scanner_session");
 	} catch(IOError e) {
 		error("IOError: %s\n", e.message);
 	}
 
-	var ui = new CursesUI();
+	ui = new CursesUI();
+
+	scanner.msg.connect(msg_handler);
 
 	ui.log("KtT Shop System has been started");
 	play("startup.ogg");
