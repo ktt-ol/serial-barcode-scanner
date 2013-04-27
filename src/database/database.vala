@@ -562,7 +562,7 @@ public class DataBase : Object {
 			result.disabled  = statements["userauth"].column_int(0) == 1;
 			result.superuser = statements["userauth"].column_int(1) == 1;
 		} else if(rc == Sqlite.DONE) {
-			throw new DatabaseError.USER_NOT_FOUND("user not found");
+			/* entry not found, we return defaults */
 		} else {
 			throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
 		}
