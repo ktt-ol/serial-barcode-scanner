@@ -24,6 +24,8 @@ public static int main(string[] args) {
 		() => {},
 		() => stderr.printf("Could not aquire name\n"));
 
+	session = new ScannerSessionImplementation();
+
 	new MainLoop().run();
 
 	return 0;
