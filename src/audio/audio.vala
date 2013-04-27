@@ -31,7 +31,7 @@ public class AudioPlayerImplementation {
 	}
 
 	public AudioPlayerImplementation() {
-		path = Environment.get_current_dir()+"/sounds/";
+		path = Environment.get_current_dir()+"/../../sounds/";
 
 		var alsa = Gst.ElementFactory.make("alsasink", "alsa");
 		p = Gst.ElementFactory.make("playbin2", "play");
