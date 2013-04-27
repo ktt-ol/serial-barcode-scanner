@@ -24,6 +24,10 @@ public static int main(string[] args) {
 		() => {},
 		() => stderr.printf("Could not aquire name\n"));
 
+	Gst.init(ref args);
+
+	player = new AudioPlayerImplementation();
+
 	new MainLoop().run();
 
 	return 0;
