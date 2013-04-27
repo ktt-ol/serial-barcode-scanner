@@ -56,16 +56,23 @@ public class ScannerSessionImplementation {
 			this.name      = db.get_username(user);
 			this.disabled  = db.get_user_auth(user).disabled;
 		} catch(DatabaseError e) {
+			stdout.printf("Error (user=%d): %s\n", user, e.message);
 			return false;
 		}
 		this.logged_in = true;
-		this.theme = audio.get_random_user_theme();
+
+		try {
+			this.theme = audio.get_random_user_theme();
+		} catch(IOError e) {
+			this.theme = "beep";
+		}
 
 		return true;
 	}
 
 	private void handle_barcode(string scannerdata) {
 		try {
+			stdout.printf("scannerdata: %s\n", scannerdata);
 			if(interpret(scannerdata))
 				dev.blink(1000);
 		} catch(IOError e) {
@@ -176,4 +183,3 @@ public class ScannerSessionImplementation {
 		}
 	}
 }
-
