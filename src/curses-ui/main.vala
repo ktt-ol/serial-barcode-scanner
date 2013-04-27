@@ -21,14 +21,23 @@ public CursesUI ui;
 private static void play(string file) {
 	try {
 		audio.play_system(file);
-	} catch(IOError e) { }
+	} catch(IOError e) {
+		ui.log("could not play audio: %s".printf(e.message));
+	}
 }
 
 public void msg_handler(MessageType type, string message) {
 	ui.log(message);
 }
 
+public void log_handler(string? log_domain, LogLevelFlags flags, string message) {
+	ui.log(message);
+}
+
 public static int main(string[] args) {
+	loop = new MainLoop();
+
+	Log.set_default_handler(log_handler);
 
 	/* handle unix signals */
 	Unix.signal_add(Posix.SIGTERM, handle_signals);
@@ -53,10 +62,6 @@ public static int main(string[] args) {
 
 	ui.log("Stopping Shop System");
 	play("shutdown.ogg");
-
-	/* we need to run the mainloop to play audio */
-	audio.end_of_stream.connect(() => { loop.quit(); });
-	loop.run();
 
 	/* leave curses mode */
 	ui.exit();
