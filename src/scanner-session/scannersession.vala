@@ -129,8 +129,11 @@ public class ScannerSessionImplementation {
 				send_message(MessageType.ERROR, "Can't undo if not logged in!");
 				return false;
 			} else {
-				if(db.undo(user)) {
+				string product = db.undo(user);
+
+				if(product != "") {
 					audio.play_user(theme, "purchase");
+					send_message(MessageType.INFO, "Removed purchase of %s", product);
 					return true;
 				} else {
 					audio.play_user(theme, "error");

@@ -386,9 +386,10 @@ public class DataBase : Object {
 		}
 	}
 
-	public bool undo(int32 user) throws DatabaseError {
+	public string undo(int32 user) throws DatabaseError {
 		uint64 pid = 0;
 		int rc = 0;
+		string pname;
 
 		statements["last_purchase"].reset();
 		statements["last_purchase"].bind_int(1, user);
@@ -397,7 +398,7 @@ public class DataBase : Object {
 		switch(rc) {
 			case Sqlite.ROW:
 				pid = uint64.parse(statements["last_purchase"].column_text(0));
-				string pname = get_product_name(pid);
+				pname = get_product_name(pid);
 				write_to_log("Remove purchase of %s", pname);
 				break;
 			case Sqlite.DONE:
@@ -413,7 +414,7 @@ public class DataBase : Object {
 		if(rc != Sqlite.DONE)
 			throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
 
-		return true;
+		return pname;
 	}
 
 	public void restock(int user, uint64 product, uint amount, uint price, int supplier, int64 best_before_date) throws DatabaseError {
