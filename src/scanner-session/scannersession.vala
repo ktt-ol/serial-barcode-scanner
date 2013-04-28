@@ -56,7 +56,7 @@ public class ScannerSessionImplementation {
 			this.name      = db.get_username(user);
 			this.disabled  = db.get_user_auth(user).disabled;
 		} catch(DatabaseError e) {
-			stdout.printf("Error (user=%d): %s\n", user, e.message);
+			send_message(MessageType.ERROR, "Error (user=%d): %s", user, e.message);
 			return false;
 		}
 		this.logged_in = true;
