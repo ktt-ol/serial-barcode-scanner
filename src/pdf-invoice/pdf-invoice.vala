@@ -632,16 +632,15 @@ public class InvoicePDF {
 	}
 
 	public void clear() {
-		invoice_date       = 0;
-		invoice_id         = "";
-		invoice_recipient  = {
-			"",
-			"",
-			"",
-			"",
-			"",
-			"",
-		};
-		invoice_entries    = null;
+		invoice_date                  = 0;
+		invoice_id                    = "";
+		invoice_recipient.firstname   = "";
+		invoice_recipient.lastname    = "";
+		invoice_recipient.street      = "";
+		invoice_recipient.postal_code = "";
+		invoice_recipient.city        = "";
+		invoice_recipient.gender      = "";
+
+		invoice_entries               = null;
 	}
 }
