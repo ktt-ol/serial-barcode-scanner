@@ -844,7 +844,7 @@ public class WebServer {
 
 	void handler_img(Soup.Server server, Soup.Message msg, string path, GLib.HashTable? query, Soup.ClientContext client) {
 		try {
-			var f = File.new_for_path("templates/"+path);
+			var f = File.new_for_path(templatedir+path);
 			uint8[] data = null;
 
 			if(f.query_exists() && f.load_contents(null, out data, null)) {

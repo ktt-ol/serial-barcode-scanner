@@ -16,13 +16,19 @@
 Database db;
 public CSVMemberFile csvimport;
 public PGP pgp;
+public Config cfg;
+string templatedir;
 
 public static int main(string[] args) {
 	try {
 		db  = Bus.get_proxy_sync(BusType.SESSION, "io.mainframe.shopsystem.Database", "/io/mainframe/shopsystem/database");
 		pgp = Bus.get_proxy_sync(BusType.SESSION, "io.mainframe.shopsystem.PGP", "/io/mainframe/shopsystem/pgp");
+		cfg = Bus.get_proxy_sync(BusType.SESSION, "io.mainframe.shopsystem.Config", "/io/mainframe/shopsystem/config");
+		templatedir = cfg.get_string("WEB", "filepath");
 	} catch(IOError e) {
 		error("IOError: %s\n", e.message);
+	} catch(KeyFileError e) {
+		error("KeyFileError: %s\n", e.message);
 	}
 
 	/* attach WebServer to MainLoop */
