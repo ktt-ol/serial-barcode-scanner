@@ -20,7 +20,15 @@ public static void write_to_log(string message, ...) {
 DataBase db;
 
 public static int main(string[] args) {
-	db = new DataBase("../../shop.db");
+	try {
+		Config cfg = Bus.get_proxy_sync(BusType.SESSION, "io.mainframe.shopsystem.Config", "/io/mainframe/shopsystem/config");
+		var dbfile = cfg.get_string("DATABASE", "file");
+		db = new DataBase(dbfile);
+	} catch(IOError e) {
+		error("IOError: %s\n", e.message);
+	} catch(KeyFileError e) {
+		error("Config Error: %s\n", e.message);
+	}
 
 	Bus.own_name(
 		BusType.SESSION,
