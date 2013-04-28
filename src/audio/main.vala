@@ -16,6 +16,8 @@
 AudioPlayerImplementation player;
 
 public static int main(string[] args) {
+	Gst.init(ref args);
+
 	Bus.own_name(
 		BusType.SESSION,
 		"io.mainframe.shopsystem.AudioPlayer",
@@ -24,9 +26,15 @@ public static int main(string[] args) {
 		() => {},
 		() => stderr.printf("Could not aquire name\n"));
 
-	Gst.init(ref args);
-
-	player = new AudioPlayerImplementation();
+	try {
+		Config cfg = Bus.get_proxy_sync(BusType.SESSION, "io.mainframe.shopsystem.Config", "/io/mainframe/shopsystem/config");
+		var path = cfg.get_string("AUDIO", "path");
+		player = new AudioPlayerImplementation(path);
+	} catch(IOError e) {
+		error("IOError: %s\n", e.message);
+	} catch(KeyFileError e) {
+		error("Config Error: %s\n", e.message);
+	}
 
 	new MainLoop().run();
 
