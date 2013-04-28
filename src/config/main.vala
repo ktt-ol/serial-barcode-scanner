@@ -16,7 +16,9 @@
 Cfg cfg;
 
 public static int main(string[] args) {
-	cfg = new Cfg("../../ktt-shopsystem.cfg");
+	string binarylocation = File.new_for_path(args[0]).get_parent().get_path();
+
+	cfg = new Cfg(binarylocation + "/../../ktt-shopsystem.cfg");
 
 	Bus.own_name(
 		BusType.SESSION,
