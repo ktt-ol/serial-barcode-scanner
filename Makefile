@@ -6,6 +6,7 @@ clean:
 
 install:
 	cd src && make install
+	cd dbus && make install
 
 shop.db: sql/tables.sql sql/views.sql sql/trigger.sql
 	@for file in $^ ; do \
