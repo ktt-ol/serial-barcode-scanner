@@ -37,8 +37,6 @@ public void log_handler(string? log_domain, LogLevelFlags flags, string message)
 public static int main(string[] args) {
 	loop = new MainLoop();
 
-	Log.set_default_handler(log_handler);
-
 	/* handle unix signals */
 	Unix.signal_add(Posix.SIGTERM, handle_signals);
 	Unix.signal_add(Posix.SIGINT,  handle_signals);
@@ -51,6 +49,8 @@ public static int main(string[] args) {
 	}
 
 	ui = new CursesUI();
+
+	Log.set_default_handler(log_handler);
 
 	scanner.msg.connect(msg_handler);
 
