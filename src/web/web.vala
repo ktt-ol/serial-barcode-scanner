@@ -654,16 +654,15 @@ public class WebServer {
 				}
 
 				if(amount >= 1 && price >= 1) {
-					if(db.restock(session.user, id, amount, price, supplier, bbd.to_unix())) {
-						template.replace("AMOUNT", @"$amount");
-						template.replace("PRICE", @"$price");
-						template.replace("BESTBEFORE", bbd.format("%Y-%m-%d"));
-						template.replace("SUPPLIER", db.get_supplier(supplier).name);
-						template.replace("RESTOCK.OK", "block");
-						template.replace("RESTOCK.FAIL", "none");
-						msg.set_response("text/html", Soup.MemoryUse.COPY, template.data);
-						return;
-					}
+					db.restock(session.user, id, amount, price, supplier, bbd.to_unix());
+					template.replace("AMOUNT", @"$amount");
+					template.replace("PRICE", @"$price");
+					template.replace("BESTBEFORE", bbd.format("%Y-%m-%d"));
+					template.replace("SUPPLIER", db.get_supplier(supplier).name);
+					template.replace("RESTOCK.OK", "block");
+					template.replace("RESTOCK.FAIL", "none");
+					msg.set_response("text/html", Soup.MemoryUse.COPY, template.data);
+					return;
 				}
 			}
 
