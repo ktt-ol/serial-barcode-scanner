@@ -209,7 +209,7 @@ public class WebServer {
 				/* new & changed users */
 				string data1 = "";
 				foreach(var member in csvimport.get_members()) {
-					if(db.user_exists(member.id) && db.user_equals(member)) {
+					if(db.user_exists(member.id) && !db.user_equals(member)) {
 						var dbmember = db.get_user_info(member.id);
 						data1 += @"<tr class=\"error\"><td><i class=\"icon-minus-sign\"></i><td>$(dbmember.id)</td><td>$(dbmember.firstname)</td><td>$(dbmember.lastname)</td><td>$(dbmember.email)</td><td>$(dbmember.gender)</td><td>$(dbmember.street)</td><td>$(dbmember.postcode)</td><td>$(dbmember.city)</td><td>$(dbmember.pgp)</td></tr>";
 					}
