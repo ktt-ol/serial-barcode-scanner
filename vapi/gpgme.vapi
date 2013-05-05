@@ -1126,7 +1126,7 @@ namespace GPG {
 		/**
 		 * Create a new data buffer filled with the content of the file.
 		 * COPY must be non-zero. For delayed read, please use
-		 *  create_from_fd or create_from stream instead.
+		 * create_from_fd or create_from stream instead.
 		 */
 		[CCode (cname = "gpgme_data_new_from_file")]
 		public static GPGError.ErrorCode create_from_file(out Data d, string filename, int copy = 1);
