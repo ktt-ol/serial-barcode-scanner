@@ -121,6 +121,7 @@ public class DataBase : Object {
 		queries["supplier_list"]     = "SELECT id, name, postal_code, city, street, phone, website FROM supplier";
 		queries["supplier_get"]      = "SELECT id, name, postal_code, city, street, phone, website FROM supplier WHERE id = ?";
 		queries["supplier_add"]      = "INSERT INTO supplier('name', 'postal_code', 'city', 'street', 'phone', 'website') VALUES (?, ?, ?, ?, ?, ?)";
+		queries["users_with_sales"]  = "SELECT user FROM sales WHERE timestamp > ? AND timestamp < ? GROUP BY user;";
 
 		/* compile queries into statements */
 		foreach(var entry in queries.entries) {
@@ -837,5 +838,18 @@ public class DataBase : Object {
 		if(rc != Sqlite.DONE) {
 			throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
 		}
+	}
+
+	public int[] get_users_with_sales(int64 timestamp_from, int64 timestamp_to) {
+		var result = new int[0];
+		statements["users_with_sales"].reset();
+		statements["users_with_sales"].bind_int64(1, timestamp_from);
+		statements["users_with_sales"].bind_int64(2, timestamp_to);
+
+		while(statements["users_with_sales"].step() == Sqlite.ROW) {
+			result += statements["users_with_sales"].column_int(0);
+		}
+
+		return result;
 	}
 }

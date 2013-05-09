@@ -47,6 +47,7 @@ public interface Database : Object {
 	public abstract Supplier[] get_supplier_list() throws IOError;
 	public abstract Supplier get_supplier(int id) throws IOError;
 	public abstract bool add_supplier(string name, string postal_code, string city, string street, string phone, string website) throws IOError, DatabaseError;
+	public abstract int[] get_users_with_sales(int64 timestamp_from, int64 timestamp_to) throws IOError;
 }
 
 public struct StockEntry {
