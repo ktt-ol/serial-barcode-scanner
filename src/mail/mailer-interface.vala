@@ -28,7 +28,7 @@ public interface Mail : Object {
 	public abstract string reply_to { owned get; set; }
 	public abstract MailDate date { owned get; set; }
 
-	public abstract void add_recipient(MailContact contact, GMime.RecipientType type = GMime.RecipientType.TO) throws IOError;
+	public abstract void add_recipient(MailContact contact, RecipientType type = RecipientType.TO) throws IOError;
 	public abstract void set_main_part(string text, MessageType type = MessageType.PLAIN) throws IOError;
 	public abstract void add_attachment(string filename, string content_type, uint8[] data) throws IOError;
 }
@@ -57,4 +57,10 @@ public struct MailDate {
 public enum MessageType {
 	PLAIN,
 	HTML
+}
+
+public enum RecipientType {
+	TO,
+	CC,
+	BCC
 }
