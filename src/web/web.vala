@@ -295,7 +295,7 @@ public class WebServer {
 			t.replace("EMAIL", userinfo.email);
 			t.replace("GENDER", userinfo.gender);
 			t.replace("STREET", userinfo.street);
-			t.replace("POSTALCODE", "%d".printf(userinfo.postcode));
+			t.replace("POSTALCODE", userinfo.postcode);
 			t.replace("CITY", userinfo.city);
 			t.replace("PGPKEYID", userinfo.pgp);
 

@@ -59,7 +59,7 @@ public class CSVMemberFile {
 				m.firstname = csv_value(linedata[2]);
 				m.lastname = csv_value(linedata[3]);
 				m.street = csv_value(linedata[4]);
-				m.postcode = int.parse(csv_value(linedata[5]));
+				m.postcode = csv_value(linedata[5]);
 				m.city = csv_value(linedata[6]);
 				m.gender = csv_value(linedata[7]) == "m" ? "masculinum" : csv_value(linedata[7]) == "w" ? "femininum" : "unknown";
 				m.pgp = csv_value(linedata[8]);
