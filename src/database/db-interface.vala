@@ -48,6 +48,7 @@ public interface Database : Object {
 	public abstract Supplier get_supplier(int id) throws IOError;
 	public abstract bool add_supplier(string name, string postal_code, string city, string street, string phone, string website) throws IOError, DatabaseError;
 	public abstract int[] get_users_with_sales(int64 timestamp_from, int64 timestamp_to) throws IOError;
+	public abstract Price get_user_invoice_sum(int user, int64 timestamp_from, int64 timestamp_to) throws IOError;
 }
 
 public struct StockEntry {
@@ -89,7 +90,7 @@ public struct UserInfo {
 	public string email;
 	public string gender;
 	public string street;
-	public int postcode;
+	public string postcode;
 	public string city;
 	public string pgp;
 

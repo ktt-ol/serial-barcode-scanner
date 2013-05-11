@@ -121,7 +121,8 @@ public class DataBase : Object {
 		queries["supplier_list"]     = "SELECT id, name, postal_code, city, street, phone, website FROM supplier";
 		queries["supplier_get"]      = "SELECT id, name, postal_code, city, street, phone, website FROM supplier WHERE id = ?";
 		queries["supplier_add"]      = "INSERT INTO supplier('name', 'postal_code', 'city', 'street', 'phone', 'website') VALUES (?, ?, ?, ?, ?, ?)";
-		queries["users_with_sales"]  = "SELECT user FROM sales WHERE timestamp > ? AND timestamp < ? GROUP BY user;";
+		queries["users_with_sales"]  = "SELECT user FROM sales WHERE timestamp > ? AND timestamp < ? GROUP BY user";
+		queries["user_invoice_sum"]  = "SELECT SUM(price) FROM invoice WHERE user = ? AND timestamp > ? AND timestamp < ?";
 
 		/* compile queries into statements */
 		foreach(var entry in queries.entries) {
@@ -538,7 +539,7 @@ public class DataBase : Object {
 			result.email     = statements["userinfo"].column_text(2);
 			result.gender    = statements["userinfo"].column_text(3);
 			result.street    = statements["userinfo"].column_text(4);
-			result.postcode  = statements["userinfo"].column_int(5);
+			result.postcode  = statements["userinfo"].column_text(5);
 			result.city      = statements["userinfo"].column_text(6);
 			result.pgp       = statements["userinfo"].column_text(7);
 		} else if(rc == Sqlite.DONE) {
@@ -746,7 +747,7 @@ public class DataBase : Object {
 		statements["user_replace"].bind_text(4, u.lastname);
 		statements["user_replace"].bind_text(5, u.gender);
 		statements["user_replace"].bind_text(6, u.street);
-		statements["user_replace"].bind_int(7, u.postcode);
+		statements["user_replace"].bind_text(7, u.postcode);
 		statements["user_replace"].bind_text(8, u.city);
 		statements["user_replace"].bind_text(9, u.pgp);
 
@@ -849,6 +850,20 @@ public class DataBase : Object {
 		while(statements["users_with_sales"].step() == Sqlite.ROW) {
 			result += statements["users_with_sales"].column_int(0);
 		}
+
+		return result;
+	}
+
+	public Price get_user_invoice_sum(int user, int64 timestamp_from, int64 timestamp_to) {
+		Price result = 0;
+
+		statements["user_invoice_sum"].reset();
+		statements["user_invoice_sum"].bind_int(1, user);
+		statements["user_invoice_sum"].bind_int64(2, timestamp_from);
+		statements["user_invoice_sum"].bind_int64(3, timestamp_to);
+
+		if(statements["user_invoice_sum"].step() == Sqlite.ROW)
+			result = statements["user_invoice_sum"].column_int(0);
 
 		return result;
 	}
