@@ -595,6 +595,8 @@ public class InvoicePDF {
 	}
 
 	public uint8[] generate() throws InvoicePDFError {
+		data = null;
+
 		var document = new Cairo.PdfSurface.for_stream(pdf_write, width, height);
 
 		var ctx = new Cairo.Context(document);
