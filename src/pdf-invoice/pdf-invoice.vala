@@ -608,7 +608,7 @@ public class InvoicePDF {
 		if(invoice_date == 0)
 			throw new InvoicePDFError.NO_INVOICE_DATE("No invoice date given!");
 
-		if(invoice_recipient.firstname == "" || invoice_recipient.lastname == "")
+		if(invoice_recipient.firstname == "" && invoice_recipient.lastname == "")
 			throw new InvoicePDFError.NO_INVOICE_RECIPIENT("No invoice recipient given!");
 
 		/* first page */
