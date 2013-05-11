@@ -16,7 +16,7 @@
 <div id="new_price" style="display: {{{ISADMIN}}};">
 	<form action="/products/{{{EAN}}}/newprice" class="form-horizontal">
 		<input class="input-small" name="member" type="number" step="0.01" min="0.01" placeholder="Member" />
-		<input class="input-small" name="guest"  type="number" step="0.01" min="0.01" placeholder="Guest" />
+		<input class="input-small" name="guest"  type="number" step="0.10" min="0.10" placeholder="Guest" />
 		<button type="submit" class="btn btn-primary">Add new Prices</button>
 	</form>
 </div>
@@ -30,7 +30,7 @@
 <div id="restock" style="display: {{{ISADMIN}}};">
 	<form action="/products/{{{EAN}}}/restock" class="form-horizontal">
 		<input class="input-small" name="amount" type="number" min="1" placeholder="Amount" title="Amount" />
-		<input class="input-small" name="price"  type="number" step="0.01" min="0.01" placeholder="Price" title="Price per Piece" />
+		<input class="input-small" name="price"  type="number" step="0.01" min="0.00" placeholder="Price" title="Price per Piece" />
 		<select name="supplier" title="Supplier">
 			{{{SUPPLIERS}}}
 		</select>
