@@ -24,7 +24,7 @@ public interface Database : Object {
 	public abstract Price get_product_price(int user, uint64 article) throws IOError, DatabaseError;
 	public abstract string undo(int32 user) throws IOError, DatabaseError;
 	public abstract void restock(int user, uint64 product, uint amount, uint price, int supplier, int64 best_before_date) throws IOError, DatabaseError;
-	public abstract bool new_product(uint64 id, string name, int memberprice, int guestprice) throws IOError, DatabaseError;
+	public abstract void new_product(uint64 id, string name, int memberprice, int guestprice) throws IOError, DatabaseError;
 	public abstract bool new_price(uint64 product, int64 timestamp, int memberprice, int guestprice) throws IOError, DatabaseError;
 	public abstract bool check_user_password(int32 user, string password) throws IOError;
 	public abstract void set_user_password(int32 user, string password) throws IOError, DatabaseError;
