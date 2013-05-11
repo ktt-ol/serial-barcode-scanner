@@ -36,12 +36,6 @@ public struct InvoiceRecipient {
 	public string gender;
 }
 
-public struct InvoiceEntry {
-	int timestamp;
-	string article;
-	Price price;
-}
-
 [DBus (name = "io.mainframe.shopsystem.InvoicePDF")]
 public interface PDFInvoice : Object {
 	public abstract string invoice_id { set; owned get; }

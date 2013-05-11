@@ -20,10 +20,21 @@ public class InvoicePDF {
 	private const double height = 841.88976; /* 297mm */
 
 	/* invoice content, which should appear in the PDF */
-	public string invoice_id { set; owned get; }
-	public int64  invoice_date { set; get; }
-	public InvoiceRecipient invoice_recipient { set; owned get; }
-	public InvoiceEntry[] invoice_entries { set; owned get; }
+	public string invoice_id { set; owned get; default = ""; }
+	public int64  invoice_date { set; get; default = 0; }
+	public InvoiceEntry[] invoice_entries { set; owned get; default = null; }
+	public InvoiceRecipient invoice_recipient {
+		set;
+		owned get;
+		default = InvoiceRecipient() {
+			firstname = "",
+			lastname = "",
+			street = "",
+			postal_code = "",
+			city = "",
+			gender = ""
+		};
+	}
 
 	/* pdf data */
 	private uint8[] data;
@@ -48,7 +59,6 @@ public class InvoicePDF {
 	};
 
 	public InvoicePDF() {
-		clear();
 	}
 
 	private void render_svg(Cairo.Context ctx, string file) {
@@ -307,20 +317,12 @@ public class InvoicePDF {
 	}
 
 	private string get_address() {
-		string address;
-		switch(invoice_recipient.gender) {
-			case "masculinum":
-				address = "Sehr geehrter Herr";
-				break;
-			case "femininum":
-				address = "Sehr geehrte Frau";
-				break;
-			default:
-				address = "Moin";
-				break;
-		}
-
-		return address;
+		if(invoice_recipient.gender == "masculinum")
+			return "Sehr geehrter Herr";
+		else if(invoice_recipient.gender == "femininum")
+			return "Sehr geehrte Frau";
+		else
+			return "Moin";
 	}
 
 	private void draw_first_page_text(Cairo.Context ctx) {
@@ -439,7 +441,7 @@ public class InvoicePDF {
 		var tm = new DateTime.from_unix_local(e.timestamp);
 		var date = tm.format("%Y-%m-%d");
 		var time = tm.format("%H:%M:%S");
-		var article = e.article;
+		var article = e.product.name;
 		var price = @"$(e.price)€".replace(".", ",");
 
 		if(e.price > 999999) {
@@ -563,7 +565,7 @@ public class InvoicePDF {
 
 				/* retry adding the entry */
 				if(!draw_invoice_table_entry(ctx, y, entry, out y)) {
-					throw new InvoicePDFError.ARTICLE_NAME_TOO_LONG("Article name \"%s\" does not fit on a single page!", entry.article);
+					throw new InvoicePDFError.ARTICLE_NAME_TOO_LONG("Article name \"%s\" does not fit on a single page!", entry.product.name);
 				}
 			}
 		}
