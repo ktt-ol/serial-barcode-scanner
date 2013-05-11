@@ -25,7 +25,7 @@ public class MailerImplementation {
 	}
 
 	HashTable<string,MailEntry?> mails;
-	MailImplementation current_mail;
+	MailImplementation? current_mail;
 
 	string server;
 	string username;
@@ -136,10 +136,19 @@ public class MailerImplementation {
 		if(!(path in mails))
 			throw new IOError.NOT_FOUND("No such mail");
 
+		if(current_mail != null)
+			throw new IOError.BUSY("Mail system is busy");
+
+		current_mail = mails[path].mail;
+		Idle.add(send_mail_background);
+
+		delete_mail(path);
+	}
+
+	private bool send_mail_background() {
 		var message = session.add_message();
 
 		messagecb_done = false;
-		current_mail = mails[path].mail;
 		message.set_messagecb(callback);
 
 		foreach(var recipient in current_mail.get_recipients()) {
@@ -155,6 +164,9 @@ public class MailerImplementation {
 		if(status.code < 200 || status.code >= 300)
 			throw new IOError.FAILED("Reply from SMTP-Server: %s", status.text);
 
-		delete_mail(path);
+		current_mail = null;
+
+		/* do not run again */
+		return false;
 	}
 }
