@@ -594,7 +594,8 @@ public class WebServer {
 				Price memberprice = Price.parse(query["memberprice"]);
 				Price guestprice  = Price.parse(query["guestprice"]);
 
-				if(ean > 0 && memberprice > 0 && guestprice > 0 && db.new_product(ean, name, memberprice, guestprice)) {
+				if(ean > 0 && memberprice > 0 && guestprice > 0) {
+					db.new_product(ean, name, memberprice, guestprice);
 					template.replace("NAME", name);
 					template.replace("EAN", @"$ean");
 					template.replace("MEMBERPRICE", @"$memberprice€");
