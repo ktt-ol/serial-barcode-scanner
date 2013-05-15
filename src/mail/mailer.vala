@@ -24,6 +24,7 @@ public class MailerImplementation {
 		MailImplementation mail;
 	}
 
+	Queue<MailImplementation> send_queue;
 	HashTable<string,MailEntry?> mails;
 	MailImplementation? current_mail;
 
@@ -62,6 +63,7 @@ public class MailerImplementation {
 		Smtp.auth_client_init();
 		session = Smtp.Session();
 		mails = new HashTable<string,MailEntry?>(str_hash, str_equal);
+		send_queue = new Queue<MailImplementation>();
 
 		/* ignore SIGPIPE, as suggested by libESMTP */
 		Posix.signal(Posix.SIGPIPE, Posix.SIG_IGN);
@@ -136,16 +138,19 @@ public class MailerImplementation {
 		if(!(path in mails))
 			throw new IOError.NOT_FOUND("No such mail");
 
-		if(current_mail != null)
-			throw new IOError.BUSY("Mail system is busy");
+		send_queue.push_tail(mails[path].mail);
+		delete_mail(path);
 
-		current_mail = mails[path].mail;
 		Idle.add(send_mail_background);
 
-		delete_mail(path);
 	}
 
 	private bool send_mail_background() {
+		current_mail = send_queue.pop_head();
+
+		if(current_mail == null)
+			return false;
+
 		var message = session.add_message();
 
 		messagecb_done = false;
@@ -166,7 +171,7 @@ public class MailerImplementation {
 
 		current_mail = null;
 
-		/* do not run again */
-		return false;
+		/* call method again, queue may not be empty */
+		return true;
 	}
 }
