@@ -13,7 +13,18 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+private string datadir;
+
 public static int main(string[] args) {
+	try {
+		Config cfg = Bus.get_proxy_sync(BusType.SESSION, "io.mainframe.shopsystem.Config", "/io/mainframe/shopsystem/config");
+		datadir = cfg.get_string("INVOICE", "datadir");
+	} catch(IOError e) {
+		error("IOError: %s\n", e.message);
+	} catch(KeyFileError e) {
+		error("Config Error: %s\n", e.message);
+	}
+
 	Bus.own_name(
 		BusType.SESSION,
 		"io.mainframe.shopsystem.InvoicePDF",
@@ -29,7 +40,7 @@ public static int main(string[] args) {
 
 void on_bus_aquired(DBusConnection conn) {
     try {
-        conn.register_object("/io/mainframe/shopsystem/invoicepdf", new InvoicePDF());
+        conn.register_object("/io/mainframe/shopsystem/invoicepdf", new InvoicePDF(datadir));
     } catch(IOError e) {
         stderr.printf("Could not register service\n");
     }

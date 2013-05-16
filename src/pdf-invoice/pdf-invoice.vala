@@ -43,6 +43,8 @@ public class InvoicePDF {
 	/* internal helper */
 	private DateTime previous_tm;
 
+	private string datadir;
+
 	private const string[] calendermonths = {
 		"Januar",
 		"Februar",
@@ -58,7 +60,8 @@ public class InvoicePDF {
 		"Dezember"
 	};
 
-	public InvoicePDF() {
+	public InvoicePDF(string datadir) {
+		this.datadir = datadir;
 	}
 
 	private void render_svg(Cairo.Context ctx, string file) {
@@ -74,14 +77,14 @@ public class InvoicePDF {
 		ctx.save();
 		ctx.translate(-20, 818);
 		ctx.scale(1.42, 1.42);
-		render_svg(ctx, "../../invoice/footer-line.svg");
+		render_svg(ctx, datadir + "/footer-line.svg");
 		ctx.restore();
 	}
 
 	private void draw_logo(Cairo.Context ctx) {
 		ctx.save();
 		ctx.translate(366,25);
-		render_svg(ctx, "../../invoice/logo.svg");
+		render_svg(ctx, datadir + "/logo.svg");
 		ctx.restore();
 	}
 
@@ -355,7 +358,7 @@ public class InvoicePDF {
 		/* load text template */
 		try {
 			var text = "";
-			FileUtils.get_contents("template.txt", out text);
+			FileUtils.get_contents(datadir + "/pdf-template.txt", out text);
 			text = text.replace("{{{ADDRESS}}}", address);
 			text = text.replace("{{{LASTNAME}}}", invoice_recipient.lastname);
 			text = text.replace("{{{SUM}}}", @"$sum");
