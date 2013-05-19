@@ -423,7 +423,7 @@ public class WebServer {
 			string table = "";
 			Price sum = 0;
 			foreach(var e in db.get_invoice(id, start.to_unix(), stop.to_unix())) {
-				var timestamp = new DateTime.from_unix_utc(e.timestamp);
+				var timestamp = new DateTime.from_unix_local(e.timestamp);
 				var date = timestamp.format("%d.%m.%Y");
 				var time = timestamp.format("%H:%M:%S");
 				var product = e.product.name;
