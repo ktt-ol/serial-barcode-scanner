@@ -24,14 +24,14 @@ public class InvoiceImplementation {
 	Mailer mailer;
 	Database db;
 	PDFInvoice pdf;
-	string datapath;
+	string datadir;
 
 	public InvoiceImplementation() throws IOError, KeyFileError {
 		mailer = Bus.get_proxy_sync(BusType.SESSION, "io.mainframe.shopsystem.Mail", "/io/mainframe/shopsystem/mailer");
 		db = Bus.get_proxy_sync(BusType.SESSION, "io.mainframe.shopsystem.Database", "/io/mainframe/shopsystem/database");
 		pdf = Bus.get_proxy_sync(BusType.SESSION, "io.mainframe.shopsystem.InvoicePDF", "/io/mainframe/shopsystem/invoicepdf");
 		Config cfg = Bus.get_proxy_sync(BusType.SESSION, "io.mainframe.shopsystem.Config", "/io/mainframe/shopsystem/config");
-		datapath = cfg.get_string("INVOICE", "datapath");
+		datadir = cfg.get_string("INVOICE", "datadir");
 	}
 
 	public void send_invoices(bool temporary, int64 timestamp) throws IOError, InvoicePDFError, DatabaseError {
@@ -136,7 +136,7 @@ public class InvoiceImplementation {
 		string text;
 
 		try {
-			FileUtils.get_contents(datapath + "/treasurer.mail.txt", out text);
+			FileUtils.get_contents(datadir + "/treasurer.mail.txt", out text);
 		} catch(GLib.FileError e) {
 			throw new IOError.FAILED("Could not open invoice template: %s", e.message);
 		}
@@ -201,7 +201,7 @@ public class InvoiceImplementation {
 			throw new IOError.FAILED("Unknown MessageType");
 
 		try {
-			FileUtils.get_contents(datapath + "/" + filename, out text);
+			FileUtils.get_contents(datadir + "/" + filename, out text);
 		} catch(GLib.FileError e) {
 			throw new IOError.FAILED("Could not open invoice template: %s", e.message);
 		}
