@@ -1,5 +1,4 @@
-barcode-scanner
+gnupg/
 *.swp
 shop.db
-invoice/*.pyc
-invoice/__pycache__
+ktt-shopsystem.cfg
