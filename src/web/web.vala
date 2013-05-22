@@ -703,14 +703,13 @@ public class WebServer {
 				Price guest =  Price.parse(query["guest"]);
 
 				if(guest >= 1 && member >= 1) {
-					if(db.new_price(id, timestamp, member, guest)) {
-						template.replace("GUEST", @"$guest");
-						template.replace("MEMBER", @"$member");
-						template.replace("NEWPRICE.OK", "block");
-						template.replace("NEWPRICE.FAIL", "none");
-						msg.set_response("text/html", Soup.MemoryUse.COPY, template.data);
-						return;
-					}
+					db.new_price(id, timestamp, member, guest);
+					template.replace("GUEST", @"$guest");
+					template.replace("MEMBER", @"$member");
+					template.replace("NEWPRICE.OK", "block");
+					template.replace("NEWPRICE.FAIL", "none");
+					msg.set_response("text/html", Soup.MemoryUse.COPY, template.data);
+					return;
 				}
 			}
 
