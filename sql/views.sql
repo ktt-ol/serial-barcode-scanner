@@ -1,4 +1,5 @@
 BEGIN TRANSACTION;
+CREATE VIEW IF NOT EXISTS stock AS SELECT id, name, amount FROM products WHERE deprecated = 0 OR amount != 0;
 CREATE VIEW IF NOT EXISTS purchaseprices AS SELECT product, SUM(price * amount) / SUM(amount) AS price FROM restock GROUP BY product;
 CREATE VIEW IF NOT EXISTS invoice AS 
 	SELECT user, timestamp, id AS productid, name AS productname,
