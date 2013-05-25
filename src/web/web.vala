@@ -654,7 +654,7 @@ public class WebServer {
 					bbd = new DateTime.from_unix_local(0);
 				}
 
-				if(amount >= 1 && price >= 1) {
+				if(amount >= 1 && price >= 0) {
 					db.restock(session.user, id, amount, price, supplier, bbd.to_unix());
 					template.replace("AMOUNT", @"$amount");
 					template.replace("PRICE", @"$price");
