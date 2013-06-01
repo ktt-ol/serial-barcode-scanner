@@ -99,37 +99,62 @@ check_pkg_config() {
 	return $?
 }
 
+check_font() {
+	name="$1"
+
+	printf " %-29s" "$1..."
+
+	for file in /etc/fonts/conf.avail/*; do
+		grep -q "$name" "$file"
+		if [ $? -eq 0 ] ; then
+			echo "     OK"
+			return 0
+		fi
+	done
+
+	echo "MISSING"
+	return 1
+}
+
 check_dependencies() {
-	echo "Checking dependencies:"
+	echo "Checking software dependencies:"
 	errors=0
 	check_prg_version valac				0.16		`valac --api-version`
-	errors=`expr $errors + 1`
+	errors=`expr $errors + $?`
+
+	echo "Checking library dependencies:"
 	check_pkg_config  ncursesw			5.9
-	errors=`expr $errors + 1`
+	errors=`expr $errors + $?`
 	check_pkg_config  gdk-2.0			2.24
-	errors=`expr $errors + 1`
+	errors=`expr $errors + $?`
 	check_pkg_config  gee-1.0			0.6
-	errors=`expr $errors + 1`
+	errors=`expr $errors + $?`
 	check_pkg_config  gio-2.0			2.36
-	errors=`expr $errors + 1`
+	errors=`expr $errors + $?`
 	check_pkg_config  gmime-2.6			2.6.10
-	errors=`expr $errors + 1`
+	errors=`expr $errors + $?`
 	check_prg_version gpgme				1.2			`gpgme-config --version`
-	errors=`expr $errors + 1`
+	errors=`expr $errors + $?`
 	check_pkg_config  gstreamer-0.10	0.10.36
-	errors=`expr $errors + 1`
+	errors=`expr $errors + $?`
 	check_pkg_config  libarchive		3.0
-	errors=`expr $errors + 1`
+	errors=`expr $errors + $?`
 	check_prg_version libesmtp			0.1			`libesmtp-config --version`
-	errors=`expr $errors + 1`
+	errors=`expr $errors + $?`
 	check_pkg_config  librsvg-2.0		2.36
-	errors=`expr $errors + 1`
+	errors=`expr $errors + $?`
 	check_pkg_config  libsoup-2.4		2.38
-	errors=`expr $errors + 1`
+	errors=`expr $errors + $?`
 	check_pkg_config  pangocairo		1.32
-	errors=`expr $errors + 1`
+	errors=`expr $errors + $?`
 	check_pkg_config  sqlite3			3.7
-	errors=`expr $errors + 1`
+	errors=`expr $errors + $?`
+
+	echo "Checking font dependencies:"
+	check_font LMSans10
+	errors=`expr $errors + $?`
+	check_font LMRoman10
+	errors=`expr $errors + $?`
 
 	if [ $errors -ne 0 ] ; then
 		echo "Aborting due to errors!"
