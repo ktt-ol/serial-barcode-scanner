@@ -123,6 +123,8 @@ public class DataBase : Object {
 		queries["supplier_add"]      = "INSERT INTO supplier('name', 'postal_code', 'city', 'street', 'phone', 'website') VALUES (?, ?, ?, ?, ?, ?)";
 		queries["users_with_sales"]  = "SELECT user FROM sales WHERE timestamp > ? AND timestamp < ? GROUP BY user";
 		queries["user_invoice_sum"]  = "SELECT SUM(price) FROM invoice WHERE user = ? AND timestamp > ? AND timestamp < ?";
+		queries["cashbox_status"]    = "SELECT amount FROM current_cashbox_status";
+		queries["cashbox_add"]       = "INSERT INTO cashbox_diff ('user', 'amount', 'timestamp') VALUES (?, ?, ?)";
 
 		/* compile queries into statements */
 		foreach(var entry in queries.entries) {
@@ -866,5 +868,30 @@ public class DataBase : Object {
 			result = statements["user_invoice_sum"].column_int(0);
 
 		return result;
+	}
+
+	public Price cashbox_status() {
+		Price result = 0;
+
+		statements["cashbox_status"].reset();
+
+		if(statements["cashbox_status"].step() == Sqlite.ROW)
+			result = statements["cashbox_status"].column_int(0);
+
+		return result;
+	}
+
+	public void cashbox_add(int user, Price amount, int64 timestamp) throws DatabaseError {
+		statements["cashbox_add"].reset();
+		statements["cashbox_add"].bind_int(1, user);
+		statements["cashbox_add"].bind_int(2, amount);
+		statements["cashbox_add"].bind_int64(3, timestamp);
+
+		int rc = statements["cashbox_add"].step();
+
+		if(rc != Sqlite.DONE) {
+			throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
+		}
+
 	}
 }

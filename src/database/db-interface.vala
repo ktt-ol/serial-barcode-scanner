@@ -49,6 +49,8 @@ public interface Database : Object {
 	public abstract void add_supplier(string name, string postal_code, string city, string street, string phone, string website) throws IOError, DatabaseError;
 	public abstract int[] get_users_with_sales(int64 timestamp_from, int64 timestamp_to) throws IOError;
 	public abstract Price get_user_invoice_sum(int user, int64 timestamp_from, int64 timestamp_to) throws IOError;
+	public abstract Price cashbox_status() throws IOError;
+	public abstract void cashbox_add(int user, Price amount, int64 timestamp) throws IOError, DatabaseError;
 }
 
 public struct StockEntry {

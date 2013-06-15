@@ -20,4 +20,21 @@ CREATE VIEW IF NOT EXISTS invoice AS
 			END AS price
 		FROM sales INNER JOIN products ON sales.product = products.id
 		ORDER BY timestamp;
+CREATE VIEW IF NOT EXISTS current_cashbox_status AS
+	SELECT (
+		(
+			SELECT SUM(
+				(
+					SELECT guestprice
+						FROM prices
+						WHERE product = s.product AND valid_from <= s.timestamp
+						ORDER BY valid_from DESC LIMIT 1
+				)
+			) FROM sales s WHERE user = 0
+		)
+		+
+		(
+			SELECT SUM(amount) FROM cashbox_diff
+		)
+	) AS amount;
 COMMIT;
