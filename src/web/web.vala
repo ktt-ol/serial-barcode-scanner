@@ -963,9 +963,13 @@ public class WebServer {
 				db.cashbox_add(type == "user" ? session.user : -3, amount, timestamp);
 
 			if(error) {
+				template.replace("TYPE", type);
+				template.replace("AMOUNT", amount.to_string());
 				template.replace("NEW.OK", "none");
 				template.replace("NEW.FAIL", "block");
 			} else {
+				template.replace("TYPE", "");
+				template.replace("AMOUNT", "");
 				template.replace("NEW.OK", "block");
 				template.replace("NEW.FAIL", "none");
 			}
