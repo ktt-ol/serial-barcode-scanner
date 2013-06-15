@@ -161,7 +161,24 @@ public class ScannerSessionImplementation {
 				return false;
 			}
 
-			var name  = db.get_product_name(id);
+			string name = "unknown product";
+
+			try {
+				name = db.get_product_name(id);
+			} catch(IOError e) {
+				audio.play_user(theme, "error");
+				send_message(MessageType.ERROR, "Internal Error!");
+				return false;
+			} catch(DatabaseError e) {
+				if(e is DatabaseError.PRODUCT_NOT_FOUND) {
+					audio.play_user(theme, "error");
+					send_message(MessageType.ERROR, "Error: unknown product: %llu".printf(id));
+				} else {
+					audio.play_user(theme, "error");
+					send_message(MessageType.ERROR, "Error: %s", e.message);
+				}
+				return false;
+			}
 
 			if(!logged_in) {
 				var mprice = db.get_product_price(1, id);
