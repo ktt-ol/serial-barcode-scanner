@@ -1,0 +1,17 @@
+<div id="add-successful" class="alert alert-success" style="display: {{{NEW.OK}}};">
+	<p>Successfully balanced cashbox:</p>
+	
+	<table class="table">
+		<tr><th>Type</th><td>{{{TYPE}}}</td></tr>
+		<tr><th>Amount</th><td>{{{AMOUNT}}}</td></tr>
+	</table>
+</div>
+
+<div id="add-failed" class="alert alert-error" style="display: {{{NEW.FAIL}}};">
+	<h4>Error</h4>
+	Creating new cashbox balance entry failed. Please make
+	sure you have sufficient permissions and gave valid
+	values for type and amount.
+</div>
+
+<a href="/cashbox">Back to cashbox overview</a>

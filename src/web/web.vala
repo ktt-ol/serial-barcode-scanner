@@ -909,6 +909,80 @@ public class WebServer {
 		}
 	}
 
+	void handler_cashbox(Soup.Server server, Soup.Message msg, string path, GLib.HashTable? query, Soup.ClientContext client) {
+		try {
+			var session = new WebSession(server, msg, path, query, client);
+
+			if(!session.superuser) {
+				handler_403(server, msg, path, query, client);
+				return;
+			}
+
+			var template = new WebTemplate("cashbox/index.html", session);
+			template.replace("TITLE", "KtT Shop System: Cashbox");
+			template.replace("CASHBOX_STATUS", db.cashbox_status().to_string());
+			template.menu_set_active("cashbox");
+			msg.set_response("text/html", Soup.MemoryUse.COPY, template.data);
+		} catch(TemplateError e) {
+			stderr.printf(e.message+"\n");
+			handler_404(server, msg, path, query, client);
+		} catch(DatabaseError e) {
+			stderr.printf(e.message+"\n");
+			handler_400(server, msg, path, query, client);
+		} catch(IOError e) {
+			stderr.printf(e.message+"\n");
+			handler_400(server, msg, path, query, client);
+		}
+	}
+
+	void handler_cashbox_add(Soup.Server server, Soup.Message msg, string path, GLib.HashTable<string,string>? query, Soup.ClientContext client) {
+		try {
+			var session = new WebSession(server, msg, path, query, client);
+
+			if(!session.superuser) {
+				handler_403(server, msg, path, query, client);
+				return;
+			}
+
+			var template = new WebTemplate("cashbox/add.html", session);
+			template.replace("TITLE", "KtT Shop System: Cashbox Balance");
+			template.menu_set_active("cashbox");
+
+			bool error = false;
+			if(query == null || !query.contains("type") || !query.contains("amount"))
+				error = true;
+
+			int64 timestamp = (new DateTime.now_utc()).to_unix();
+			Price amount = Price.parse(query["amount"]);
+			string type = query["type"];
+
+			if(type != "user" && type != "loss")
+				error = true;
+
+			if(!error)
+				db.cashbox_add(type == "user" ? session.user : -3, amount, timestamp);
+
+			if(error) {
+				template.replace("NEW.OK", "none");
+				template.replace("NEW.FAIL", "block");
+			} else {
+				template.replace("NEW.OK", "block");
+				template.replace("NEW.FAIL", "none");
+			}
+
+			msg.set_response("text/html", Soup.MemoryUse.COPY, template.data);
+		} catch(TemplateError e) {
+			stderr.printf(e.message+"\n");
+			handler_404(server, msg, path, query, client);
+		} catch(DatabaseError e) {
+			stderr.printf(e.message+"\n");
+			handler_400(server, msg, path, query, client);
+		} catch(IOError e) {
+			stderr.printf(e.message+"\n");
+			handler_400(server, msg, path, query, client);
+		}
+	}
+
 	public WebServer(int port = 8080) {
 		srv = new Soup.Server(Soup.SERVER_PORT, port);
 
@@ -922,6 +996,10 @@ public class WebServer {
 		srv.add_handler("/js", handler_js);
 		srv.add_handler("/css", handler_css);
 		srv.add_handler("/img", handler_img);
+
+		/* cashbox */
+		srv.add_handler("/cashbox", handler_cashbox);
+		srv.add_handler("/cashbox/add", handler_cashbox_add);
 
 		/* products */
 		srv.add_handler("/products", handler_products);

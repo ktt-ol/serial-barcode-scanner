@@ -1,0 +1,11 @@
+Current Cashbox Status: <input name"status" type="number" readonly="readonly" value="{{{CASHBOX_STATUS}}}"/>
+
+<form action="/cashbox/add" class="form-horizontal">
+	<legend>Cashbox Balance/Withdrawal/Deposit</legend>
+	<select name="type" size="1">
+		<option value="loss">Balance (Loss)</option>
+		<option value="user">Withdrawal / Deposit</option>
+	</select>
+	<input class="input-medium" name="amount" type="number" placeholder="Amount" />
+	<button type="submit" class="btn btn-primary"><i class="icon-plus"></i></button>
+</form>
