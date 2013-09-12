@@ -37,7 +37,7 @@ require "csv"
 
 #generate barcodes
 @csv.each{|r| 
-	system("barcode -n -E -b 'USER %s' -o '%s.eps' -e 39\n" % [r[0], r[0]])
+	system("barcode -n -E -b 'USER %s' -o '%s.eps' -u mm -g 80x30 -e 39\n" % [r[0], r[0]])
 }
 
 #generate latex
