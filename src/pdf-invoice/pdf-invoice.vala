@@ -105,7 +105,7 @@ public class InvoicePDF {
 
 		ctx.move_to(56.5, 142);
 		/* TODO: get string from config file */
-		ctx.show_text("Kreativität trifft Technik e.V., Binsenstraße 3, 26129 Oldenburg");
+		ctx.show_text("Kreativität trifft Technik e.V., Raiffeisenstraße 27, 26122 Oldenburg");
 
 		/* actually LMRoman12 */
 		ctx.select_font_face("LMSans10", Cairo.FontSlant.NORMAL, Cairo.FontWeight.NORMAL);
@@ -225,7 +225,7 @@ public class InvoicePDF {
 		layout.set_width((int) 140 * Pango.SCALE);
 
 		/* TODO: get text from config file */
-		var text = "<b>Kreativität trifft Technik e.V.</b>\nBinsenstraße 3\n26129 Oldenburg\n\n<b>Amtsgericht Oldenburg</b>\nVR 201044";
+		var text = "<b>Kreativität trifft Technik e.V.</b>\nRaiffeisenstraße 27\n26122 Oldenburg\n\n<b>Amtsgericht Oldenburg</b>\nVR 201044";
 
 		/* write invoice date */
 		layout.set_markup(text, text.length);
