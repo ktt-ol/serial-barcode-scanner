@@ -11,7 +11,8 @@
   - [old code](https://github.com/ktt-ol/serial-barcode-scanner/commit/504cefec4a93a9b52fa9d25d6f353a4676485c43)
 
 #### libcairobarcode
- * write vala library using cairo to generate a barcode
+ * make this a library instead of a test binary
+ * cleanup code
 
 #### USERLIST-PDF
  * write new vala process, which generates a user list pdf using libcairobarcode
