@@ -118,6 +118,7 @@ public class InvoiceImplementation {
 			mail.set_main_part(html, MessageType.HTML);
 
 			mailer.send_mail(mail_path);
+			mailer.delete_mail(mail_path);
 
 			if(!temporary) {
 				treasurer_mail.add_attachment(pdffilename, "application/pdf", pdfdata);
@@ -129,6 +130,7 @@ public class InvoiceImplementation {
 			treasurer_mail.set_main_part(get_treasurer_text(), MessageType.PLAIN);
 			treasurer_mail.add_attachment("invoice.csv", "text/csv; charset=utf-8", csvinvoicedata.data);
 			mailer.send_mail(treasurer_path);
+			mailer.delete_mail(treasurer_path);
 		}
 	}
 
