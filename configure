@@ -1,165 +1,56 @@
 #!/bin/sh
+. ./configure-functions.sh
 
-# This awk script is derived from autotools
-awk_verscmp='
-  # Use only awk features that work with 7th edition Unix awk (1978).
-  # My, what an old awk you have, Mr. Solaris!
-  END {
-    while (length(v1) && length(v2)) {
-      # Set d1 to be the next thing to compare from v1, and likewise for d2.
-      # Normally this is a single character, but if v1 and v2 contain digits,
-      # compare them as integers and fractions as strverscmp does.
-      if (v1 ~ /^[0-9]/ && v2 ~ /^[0-9]/) {
-	# Split v1 and v2 into their leading digit string components d1 and d2,
-	# and advance v1 and v2 past the leading digit strings.
-	for (len1 = 1; substr(v1, len1 + 1) ~ /^[0-9]/; len1++) continue
-	for (len2 = 1; substr(v2, len2 + 1) ~ /^[0-9]/; len2++) continue
-	d1 = substr(v1, 1, len1); v1 = substr(v1, len1 + 1)
-	d2 = substr(v2, 1, len2); v2 = substr(v2, len2 + 1)
-	if (d1 ~ /^0/) {
-	  if (d2 ~ /^0/) {
-	    # Compare two fractions.
-	    while (d1 ~ /^0/ && d2 ~ /^0/) {
-	      d1 = substr(d1, 2); len1--
-	      d2 = substr(d2, 2); len2--
-	    }
-	    if (len1 != len2 && ! (len1 && len2 && substr(d1, 1, 1) == substr(d2, 1, 1))) {
-	      # The two components differ in length, and the common prefix
-	      # contains only leading zeros.  Consider the longer to be less.
-	      d1 = -len1
-	      d2 = -len2
-	    } else {
-	      # Otherwise, compare as strings.
-	      d1 = "x" d1
-	      d2 = "x" d2
-	    }
-	  } else {
-	    # A fraction is less than an integer.
-	    exit 1
-	  }
-	} else {
-	  if (d2 ~ /^0/) {
-	    # An integer is greater than a fraction.
-	    exit 2
-	  } else {
-	    # Compare two integers.
-	    d1 += 0
-	    d2 += 0
-	  }
-	}
-      } else {
-	# The normal case, without worrying about digits.
-	d1 = substr(v1, 1, 1); v1 = substr(v1, 2)
-	d2 = substr(v2, 1, 1); v2 = substr(v2, 2)
-      }
-      if (d1 < d2) exit 1
-      if (d1 > d2) exit 2
-    }
-    # Beware Solaris /usr/xgp4/bin/awk (at least through Solaris 10),
-    # which mishandles some comparisons of empty strings to integers.
-    if (length(v2)) exit 1
-    if (length(v1)) exit 2
-  }
-'
-
-check_prg_version() {
-	printf " %-29s" "$1..."
-
-	awk "$awk_verscmp" v1="$2" v2="$3" /dev/null
-
-	if [ "$?" = "2" ] ; then
-		echo "MISSING";
-		return 1;
-	else
-		echo "     OK";
-		return 0;
-	fi
-}
-
-check_pkg_config() {
-	pkg="$1"
-	version="$2"
-
-	printf " %-29s" "$1..."
-
-	if [ "x$version" = "x" ] ; then
-		pkg-config --exists "$1"
-	else
-		pkg-config --atleast-version "$2" "$1"
-	fi
-
-	result=$?
-
-	if [ $result = 1 ] ; then
-		echo "MISSING"
-	else
-		echo "     OK"
-	fi
-
-	return $?
-}
-
-check_font() {
-	name="$1"
-
-	printf " %-29s" "$1..."
-
-	for file in /etc/fonts/conf.avail/*; do
-		grep -q "$name" "$file"
-		if [ $? -eq 0 ] ; then
-			echo "     OK"
-			return 0
-		fi
-	done
-
-	echo "MISSING"
-	return 1
-}
+NAME="serial-barcode-scanner"
+AUTHOR="Sebastian Reichel <sre@ring0.de>"
+VERSION="0.1"
 
 check_dependencies() {
+	VALA_VERSION=`valac --api-version`
+	GPGME_VERSION=`gpgme-config --version`
+	ESMTP_VERSION=`libesmtp-config --version`
+
 	echo "Checking software dependencies:"
-	errors=0
-	check_prg_version valac				0.16		`valac --api-version`
-	errors=`expr $errors + $?`
+	check_prg_version  valac			0.16	$VALA_VERSION	"force"
 
 	echo "Checking library dependencies:"
-	check_pkg_config  ncursesw			5.9
-	errors=`expr $errors + $?`
-	check_pkg_config  gdk-2.0			2.24
-	errors=`expr $errors + $?`
-	check_pkg_config  gee-1.0			0.6
-	errors=`expr $errors + $?`
-	check_pkg_config  gio-2.0			2.36
-	errors=`expr $errors + $?`
-	check_pkg_config  gmime-2.6			2.6.10
-	errors=`expr $errors + $?`
-	check_prg_version gpgme				1.2			`gpgme-config --version`
-	errors=`expr $errors + $?`
-	check_pkg_config  gstreamer-0.10	0.10.36
-	errors=`expr $errors + $?`
-	check_pkg_config  libarchive		3.0
-	errors=`expr $errors + $?`
-	check_prg_version libesmtp			0.1			`libesmtp-config --version`
-	errors=`expr $errors + $?`
-	check_pkg_config  librsvg-2.0		2.36
-	errors=`expr $errors + $?`
-	check_pkg_config  libsoup-2.4		2.38
-	errors=`expr $errors + $?`
-	check_pkg_config  pangocairo		1.32
-	errors=`expr $errors + $?`
-	check_pkg_config  sqlite3			3.7
-	errors=`expr $errors + $?`
+	check_pkg_version  ncursesw			5.9						"force"
+	check_pkg_version  gdk-2.0			2.24					"force"
+	check_pkg_version  gee-1.0			0.6						"force"
+	check_pkg_version  gio-2.0			2.36					"force"
+	check_pkg_version  gmime-2.6		2.6.10					"force"
+	check_prg_version  gpgme			1.2		$GPGME_VERSION	"force"
+	check_pkg_version  gstreamer-0.10	0.10.36					"force"
+	check_pkg_version  libarchive		3.0						"force"
+	check_prg_version  libesmtp			0.1		$ESMTP_VERSION	"force"	
+	check_pkg_version  librsvg-2.0		2.36					"force"
+	check_pkg_version  libsoup-2.4		2.38					"force"
+	check_pkg_version  pangocairo		1.32					"force"
+	check_pkg_version  sqlite3			3.7						"force"
 
 	echo "Checking font dependencies:"
-	check_font LMSans10
-	errors=`expr $errors + $?`
-	check_font LMRoman10
-	errors=`expr $errors + $?`
-
-	if [ $errors -ne 0 ] ; then
-		echo "Aborting due to errors!"
-		exit 1;
-	fi
+	check_font LMSans10											"force"
+	check_font LMRoman10										"force"
 }
 
+extra_options() {
+	case $1 in
+		*)
+			DESC="not available"
+			CMD="not-available"
+	esac
+}
+
+BASE=`dirname $0`
+
+check_parameters $@
+check_compiler
+check_install
+check_pkgconfig
+
 check_dependencies
+
+create_config $BASE/config.mk VALAC
+create_header $BASE/config.h VERSION
+
+final_report CC PREFIX
