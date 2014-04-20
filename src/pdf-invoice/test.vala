@@ -25,9 +25,14 @@ public static int main(string args[]) {
 		"masculinum"
 	};
 
+	Product mate = {
+		4029764001807,
+		"Club Mate"
+	};
+
 	InvoiceEntry e1 = {
 		1364271520,
-		"Club Mate",
+		mate,
 		2342
 	};
 
