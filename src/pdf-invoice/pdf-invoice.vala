@@ -202,7 +202,7 @@ public class InvoicePDF {
 
 	private void draw_footer_text_left(Cairo.Context ctx) {
 		ctx.save();
-		ctx.move_to(64.0, 754.5);
+		ctx.move_to(64.0, 742.0);
 		ctx.set_source_rgb(0, 0, 0);
 
 		/* get pango layout */
@@ -225,7 +225,7 @@ public class InvoicePDF {
 		layout.set_width((int) 140 * Pango.SCALE);
 
 		/* TODO: get text from config file */
-		var text = "<b>Kreativität trifft Technik e.V.</b>\nRaiffeisenstraße 27\n26122 Oldenburg\n\n<b>Amtsgericht Oldenburg</b>\nVR 201044";
+		var text = "<b>Kreativität trifft Technik e.V.</b>\nAmtsgericht Oldenburg VR 201044\n\nHackspace „Mainframe“\nFablab „Fab-O-Lab“\nSchnittstelle „Schnittstelle“\n\nBahnhofsplatz 10 • 26122 Oldenburg";
 
 		/* write invoice date */
 		layout.set_markup(text, text.length);
@@ -239,7 +239,7 @@ public class InvoicePDF {
 
 	private void draw_footer_text_middle(Cairo.Context ctx) {
 		ctx.save();
-		ctx.move_to(216.5, 754.5);
+		ctx.move_to(216.5, 742.0);
 		ctx.set_source_rgb(0, 0, 0);
 
 		/* get pango layout */
@@ -262,7 +262,7 @@ public class InvoicePDF {
 		layout.set_width((int) 195 * Pango.SCALE);
 
 		/* TODO: get text from config file */
-		var text = "<b>Mail:</b> vorstand@kreativitaet-trifft-technik.de\n<b>Web:</b> www.kreativitaet-trifft-technik.de\n<b>Twitter:</b> @KtT_OL\n\n<b>Vorstand</b>\nPatrick Günther, Florian Festi, Christian Schuhmann";
+		var text = "<b>Mail:</b> vorstand@kreativitaet-trifft-technik.de\n<b>Web:</b> www.kreativitaet-trifft-technik.de\n\n\n<b>Vorstand</b>\nPatrick Günther\nFlorian Festi\nChristian Schuhmann";
 
 		/* write invoice date */
 		layout.set_markup(text, text.length);
@@ -276,7 +276,7 @@ public class InvoicePDF {
 
 	private void draw_footer_text_right(Cairo.Context ctx) {
 		ctx.save();
-		ctx.move_to(424.0, 754.5);
+		ctx.move_to(410.0, 742.0);
 		ctx.set_source_rgb(0, 0, 0);
 
 		/* get pango layout */
@@ -299,7 +299,7 @@ public class InvoicePDF {
 		layout.set_width((int) 150 * Pango.SCALE);
 
 		/* TODO: get text from config file */
-		var text = "<b>Raiffeisenbank Oldenburg</b>\n<b>Kontonummer:</b> 370 18 500\n<b>Bankleitzahl:</b> 280 602 28\n\n<b>Finanzamt Oldenburg</b>\n<b>Steuer Nr.:</b> 64/220/18413";
+		var text = "<b>Raiffeisenbank Oldenburg</b>\nIBAN: DE34 2806 0228 0037 0185 00\nBIC: GENODEF1OL2\n\n\n<b>Finanzamt Oldenburg</b>\nAls gemeinnützig anerkannt.\nSteuer Nr.: 64/220/18413";
 
 		/* write invoice date */
 		layout.set_markup(text, text.length);
