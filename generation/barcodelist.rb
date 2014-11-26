@@ -6,18 +6,19 @@ require "csv"
 #csv input "userid,firstname,lastname"
 
 @template = %q{
-	\documentclass[a4paper,landscape]{article}
+	\documentclass[a4paper]{article}
 	\usepackage[utf8]{inputenc}
 	\usepackage{graphicx}
 	\usepackage{longtable}
-	\usepackage[top=0.5cm,right=0.5cm,bottom=0.5cm,left=0.5cm,landscape]{geometry}
+	\usepackage[a4paper,margin=1cm,bmargin=2cm]{geometry}
 	\renewcommand{\familydefault}{\sfdefault}
-	\title{Barcodelist}
+	\title{Shopsystem Nutzerliste}
 	\author{Kreativitaet trifft Technik}
 	\date{\today}
 	\begin{document}
+		\maketitle
 		\begin{center}
-		\begin{longtable}{|c|c|c|}
+		\begin{longtable}{|c|c|}
 			%s	
 		\end{longtable}
 	\end{center}
@@ -45,7 +46,7 @@ tmp = ""
 graphics = ""
 name = ""
 1.upto(@csv.length){|i|
-	le = i % 3 == 0 || i >= @csv.length
+	le = i % 2 == 0 || i >= @csv.length
 	sign = le ? "\\\\" : "&"
 	graphics += @graphics % [@csv[i-1][0], sign]
 	name += @name % [@csv[i-1][1], @csv[i-1][2], sign]
