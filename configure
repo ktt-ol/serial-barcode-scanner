@@ -27,6 +27,7 @@ check_dependencies() {
 	check_pkg_version  libsoup-2.4		2.38					"force"
 	check_pkg_version  pangocairo		1.32					"force"
 	check_pkg_version  sqlite3			3.7						"force"
+	check_pkg_version  libssl			1.0.0					"force"
 
 	echo "Checking font dependencies:"
 	check_font LMSans10											"force"
