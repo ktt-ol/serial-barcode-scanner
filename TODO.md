@@ -63,6 +63,15 @@
   - http://www.sqlite.org/wal.html
   - checkpoint operation for fsync
 
+#### BACKUP
+ * Git based backup service
+  - using libgit2-glib
+  - one commit per local session (login/logout)
+  - one commit per web interface operation
+  - uses name + email of the operating person
+  - commit database
+  - use diff textconv hook in the git repo
+
 #### SQL
  * DISCOUNT table:
   - userid
