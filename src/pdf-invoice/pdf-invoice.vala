@@ -105,7 +105,7 @@ public class InvoicePDF {
 
 		ctx.move_to(56.5, 142);
 		/* TODO: get string from config file */
-		ctx.show_text("Kreativität trifft Technik e.V., Raiffeisenstraße 27, 26122 Oldenburg");
+		ctx.show_text("Kreativität trifft Technik e.V., Bahnhofsplatz 10, 26122 Oldenburg");
 
 		/* actually LMRoman12 */
 		ctx.select_font_face("LMSans10", Cairo.FontSlant.NORMAL, Cairo.FontWeight.NORMAL);
