@@ -225,7 +225,7 @@ public class InvoicePDF {
 		layout.set_width((int) 140 * Pango.SCALE);
 
 		/* TODO: get text from config file */
-		var text = "<b>Kreativität trifft Technik e.V.</b>\nAmtsgericht Oldenburg VR 201044\n\nHackspace „Mainframe“\nFablab „Fab-O-Lab“\nSchnittstelle „Schnittstelle“\n\nBahnhofsplatz 10 • 26122 Oldenburg";
+		var text = "<b>Kreativität trifft Technik e.V.</b>\nAmtsgericht Oldenburg VR 201044\n\nHackspace „Mainframe“\nFabLab „Fab-O-Lab“\nSchnittstelle „Schnittstelle“\n\nBahnhofsplatz 10 • 26122 Oldenburg";
 
 		/* write invoice date */
 		layout.set_markup(text, text.length);
@@ -259,10 +259,10 @@ public class InvoicePDF {
 		layout.set_spacing((int) (-2.0 * Pango.SCALE));
 
 		/* set page width */
-		layout.set_width((int) 195 * Pango.SCALE);
+		layout.set_width((int) 190 * Pango.SCALE);
 
 		/* TODO: get text from config file */
-		var text = "<b>Mail:</b> vorstand@kreativitaet-trifft-technik.de\n<b>Web:</b> www.kreativitaet-trifft-technik.de\n\n\n<b>Vorstand</b>\nPatrick Günther\nFlorian Festi\nChristian Schuhmann";
+		var text = "<b>Mail:</b> vorstand@kreativitaet-trifft-technik.de\n<b>Web:</b> www.kreativitaet-trifft-technik.de\n\n\n\n<b>BGB-Vorstand:</b>\nPatrick Günther, Sebastian Reichel, Markus Müller, Peter Gewald, Hauke Holst";
 
 		/* write invoice date */
 		layout.set_markup(text, text.length);
