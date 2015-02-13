@@ -987,8 +987,16 @@ public class WebServer {
 		}
 	}
 
-	public WebServer(int port = 8080) {
-		srv = new Soup.Server(Soup.SERVER_PORT, port);
+	public WebServer(uint port = 8080, TlsCertificate? cert = null) throws Error {
+		srv = new Soup.Server("tls-certificate", cert);
+		Soup.ServerListenOptions options = 0;
+
+		if(cert != null)
+			options |= Soup.ServerListenOptions.HTTPS;
+
+		if(!srv.listen_all(port, options)) {
+			throw new GLib.IOError.FAILED("Could not setup webserver!");
+		}
 
 		/* index */
 		srv.add_handler("/", handler_default);
@@ -1022,7 +1030,5 @@ public class WebServer {
 		srv.add_handler("/users", handler_users);
 		srv.add_handler("/users/import", handler_user_import);
 		srv.add_handler("/users/import-pgp", handler_user_pgp_import);
-
-		srv.run_async();
 	}
 }

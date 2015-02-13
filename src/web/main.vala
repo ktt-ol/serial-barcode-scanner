@@ -20,19 +20,37 @@ public Config cfg;
 string templatedir;
 
 public static int main(string[] args) {
+	TlsCertificate? cert = null;
+	string certificate;
+	string privatekey;
+	uint port;
+
 	try {
 		db  = Bus.get_proxy_sync(BusType.SESSION, "io.mainframe.shopsystem.Database", "/io/mainframe/shopsystem/database");
 		pgp = Bus.get_proxy_sync(BusType.SESSION, "io.mainframe.shopsystem.PGP", "/io/mainframe/shopsystem/pgp");
 		cfg = Bus.get_proxy_sync(BusType.SESSION, "io.mainframe.shopsystem.Config", "/io/mainframe/shopsystem/config");
 		templatedir = cfg.get_string("WEB", "filepath");
+		port = cfg.get_integer("WEB", "port");
+		certificate = cfg.get_string("WEB", "cert");
+		privatekey = cfg.get_string("WEB", "key");
 	} catch(IOError e) {
 		error("IOError: %s\n", e.message);
 	} catch(KeyFileError e) {
 		error("KeyFileError: %s\n", e.message);
 	}
 
+	stdout.printf("Web Server Port: %u\n", port);
+	stdout.printf("TLS certificate: %s\n", certificate);
+	stdout.printf("TLS private key: %s\n", privatekey);
+
 	/* attach WebServer to MainLoop */
-	new WebServer();
+	try {
+		if(certificate != "" && privatekey != "")
+			cert = new TlsCertificate.from_files(certificate, privatekey);
+		new WebServer(port, cert);
+	} catch(Error e) {
+		error("Could not start Webserver: %s\n", e.message);
+	}
 
 	/* start MainLoop */
 	new MainLoop().run();

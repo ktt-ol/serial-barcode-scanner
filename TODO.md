@@ -52,7 +52,6 @@
  * Support to generate a sorted best before dates list
  * Implement a more fine-grained authentication system
  * OpenID based login
- * SSL support
 
 #### LOG
  * implement log daemon
