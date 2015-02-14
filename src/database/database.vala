@@ -103,7 +103,7 @@ public class DataBase : Object {
 		queries["password_get"]      = "SELECT password FROM authentication WHERE user = ?";
 		queries["password_set"]      = "UPDATE authentication SET password=? WHERE user = ?";
 		queries["userinfo"]          = "SELECT firstname, lastname, email, gender, street, plz, city, pgp FROM users WHERE id = ?";
-		queries["userauth"]          = "SELECT disabled, superuser FROM authentication WHERE user = ?";
+		queries["userauth"]          = "SELECT disabled, superuser, auth_users, auth_products, auth_cashbox FROM authentication WHERE user = ?";
 		queries["profit_by_product"] = "SELECT name, SUM(memberprice - (SELECT price FROM purchaseprices WHERE product = purch.product)) AS price FROM sales purch, prices, products WHERE purch.product = products.id AND purch.product = prices.product AND purch.user > 0 AND purch.timestamp > ? AND purch.timestamp < ? AND prices.valid_from = (SELECT valid_from FROM prices WHERE product = purch.product AND valid_from < purch.timestamp ORDER BY valid_from DESC LIMIT 1) GROUP BY name ORDER BY price;";
 		queries["invoice"]           = "SELECT timestamp, id AS productid, name AS productname, CASE WHEN user < 0 THEN (SELECT price FROM purchaseprices WHERE purchaseprices.product = id) else (SELECT CASE WHEN user=0 THEN guestprice else memberprice END FROM prices WHERE product = id AND valid_from <= timestamp ORDER BY valid_from DESC LIMIT 1) END AS price FROM sales INNER JOIN products ON sales.product = products.id WHERE user = ? AND timestamp >= ? AND timestamp <= ? ORDER BY timestamp";
 		queries["purchase_first"]    = "SELECT timestamp FROM sales WHERE user = ? ORDER BY timestamp ASC  LIMIT 1";
@@ -558,6 +558,9 @@ public class DataBase : Object {
 		result.id = user;
 		result.disabled = false;
 		result.superuser = false;
+		result.auth_cashbox = false;
+		result.auth_products = false;
+		result.auth_users = false;
 
 		statements["userauth"].reset();
 		statements["userauth"].bind_int(1, user);
@@ -566,6 +569,9 @@ public class DataBase : Object {
 		if(rc == Sqlite.ROW) {
 			result.disabled  = statements["userauth"].column_int(0) == 1;
 			result.superuser = statements["userauth"].column_int(1) == 1;
+			result.auth_users = statements["userauth"].column_int(2) == 1;
+			result.auth_products = statements["userauth"].column_int(3) == 1;
+			result.auth_cashbox = statements["userauth"].column_int(4) == 1;
 		} else if(rc == Sqlite.DONE) {
 			/* entry not found, we return defaults */
 		} else {

@@ -44,6 +44,21 @@ public class WebSession {
 		private set;
 		default = false;
 	}
+	public bool auth_cashbox {
+		get;
+		private set;
+		default = false;
+	}
+	public bool auth_products {
+		get;
+		private set;
+		default = false;
+	}
+	public bool auth_users {
+		get;
+		private set;
+		default = false;
+	}
 	public bool disabled {
 		get;
 		private set;
@@ -71,6 +86,9 @@ public class WebSession {
 		var auth = db.get_user_auth(user);
 		this.disabled  = auth.disabled;
 		this.superuser = auth.superuser;
+		this.auth_cashbox = auth.auth_cashbox;
+		this.auth_products = auth.auth_products;
+		this.auth_users = auth.auth_users;
 		this.logged_in = true;
 	}
 
@@ -78,6 +96,9 @@ public class WebSession {
 		if(logged_in) {
 			db.set_sessionid(user, "");
 			superuser = false;
+			auth_cashbox = false;
+			auth_products = false;
+			auth_users = false;
 			logged_in = false;
 		}
 	}

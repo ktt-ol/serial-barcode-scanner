@@ -115,6 +115,9 @@ public struct UserAuth {
 	public int id;
 	public bool disabled;
 	public bool superuser;
+	public bool auth_cashbox;
+	public bool auth_products;
+	public bool auth_users;
 }
 
 public struct Product {

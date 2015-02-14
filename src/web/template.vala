@@ -66,7 +66,8 @@ public class WebTemplate {
 		this.template = this.template.replace("{{{CONTENT}}}", ((string) template));
 		this.template = this.template.replace("{{{USERNAME}}}", login.name);
 		this.template = this.template.replace("{{{USERID}}}", "%d".printf(login.user));
-		this.template = this.template.replace("{{{SUPERUSER}}}", login.superuser ? "" : "hidden");
+		this.template = this.template.replace("{{{AUTH_USERS}}}", (login.superuser || login.auth_users) ? "" : "hidden");
+		this.template = this.template.replace("{{{AUTH_CASHBOX}}}", (login.superuser || login.auth_cashbox) ? "" : "hidden");
 	}
 
 	public WebTemplate.DATA(string file) throws TemplateError {

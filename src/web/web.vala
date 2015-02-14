@@ -87,7 +87,7 @@ public class WebServer {
 	void handler_user_list(Soup.Server server, Soup.Message msg, string path, GLib.HashTable<string,string>? query, Soup.ClientContext client) {
 		try {
 			var session = new WebSession(server, msg, path, query, client);
-			if(!session.superuser) {
+			if(!session.superuser && !session.auth_users) {
 				handler_403(server, msg, path, query, client);
 				return;
 			}
@@ -122,7 +122,7 @@ public class WebServer {
 	void handler_user_pgp_import(Soup.Server server, Soup.Message msg, string path, GLib.HashTable<string,string>? query, Soup.ClientContext client) {
 		try {
 			var session = new WebSession(server, msg, path, query, client);
-			if(!session.superuser) {
+			if(!session.superuser && !session.auth_users) {
 				handler_403(server, msg, path, query, client);
 				return;
 			}
@@ -175,7 +175,7 @@ public class WebServer {
 	void handler_user_import(Soup.Server server, Soup.Message msg, string path, GLib.HashTable<string,string>? query, Soup.ClientContext client) {
 		try {
 			var session = new WebSession(server, msg, path, query, client);
-			if(!session.superuser) {
+			if(!session.superuser && !session.auth_users) {
 				handler_403(server, msg, path, query, client);
 				return;
 			}
@@ -302,6 +302,9 @@ public class WebServer {
 			var userauth = db.get_user_auth(id);
 			t.replace("DISABLED", userauth.disabled ? "true" : "false");
 			t.replace("ISSUPERUSER", userauth.superuser ? "true" : "false");
+			t.replace("HAS_AUTH_PRODUCTS", userauth.auth_products ? "true" : "false");
+			t.replace("HAS_AUTH_CASHBOX", userauth.auth_cashbox ? "true" : "false");
+			t.replace("HAS_AUTH_USERS", userauth.auth_users ? "true" : "false");
 
 			var postdata = Soup.Form.decode_multipart(msg, null, null, null, null);
 			if(postdata != null && postdata.contains("password1") && postdata.contains("password2")) {
@@ -488,7 +491,7 @@ public class WebServer {
 
 			t.replace("DATA", table);
 
-			if(l.superuser)
+			if(l.superuser || l.auth_products)
 				t.replace("NEWPRODUCT", "block");
 			else
 				t.replace("NEWPRODUCT", "none");
@@ -523,7 +526,7 @@ public class WebServer {
 			/* amount */
 			t.replace("AMOUNT", "%d".printf(db.get_product_amount(id)));
 
-			if(l.superuser)
+			if(l.superuser || l.auth_products)
 				t.replace("ISADMIN", "block");
 			else
 				t.replace("ISADMIN", "none");
@@ -583,7 +586,7 @@ public class WebServer {
 			template.replace("TITLE", "KtT Shop System: New Product");
 			template.menu_set_active("products");
 
-			if(!session.superuser) {
+			if(!session.superuser && !session.auth_products) {
 				handler_403(server, msg, path, query, client);
 				return;
 			}
@@ -630,7 +633,7 @@ public class WebServer {
 		try {
 			var session = new WebSession(server, msg, path, query, client);
 
-			if(!session.superuser) {
+			if(!session.superuser && !session.auth_products) {
 				handler_403(server, msg, path, query, client);
 				return;
 			}
@@ -688,7 +691,7 @@ public class WebServer {
 			var session = new WebSession(server, msg, path, query, client);
 			int64 timestamp = (new DateTime.now_utc()).to_unix();
 
-			if(!session.superuser) {
+			if(!session.superuser && !session.auth_products) {
 				handler_403(server, msg, path, query, client);
 				return;
 			}
@@ -913,7 +916,7 @@ public class WebServer {
 		try {
 			var session = new WebSession(server, msg, path, query, client);
 
-			if(!session.superuser) {
+			if(!session.superuser && !session.auth_cashbox) {
 				handler_403(server, msg, path, query, client);
 				return;
 			}
@@ -939,7 +942,7 @@ public class WebServer {
 		try {
 			var session = new WebSession(server, msg, path, query, client);
 
-			if(!session.superuser) {
+			if(!session.superuser && !session.auth_cashbox) {
 				handler_403(server, msg, path, query, client);
 				return;
 			}
