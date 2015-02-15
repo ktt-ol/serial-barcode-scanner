@@ -21,9 +21,6 @@
  * write new vala process, which generates a product list pdf using libcairobarcode
   - Version 1: EAN, Barcode, Name, Amount, Buying-Price
   - Version 2: EAN, Barcode, Name, Member-Price, Guest-Price
- * first implement a deprecated flag for products, so that products
-   being deprecated and having an amount of zero are not shown
-   on the lists
 
 #### MAIL
  * add PGP support in mail script
