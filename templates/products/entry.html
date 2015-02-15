@@ -4,6 +4,7 @@
 		<th>EAN</th><td>{{{EAN}}}</td></tr>
 		<th>Name</th><td>{{{NAME}}}</td></tr>
 		<th>Amount</th><td>{{{AMOUNT}}}</td></tr>
+		<th>State</th><td><button id="statebutton" type="button" class="btn {{{BTNSTATE}}}" {{{ISADMIN2}}}>{{{STATE}}}</button></td></tr>
 	</table>
 </p></p>
 
@@ -38,3 +39,25 @@
 		<button type="submit" class="btn btn-primary"><i class="icon-plus"></i></button>
 	</form>
 </div>
+
+<script>
+$('#statebutton').on('click', function (e) {
+	var req = $.getJSON(
+		"/products/{{{EAN}}}/togglestate",
+		function( data ) {
+			if(data["state"] == "deprecated") {
+				$('#statebutton').html("Deprecated")
+				$('#statebutton').addClass("btn-danger")
+				$('#statebutton').removeClass("btn-success")
+			} else if(data["state"] == "active") {
+				$('#statebutton').html("Active")
+				$('#statebutton').addClass("btn-success")
+				$('#statebutton').removeClass("btn-danger")
+			} else {
+				console.error("unknown state")
+				console.info(data)
+			}
+		}
+	);
+});
+</script>

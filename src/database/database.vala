@@ -83,6 +83,8 @@ public class DataBase : Object {
 		/* setup queries */
 		queries["product_name"]      = "SELECT name FROM products WHERE id = ?";
 		queries["product_amount"]    = "SELECT amount FROM products WHERE id = ?";
+		queries["product_deprecated"]= "SELECT deprecated FROM products WHERE id = ?";
+		queries["product_set_deprecated"] = "UPDATE products SET deprecated=? WHERE id = ?";
 		queries["products"]          = "SELECT id, name, amount FROM products ORDER BY name";
 		queries["purchase"]          = "INSERT INTO sales ('user', 'product', 'timestamp') VALUES (?, ?, ?)";
 		queries["last_purchase"]     = "SELECT product FROM sales WHERE user = ? ORDER BY timestamp DESC LIMIT 1";
@@ -365,6 +367,34 @@ public class DataBase : Object {
 			default:
 				throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
 		}
+	}
+
+	public bool get_product_deprecated(uint64 article) throws DatabaseError {
+		statements["product_deprecated"].reset();
+		statements["product_deprecated"].bind_text(1, "%llu".printf(article));
+
+		int rc = statements["product_deprecated"].step();
+
+		switch(rc) {
+			case Sqlite.ROW:
+				return statements["product_deprecated"].column_int(0) == 1;
+			case Sqlite.DONE:
+				throw new DatabaseError.PRODUCT_NOT_FOUND("unknown product: %llu", article);
+			default:
+				throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
+		}
+	}
+
+	public void product_deprecate(uint64 article, bool value) throws DatabaseError {
+		int rc;
+
+		statements["product_set_deprecated"].reset();
+		statements["product_set_deprecated"].bind_int(1, value ? 1 : 0);
+		statements["product_set_deprecated"].bind_text(2, "%llu".printf(article));
+
+		rc = statements["product_set_deprecated"].step();
+		if(rc != Sqlite.DONE)
+			throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
 	}
 
 	public Price get_product_price(int user, uint64 article) throws DatabaseError {

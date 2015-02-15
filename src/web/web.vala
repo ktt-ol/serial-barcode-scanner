@@ -469,6 +469,9 @@ public class WebServer {
 					case "newprice":
 						handler_product_newprice(server, msg, path, query, client, id);
 						break;
+					case "togglestate":
+						handler_product_togglestate(server, msg, path, query, client, id);
+						break;
 					default:
 						handler_product_entry(server, msg, path, query, client, id);
 						break;
@@ -509,6 +512,31 @@ public class WebServer {
 		}
 	}
 
+	void handler_product_togglestate(Soup.Server server, Soup.Message msg, string path, GLib.HashTable? query, Soup.ClientContext client, uint64 id) {
+		try {
+			var l = new WebSession(server, msg, path, query, client);
+
+			if(!l.superuser && !l.auth_products) {
+				handler_403(server, msg, path, query, client);
+				return;
+			}
+
+			var oldstate = db.get_product_deprecated(id);
+			db.product_deprecate(id, !oldstate);
+			var newstate = db.get_product_deprecated(id);
+
+			var statestr = newstate ? "deprecated" : "active";
+			msg.set_response("application/json", Soup.MemoryUse.COPY, @"{ \"state\": \"$statestr\" }".data);
+			msg.set_status(200);
+		} catch(DatabaseError e) {
+			stderr.printf(e.message+"\n");
+			handler_400(server, msg, path, query, client);
+		} catch(IOError e) {
+			stderr.printf(e.message+"\n");
+			handler_400(server, msg, path, query, client);
+		}
+	}
+
 	void handler_product_entry(Soup.Server server, Soup.Message msg, string path, GLib.HashTable? query, Soup.ClientContext client, uint64 id) {
 		try {
 			var l = new WebSession(server, msg, path, query, client);
@@ -526,10 +554,17 @@ public class WebServer {
 			/* amount */
 			t.replace("AMOUNT", "%d".printf(db.get_product_amount(id)));
 
-			if(l.superuser || l.auth_products)
+			var deprecated = db.get_product_deprecated(id);
+			t.replace("BTNSTATE", deprecated ? "btn-danger" : "btn-success");
+			t.replace("STATE", deprecated ? "Deprecated" : "Active");
+
+			if(l.superuser || l.auth_products) {
 				t.replace("ISADMIN", "block");
-			else
+				t.replace("ISADMIN2", "");
+			} else {
 				t.replace("ISADMIN", "none");
+				t.replace("ISADMIN2", "disabled=\"disabled\"");
+			}
 
 			/* prices */
 			string prices = "";

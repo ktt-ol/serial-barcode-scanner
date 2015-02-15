@@ -21,6 +21,8 @@ public interface Database : Object {
 	public abstract bool buy(int32 user, uint64 article) throws IOError, DatabaseError;
 	public abstract string get_product_name(uint64 article) throws IOError, DatabaseError;
 	public abstract int get_product_amount(uint64 article) throws IOError, DatabaseError;
+	public abstract bool get_product_deprecated(uint64 article) throws IOError, DatabaseError;
+	public abstract void product_deprecate(uint64 article, bool value) throws IOError, DatabaseError;
 	public abstract Price get_product_price(int user, uint64 article) throws IOError, DatabaseError;
 	public abstract string undo(int32 user) throws IOError, DatabaseError;
 	public abstract void restock(int user, uint64 product, uint amount, uint price, int supplier, int64 best_before_date) throws IOError, DatabaseError;
