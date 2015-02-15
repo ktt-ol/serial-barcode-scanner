@@ -21,9 +21,9 @@ string templatedir;
 
 public static int main(string[] args) {
 	TlsCertificate? cert = null;
-	string certificate;
-	string privatekey;
-	uint port;
+	string certificate = "";
+	string privatekey = "";
+	uint port = 8080;
 
 	try {
 		db  = Bus.get_proxy_sync(BusType.SESSION, "io.mainframe.shopsystem.Database", "/io/mainframe/shopsystem/database");
@@ -31,8 +31,13 @@ public static int main(string[] args) {
 		cfg = Bus.get_proxy_sync(BusType.SESSION, "io.mainframe.shopsystem.Config", "/io/mainframe/shopsystem/config");
 		templatedir = cfg.get_string("WEB", "filepath");
 		port = cfg.get_integer("WEB", "port");
-		certificate = cfg.get_string("WEB", "cert");
-		privatekey = cfg.get_string("WEB", "key");
+
+		try {
+			certificate = cfg.get_string("WEB", "cert");
+			privatekey = cfg.get_string("WEB", "key");
+		} catch(KeyFileError e) {
+			warning("KeyFileError: %s\n", e.message);
+		}
 	} catch(IOError e) {
 		error("IOError: %s\n", e.message);
 	} catch(KeyFileError e) {
