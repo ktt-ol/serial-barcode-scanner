@@ -4,7 +4,7 @@
 [IntegerType (rank = 6)]
 public struct Price : int {
 	public new string to_string() {
-		return "%d.%02d".printf(this / 100, this % 100);
+		return "%d.%02d".printf(this / 100, this.abs() % 100);
 	}
 
 	public static Price parse(string data) {
