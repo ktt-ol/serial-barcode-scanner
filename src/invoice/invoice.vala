@@ -77,7 +77,7 @@ public class InvoiceImplementation {
 
 			/* invoice id */
 			number++;
-			string invoiceid = start.format("%Y%m") + "5" + "%03d".printf(number);
+			string invoiceid = "SH" + start.format("%Y%m") + "5" + "%03d".printf(number);
 			string pdffilename = invoiceid + @"_$(userdata.firstname)_$(userdata.lastname).pdf";
 
 			/* pdf generation */
