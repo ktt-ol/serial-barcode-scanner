@@ -4,6 +4,7 @@
  * support "make install"
 
 #### CORE
+ * add EAN alias table
  * disallow buying for disabled users
  * support user discounts
  * remove hardcoded stuff from invoice and pdf-invoice
@@ -13,6 +14,9 @@
 #### libcairobarcode
  * make this a library instead of a test binary
  * cleanup code
+
+### frontend
+ * add auto-logout
 
 #### USERLIST-PDF
  * write new vala process, which generates a user list pdf using libcairobarcode
@@ -36,6 +40,7 @@
  * support password setup
 
 #### WEB
+ * Improve error message when adding an already existing EAN
  * Reimplement statistics, add cache (?)
  * Implement User Statistics
  * Support renaming products
