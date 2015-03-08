@@ -1,14 +1,11 @@
 include ../config.mk
 
-all: test
+all: libcairobarcode.so
 
-libcairobarcode.so:
-	#TODO
-
-test: test.vala ean.vala code39.vala error.vala
-	${VALAC} -o $@ --pkg cairo $^
+libcairobarcode.so: ean.vala code39.vala error.vala
+	${VALAC} -o $@ -H libcairobarcode.h --library libcairobarcode -X -fPIC -X -shared --pkg cairo $^
 
 clean:
-	rm -f test test.svg
+	rm -f libcairobarcode.h libcairobarcode.so libcairobarcode.vapi
 
 .PHONY: all clean

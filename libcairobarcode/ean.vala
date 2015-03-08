@@ -18,6 +18,8 @@ public class EAN {
 	double width;
 	double height;
 	const double marker_length_diff = 10.0;
+	double basex;
+	double basey;
 
 	static const uint8[] C = { 0x00, 0x0b, 0x0d, 0x0e, 0x13, 0x19, 0x1c, 0x15, 0x16, 0x1a };
 
@@ -33,7 +35,7 @@ public class EAN {
 		this.height = height;
 	}
 
-	private void draw_line(bool black, bool marker=false) {
+	private void draw_line(bool black) {
 		double x,y;
 
 		if(black)
@@ -41,13 +43,8 @@ public class EAN {
 		else
 			ctx.set_source_rgb(1, 1, 1);
 
-		if(marker) {
-			ctx.rel_line_to(0,height);
-			ctx.rel_move_to(width,-height);
-		} else {
-			ctx.rel_line_to(0,height-marker_length_diff);
-			ctx.rel_move_to(width,-(height-marker_length_diff));
-		}
+		ctx.rel_line_to(0,height);
+		ctx.rel_move_to(width,-height);
 
 		ctx.get_current_point(out x, out y);
 		ctx.stroke();
@@ -55,26 +52,23 @@ public class EAN {
 	}
 
 	private void draw_startstop() {
-		draw_line(true, true);
-		draw_line(false, true);
-		draw_line(true, true);
+		draw_line(true);
+		draw_line(false);
+		draw_line(true);
 	}
 
 	private void draw_middle() {
-		draw_line(false, true);
-		draw_line(true, true);
-		draw_line(false, true);
-		draw_line(true, true);
-		draw_line(false, true);
+		draw_line(false);
+		draw_line(true);
+		draw_line(false);
+		draw_line(true);
+		draw_line(false);
 	}
 
 	private void draw_number_text(uint8 number) {
 		double x, y;
 		ctx.get_current_point(out x, out y);
 		ctx.set_source_rgb(0, 0, 0);
-		ctx.rel_move_to(2.5,height);
-
-		ctx.show_text("%d".printf(number));
 
 		ctx.stroke();
 		ctx.move_to(x,y);
@@ -98,8 +92,6 @@ public class EAN {
 		width = (width * 95.0) / 102.0;
 
 		uint8 LG = C[get_number(ean, 0)];
-		draw_number_text(get_number(ean, 0));
-		ctx.move_to(7*width,0);
 
 		draw_startstop();
 		for(int i=1, x = 5; i<7; i++, x--) {
@@ -129,7 +121,7 @@ public class EAN {
 	public void draw(string ean) throws BarcodeError {
 		ctx.save();
 		ctx.set_line_width(width);
-		ctx.move_to(0,0);
+		ctx.get_current_point(out basex, out basey);
 		ctx.rel_move_to(0.5*width,0);
 
 		for(int i=0; i<ean.length; i++) {

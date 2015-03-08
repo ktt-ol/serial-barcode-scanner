@@ -11,10 +11,6 @@
  * drop to user rights in all daemons if started as root user
   - [old code](https://github.com/ktt-ol/serial-barcode-scanner/commit/504cefec4a93a9b52fa9d25d6f353a4676485c43)
 
-#### libcairobarcode
- * make this a library instead of a test binary
- * cleanup code
-
 ### frontend
  * add auto-logout
 
