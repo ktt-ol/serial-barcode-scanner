@@ -53,6 +53,7 @@ public interface Database : Object {
 	public abstract Price get_user_invoice_sum(int user, int64 timestamp_from, int64 timestamp_to) throws IOError;
 	public abstract Price cashbox_status() throws IOError;
 	public abstract void cashbox_add(int user, Price amount, int64 timestamp) throws IOError, DatabaseError;
+	public abstract CashboxDiff[] cashbox_history() throws IOError;
 }
 
 public struct StockEntry {
@@ -131,6 +132,12 @@ public struct InvoiceEntry {
 	public int64 timestamp;
 	Product product;
 	Price price;
+}
+
+public struct CashboxDiff {
+	public int user;
+	public Price amount;
+	public int64 timestamp;
 }
 
 public struct StatsInfo {

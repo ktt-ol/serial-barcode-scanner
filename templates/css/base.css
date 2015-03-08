@@ -67,3 +67,11 @@
 .hidden {
 	display: none;
 }
+
+.table-nonfluid {
+	width: auto !important;
+}
+
+.text-right {
+	text-align: right !important;
+}

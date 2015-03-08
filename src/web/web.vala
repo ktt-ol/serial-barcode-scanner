@@ -957,8 +957,30 @@ public class WebServer {
 			}
 
 			var template = new WebTemplate("cashbox/index.html", session);
+			var status = db.cashbox_status().to_string();
+			var history = db.cashbox_history();
+
+			var hist = "";
+			foreach(var diff in history) {
+				var dt = new DateTime.from_unix_local(diff.timestamp);
+				var dts = dt.format("%Y-%m-%d %H:%M:%S");
+				var name = "";
+				if(diff.user != -3) {
+					var ui = db.get_user_info(diff.user);
+					name = @"$(ui.firstname) $(ui.lastname)";
+				} else if(diff.amount < 0) {
+					name = "Loss";
+				} else {
+					name = "Donation";
+				}
+				hist += "<tr>";
+				hist += @"<td>$(dts)</td><td>$(name)</td><td class=\"text-right\">$(diff.amount) €</td>";
+				hist += "</tr>\n";
+			}
+
 			template.replace("TITLE", "KtT Shop System: Cashbox");
-			template.replace("CASHBOX_STATUS", db.cashbox_status().to_string());
+			template.replace("CASHBOX_STATUS", status);
+			template.replace("CASHBOX_HISTORY", hist);
 			template.menu_set_active("cashbox");
 			msg.set_response("text/html", Soup.MemoryUse.COPY, template.data);
 		} catch(TemplateError e) {
@@ -994,11 +1016,31 @@ public class WebServer {
 			Price amount = Price.parse(query["amount"]);
 			string type = query["type"];
 
-			if(type != "user" && type != "loss")
-				error = true;
-
-			if(!error)
-				db.cashbox_add(type == "user" ? session.user : -3, amount, timestamp);
+			switch(type) {
+				case "withdrawal":
+					if(amount > 0)
+						amount *= -1;
+					db.cashbox_add(session.user, amount, timestamp);
+					break;
+				case "deposit":
+					if(amount < 0)
+						amount *= -1;
+					db.cashbox_add(session.user, amount, timestamp);
+					break;
+				case "loss":
+					if(amount > 0)
+						amount *= -1;
+					db.cashbox_add(-3, amount, timestamp);
+					break;
+				case "donation":
+					if(amount < 0)
+						amount *= -1;
+					db.cashbox_add(-3, amount, timestamp);
+					break;
+				default:
+					error = true;
+					break;
+			}
 
 			if(error) {
 				template.replace("TYPE", "");
