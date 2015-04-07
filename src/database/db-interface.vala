@@ -54,6 +54,7 @@ public interface Database : Object {
 	public abstract Price cashbox_status() throws IOError;
 	public abstract void cashbox_add(int user, Price amount, int64 timestamp) throws IOError, DatabaseError;
 	public abstract CashboxDiff[] cashbox_history() throws IOError;
+	public abstract CashboxDiff[] cashbox_changes(int64 start, int64 stop) throws IOError;
 }
 
 public struct StockEntry {

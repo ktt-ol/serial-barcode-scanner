@@ -1,0 +1,26 @@
+<h1>Cashbox Account {{{DATE}}}</h1>
+
+<table class="table table-bordered table-striped table-hover table-condensed table-nonfluid">
+	<tr><th>Debit</th><td class="text-right">{{{DEBIT}}} €</td></tr>
+	<tr><th>Loss</th><td class="text-right">{{{LOSS}}} €</td></tr>
+	<tr><th>Donation</th><td class="text-right">{{{DONATION}}} €</td></tr>
+	<tr><th>Withdrawal</th><td class="text-right">{{{WITHDRAWAL}}} €</td></tr>
+</table>
+
+<h2>Loss</h2>
+<table class="table table-bordered table-striped table-hover table-condensed table-nonfluid">
+	<tr><th>Date &amp; Time</th><th>Amount</th></tr>
+	{{{LOSS_LIST}}}
+</table>
+
+<h2>Donation</h2>
+<table class="table table-bordered table-striped table-hover table-condensed table-nonfluid">
+	<tr><th>Date &amp; Time</th><th>Amount</th></tr>
+	{{{DONATION_LIST}}}
+</table>
+
+<h2>Withdrawals</h2>
+<table class="table table-bordered table-striped table-hover table-condensed table-nonfluid">
+	<tr><th>Date &amp; Time</th><th>Name</th><th>Amount</th></tr>
+	{{{WITHDRAWAL_LIST}}}
+</table>

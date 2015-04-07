@@ -1,0 +1,17 @@
+<h1>Cashbox Account</h1>
+
+<script>
+function onSubmit() {
+	d = document.getElementsByName("date")[0].value
+	if (d.indexOf("-") > 0) {
+		var split = d.split("-")
+		var uri = location.protocol + '//' + location.host + location.pathname + "/" + split[0] + "/" + split[1]
+		self.location = uri;
+	}
+}
+</script>
+
+<form>
+	<input type="month" name="date" />
+	<input type="button" value="Go" onclick="onSubmit()" />
+</form>

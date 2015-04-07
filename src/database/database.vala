@@ -128,6 +128,7 @@ public class DataBase : Object {
 		queries["cashbox_status"]    = "SELECT amount FROM current_cashbox_status";
 		queries["cashbox_add"]       = "INSERT INTO cashbox_diff ('user', 'amount', 'timestamp') VALUES (?, ?, ?)";
 		queries["cashbox_history"]   = "SELECT user, amount, timestamp FROM cashbox_diff ORDER BY timestamp DESC LIMIT 10";
+		queries["cashbox_changes"]   = "SELECT user, amount, timestamp FROM cashbox_diff WHERE timestamp >= ? and timestamp < ? ORDER BY timestamp ASC";
 
 		/* compile queries into statements */
 		foreach(var entry in queries.entries) {
@@ -941,6 +942,26 @@ public class DataBase : Object {
 				statements["cashbox_history"].column_int(0),
 				statements["cashbox_history"].column_int(1),
 				statements["cashbox_history"].column_int64(2),
+			};
+
+			result += entry;
+		};
+
+		return result;
+	}
+
+	public CashboxDiff[] cashbox_changes(int64 start, int64 stop) {
+		CashboxDiff[] result = {};
+
+		statements["cashbox_changes"].reset();
+		statements["cashbox_changes"].bind_int64(1, start);
+		statements["cashbox_changes"].bind_int64(2, stop);
+
+		while(statements["cashbox_changes"].step() == Sqlite.ROW) {
+			CashboxDiff entry = {
+				statements["cashbox_changes"].column_int(0),
+				statements["cashbox_changes"].column_int(1),
+				statements["cashbox_changes"].column_int64(2),
 			};
 
 			result += entry;

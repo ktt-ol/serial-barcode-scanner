@@ -1067,6 +1067,114 @@ public class WebServer {
 		}
 	}
 
+	void handler_cashbox_detail_selection(Soup.Server server, Soup.Message msg, string path, GLib.HashTable? query, Soup.ClientContext client) {
+		string[] pathparts = path.split("/");
+
+		if(pathparts.length > 4) {
+			DateYear year = (DateYear) int.parse(pathparts[3]);
+			DateMonth month = (DateMonth) int.parse(pathparts[4]);
+			handler_cashbox_detail(server, msg, path, query, client, year, month);
+		} else {
+			try {
+				var session = new WebSession(server, msg, path, query, client);
+				var template = new WebTemplate("cashbox/selection.html", session);
+				template.replace("TITLE", "KtT Shop System: Cashbox Detail");
+				template.menu_set_active("cashbox");
+				msg.set_response("text/html", Soup.MemoryUse.COPY, template.data);
+			} catch(TemplateError e) {
+				stderr.printf(e.message+"\n");
+				handler_404(server, msg, path, query, client);
+			} catch(DatabaseError e) {
+				stderr.printf(e.message+"\n");
+				handler_400(server, msg, path, query, client);
+			} catch(IOError e) {
+				stderr.printf(e.message+"\n");
+				handler_400(server, msg, path, query, client);
+			}
+		}
+	}
+
+	void handler_cashbox_detail(Soup.Server server, Soup.Message msg, string path, GLib.HashTable<string,string>? query, Soup.ClientContext client, DateYear year, DateMonth month) {
+		try {
+			var session = new WebSession(server, msg, path, query, client);
+
+			if(!session.superuser) {
+				handler_403(server, msg, path, query, client);
+				return;
+			}
+
+			if(!year.valid() || year > 8000) {
+				handler_403(server, msg, path, query, client);
+				return;
+			}
+
+			if(!month.valid()) {
+				handler_403(server, msg, path, query, client);
+				return;
+			}
+
+			var start = new DateTime.local(year, month, 1, 0, 0, 0);
+			var stop = start.add_months(1);
+
+			/* guest debit */
+			Price debit = 0;
+			foreach(var e in db.get_invoice(0, start.to_unix(), stop.to_unix())) {
+				debit += e.price;
+			}
+
+			Price loss = 0;
+			string loss_list = "";
+			Price donation = 0;
+			string donation_list = "";
+			Price withdrawal = 0;
+			string withdrawal_list = "";
+			foreach(var e in db.cashbox_changes(start.to_unix(), stop.to_unix())) {
+				var dt = new DateTime.from_unix_local(e.timestamp);
+				var dts = dt.format("%Y-%m-%d %H:%M:%S");
+
+				if(e.user == -3) {
+					if(e.amount < 0) {
+						loss += e.amount;
+						loss_list += @"<tr><td>$(dts)</td><td class=\"text-right\">$(e.amount) €</td></tr>";
+					} else {
+						donation += e.amount;
+						donation_list += @"<tr><td>$(dts)</td><td class=\"text-right\">$(e.amount) €</td></tr>";
+					}
+				} else {
+					var ui = db.get_user_info(e.user);
+					var name = @"$(ui.firstname) $(ui.lastname)";
+					withdrawal += e.amount;
+					withdrawal_list += @"<tr><td>$(dts)</td><td>$(name)</td><td class=\"text-right\">$(e.amount) €</td></tr>";
+				}
+			}
+
+			var template = new WebTemplate("cashbox/detail.html", session);
+			template.replace("TITLE", "KtT Shop System: Cashbox Detail");
+			template.menu_set_active("cashbox");
+
+			template.replace("DATE", start.format("%B %Y"));
+			template.replace("DEBIT", debit.to_string());
+			template.replace("LOSS", loss.to_string());
+			template.replace("DONATION", donation.to_string());
+			template.replace("WITHDRAWAL", withdrawal.to_string());
+
+			template.replace("LOSS_LIST", loss_list);
+			template.replace("DONATION_LIST", donation_list);
+			template.replace("WITHDRAWAL_LIST", withdrawal_list);
+
+			msg.set_response("text/html", Soup.MemoryUse.COPY, template.data);
+		} catch(TemplateError e) {
+			stderr.printf(e.message+"\n");
+			handler_404(server, msg, path, query, client);
+		} catch(DatabaseError e) {
+			stderr.printf(e.message+"\n");
+			handler_400(server, msg, path, query, client);
+		} catch(IOError e) {
+			stderr.printf(e.message+"\n");
+			handler_400(server, msg, path, query, client);
+		}
+	}
+
 	public WebServer(uint port = 8080, TlsCertificate? cert = null) throws Error {
 		srv = new Soup.Server("tls-certificate", cert);
 		Soup.ServerListenOptions options = 0;
@@ -1092,6 +1200,7 @@ public class WebServer {
 		/* cashbox */
 		srv.add_handler("/cashbox", handler_cashbox);
 		srv.add_handler("/cashbox/add", handler_cashbox_add);
+		srv.add_handler("/cashbox/detail", handler_cashbox_detail_selection);
 
 		/* products */
 		srv.add_handler("/products", handler_products);
