@@ -1,12 +1,12 @@
 all:
-	cd src && make all
+	@cd src && make --no-print-directory all
 
 clean:
-	cd src && make clean
+	@cd src && make --no-print-directory clean
 
 install:
-	cd src && make install
-	cd dbus && make install
+	@cd src && make --no-print-directory install
+	@cd dbus && make --no-print-directory install
 
 shop.db: sql/tables.sql sql/views.sql sql/trigger.sql
 	@for file in $^ ; do \
