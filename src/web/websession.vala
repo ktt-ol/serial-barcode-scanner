@@ -122,13 +122,20 @@ public class WebSession {
 			}
 		}
 
-		/* check for login query */
-		if(query == null || !query.contains("user") || !query.contains("password"))
+		/* check for login request */
+		//GLib.HashTable<string,string>? form_data = null;
+		if(msg.method != "POST") {
 			return;
+		}
+		var form_data = Soup.Form.decode((string) msg.request_body.data);
+		if (form_data == null || !form_data.contains("user") || !form_data.contains("password")) {		
+			return;					
+		}			
+
 
 		/* get credentials */
-		var userid   = int.parse(query["user"]);
-		var password = query["password"];
+		var userid   = int.parse(form_data["user"]);
+		var password = form_data["password"];
 
 		/* check credentials */
 		if(db.check_user_password(userid, password)) {
@@ -155,6 +162,7 @@ public class WebSession {
 
 			setup_auth(user);
 		} else {
+			stderr.printf("Login for user id %d failed\n", userid);
 			/* login failed */
 			failed=true;
 		}
