@@ -65,12 +65,32 @@ public class CursesUI {
 		statuswin.set(message);
 	}
 
-	public void log(string message) {
-		messages.add(message);
+	public void log(MessageType type, string message) {
+		switch (type) {		
+			case MessageType.WARNING:
+				messages.add(message, MessageBox.WARN_COLOR);
+				break;
+			case MessageType.ERROR: 
+				messages.add(message, MessageBox.ERROR_COLOR);
+				break;
+			default:
+				messages.add(message, MessageBox.INFO_COLOR);
+				break;
+		}
+		
 	}
 
-	public void dialog_open(string title, string message) {
+	public void dialog_open(string title, string message, int closeAfter=0) {		
 		dialog = new Dialog(message, title);
+		if (closeAfter > 0) {
+			Timeout.add_seconds(closeAfter, close);
+		}
+	}
+
+	bool close() {		
+		dialog_close();
+		// just call me once
+		return false;
 	}
 
 	public void dialog_close() {

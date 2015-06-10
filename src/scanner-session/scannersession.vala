@@ -26,6 +26,7 @@ public class ScannerSessionImplementation {
 	private SerialDevice dev;
 
 	public signal void msg(MessageType type, string message);
+	public signal void popup(string title, string message);
 
 	public ScannerSessionImplementation() {
 		try {
@@ -172,7 +173,9 @@ public class ScannerSessionImplementation {
 			} catch(DatabaseError e) {
 				if(e is DatabaseError.PRODUCT_NOT_FOUND) {
 					audio.play_user(theme, "error");
-					send_message(MessageType.ERROR, "Error: unknown product: %llu".printf(id));
+					var msg = "Error: unknown product: %llu".printf(id);
+					send_message(MessageType.ERROR, msg);
+					popup("Attention", msg);
 				} else {
 					audio.play_user(theme, "error");
 					send_message(MessageType.ERROR, "Error: %s", e.message);
@@ -183,10 +186,12 @@ public class ScannerSessionImplementation {
 			if(!logged_in) {
 				var mprice = db.get_product_price(1, id);
 				var gprice = db.get_product_price(0, id);
-
+				var msg = @"article info: $name (Member: $mprice €, Guest: $gprice €)";
 				audio.play_system("error.ogg");
-				send_message(MessageType.INFO, @"article info: $name (Member: $mprice €, Guest: $gprice €)");
+				send_message(MessageType.INFO, msg);
 				send_message(MessageType.ERROR, "Login required for purchase!");
+				popup("Attention", "%s\nLogin required for purchase!".printf(msg));
+
 				return false;
 			}
 

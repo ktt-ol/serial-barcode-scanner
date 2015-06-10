@@ -16,6 +16,7 @@
 [DBus (name = "io.mainframe.shopsystem.ScannerSession")]
 public interface ScannerSession : Object {
 	public abstract signal void msg(MessageType type, string message);
+	public abstract signal void popup(string title, string message);
 }
 
 public enum MessageType {

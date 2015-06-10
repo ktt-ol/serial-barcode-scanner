@@ -22,16 +22,21 @@ private static void play(string file) {
 	try {
 		audio.play_system(file);
 	} catch(IOError e) {
-		ui.log("could not play audio: %s".printf(e.message));
+		ui.log(MessageType.WARNING, "could not play audio: %s".printf(e.message));
 	}
 }
 
 public void msg_handler(MessageType type, string message) {
-	ui.log(message);
+	ui.log(type, message);
 }
 
+public void popup_handler(string title, string message) {
+	ui.dialog_open(title, message, 10);	
+}
+
+
 public void log_handler(string? log_domain, LogLevelFlags flags, string message) {
-	ui.log(message);
+	ui.log(MessageType.INFO, message);
 }
 
 public static int main(string[] args) {
@@ -53,14 +58,15 @@ public static int main(string[] args) {
 	Log.set_default_handler(log_handler);
 
 	scanner.msg.connect(msg_handler);
+	scanner.popup.connect(popup_handler);
 
-	ui.log("KtT Shop System has been started");
+	ui.log(MessageType.INFO, "KtT Shop System has been started");
 	play("startup.ogg");
 
 	/* run mainloop */
 	loop.run();
 
-	ui.log("Stopping Shop System");
+	ui.log(MessageType.INFO, "Stopping Shop System");
 	play("shutdown.ogg");
 
 	/* leave curses mode */
