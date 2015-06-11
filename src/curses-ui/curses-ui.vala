@@ -81,7 +81,7 @@ public class CursesUI {
 	}
 
 	public void dialog_open(string title, string message, int closeAfter=0) {		
-		dialog = new Dialog(message, title);
+		dialog = new Dialog(message, title, closeAfter);
 		if (closeAfter > 0) {
 			Timeout.add_seconds(closeAfter, close);
 		}

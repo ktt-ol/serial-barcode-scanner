@@ -19,13 +19,18 @@ public class Dialog {
 	Window win;
 	Window subwin;
 
-	public Dialog(string message, string title = "KtT Shopsystem Error", int h=16, int w=60)
+	string dialogTitle;
+	int dialogWidth;
+	int countdownValue;
+
+	public Dialog(string message, string title = "KtT Shopsystem Error", int titleCountdown=0, int h=16, int w=60)
 	requires (title.length <= w-4)
 	{
+		dialogTitle = title;
+		dialogWidth = w;
+		countdownValue = titleCountdown;
 		int y = LINES/2-h/2;
 		int x = COLS/2-w/2;
-
-		int title_x = (w-title.length)/2;
 
 		win = new Window(h, w, y, x);
 
@@ -41,11 +46,35 @@ public class Dialog {
 
 		/* dialog title */
 		win.box(0,0);
+		setTitle();
+		win.refresh();
+
+		if (countdownValue > 0) {
+			Timeout.add_seconds(1, decrementTitleCountdown);
+		}		
+	}
+
+	private void setTitle() {
+		var title = dialogTitle;
+		if (countdownValue > 0) {
+			title = "%s (%d)".printf(title, countdownValue);
+		}
+		int title_x = (dialogWidth-title.length)/2;
 		win.mvaddstr(0, title_x, title);
-		win.mvaddch(0, title_x-2, Acs.RTEE);
+		win.mvaddch(0, title_x-2, Acs.RTEE); 
 		win.mvaddch(0, title_x-1, ' ');
 		win.mvaddch(0, title_x+title.length, ' ');
 		win.mvaddch(0, title_x+title.length+1, Acs.LTEE);
+		// fixing the countdown (for a reasonable countdown)
+		win.mvaddch(0, title_x+title.length+2, Acs.HLINE);
+		win.mvaddch(0, title_x+title.length+3, Acs.HLINE);
+	}
+
+	private bool decrementTitleCountdown() {	
+		countdownValue--;
+		setTitle();
 		win.refresh();
+		// run again until countdown is zero
+		return countdownValue > 0;
 	}
 }
