@@ -19,6 +19,7 @@ public class CursesUI {
 	Logo banner;
 	ClockWindow clkwin;
 	StatusPanel statuswin;
+	MessageBoxOverlay mbOverlay;
 
 	public CursesUI() {
 		/* unicode support */
@@ -36,7 +37,7 @@ public class CursesUI {
 		Curses.init_pair(1, Curses.Color.GREEN, Curses.Color.BLACK);
 		Curses.init_pair(2, Curses.Color.WHITE, Curses.Color.RED);
 
-		/* initialize widgets */
+		/* initialize widgets */		
 		banner    = new Logo();
 		statuswin = new StatusPanel();
 		messages  = new MessageBox();
@@ -80,11 +81,24 @@ public class CursesUI {
 		
 	}
 
+	public void log_overlay(string title, string message, int closeAfter) {
+		mbOverlay = new MessageBoxOverlay(title, message, closeAfter);
+		Timeout.add_seconds(closeAfter, closeMbOverlay);
+	}
+
 	public void dialog_open(string title, string message, int closeAfter=0) {		
 		dialog = new Dialog(message, title, closeAfter);
 		if (closeAfter > 0) {
 			Timeout.add_seconds(closeAfter, close);
 		}
+	}
+
+	bool closeMbOverlay() {
+		mbOverlay = null;
+		messages.redraw();
+		statuswin.redraw();
+		// just call me once
+		return false;
 	}
 
 	bool close() {		

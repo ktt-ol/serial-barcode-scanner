@@ -30,8 +30,8 @@ public void msg_handler(MessageType type, string message) {
 	ui.log(type, message);
 }
 
-public void popup_handler(string title, string message) {
-	ui.dialog_open(title, message, 10);	
+public void msg_overlay_handler(string title, string message) {
+	ui.log_overlay(title, message, 10);
 }
 
 
@@ -58,7 +58,7 @@ public static int main(string[] args) {
 	Log.set_default_handler(log_handler);
 
 	scanner.msg.connect(msg_handler);
-	scanner.popup.connect(popup_handler);
+	scanner.msg_overlay.connect(msg_overlay_handler);
 
 	ui.log(MessageType.INFO, "KtT Shop System has been started");
 	play("startup.ogg");

@@ -28,7 +28,7 @@ public class ScannerSessionImplementation {
 
 
   public signal void msg(MessageType type, string message);
-  public signal void popup(string title, string message);
+  public signal void msg_overlay(string title, string message);
 
   public ScannerSessionImplementation() {
     try {
@@ -179,7 +179,7 @@ public class ScannerSessionImplementation {
           audio.play_user(theme, "error");
           var msg = "Error: unknown product: %llu".printf(id);
           send_message(MessageType.ERROR, msg);
-          popup("Attention", msg);
+          msg_overlay("Attention", msg);
         } else {
           audio.play_user(theme, "error");
           send_message(MessageType.ERROR, "Error: %s", e.message);
@@ -194,7 +194,7 @@ public class ScannerSessionImplementation {
         audio.play_system("error.ogg");
         send_message(MessageType.INFO, msg);
         send_message(MessageType.ERROR, "Login required for purchase!");
-        popup("Attention", "%s\nLogin required for purchase!".printf(msg));
+        msg_overlay("Attention", "%s\nLogin required for purchase!".printf(msg));
 
         return false;
       }
