@@ -31,7 +31,7 @@ public void msg_handler(MessageType type, string message) {
 }
 
 public void msg_overlay_handler(string title, string message) {
-	ui.log_overlay(title, message, 10);
+	ui.log_overlay(title, message, 5);
 }
 
 
