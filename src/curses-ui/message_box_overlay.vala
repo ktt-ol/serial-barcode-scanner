@@ -24,7 +24,7 @@ public class MessageBoxOverlay {
 		dialogTitle = title;
 		countdownValue = countdown;
 
-		win = new Window(LINES-11, COLS - 4, 9, 2);
+		win = new Window(LINES-10, COLS - 4, 9, 2);
 		win.bkgdset(COLOR_PAIR(2) | Attribute.BOLD);
 
 		win.clrtobot();

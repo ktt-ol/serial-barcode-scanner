@@ -25,7 +25,7 @@ public class MessageBox {
 	public const short ERROR_COLOR = 7;
 
 	public MessageBox() {
-		win = new Window(LINES-9, COLS - 2, 8, 1);
+		win = new Window(LINES-8, COLS - 2, 8, 1);
 		win.bkgdset(COLOR_PAIR(0));
 
 		win.clrtobot();

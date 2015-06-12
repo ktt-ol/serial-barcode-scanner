@@ -39,7 +39,7 @@ public class CursesUI {
 
 		/* initialize widgets */		
 		banner    = new Logo();
-		statuswin = new StatusPanel();
+		//statuswin = new StatusPanel();
 		messages  = new MessageBox();
 		clkwin    = new ClockWindow();
 
@@ -62,9 +62,10 @@ public class CursesUI {
 		return true;
 	}
 
-	public void status(string message) {
-		statuswin.set(message);
-	}
+	// we've disabled the status bar to have more space
+	//public void status(string message) {
+	//	statuswin.set(message);
+	//}
 
 	public void log(MessageType type, string message) {
 		switch (type) {		
