@@ -18,7 +18,7 @@ public class CursesUI {
 	Dialog dialog;
 	Logo banner;
 	ClockWindow clkwin;
-	StatusPanel statuswin;
+	//StatusPanel statuswin;
 	MessageBoxOverlay mbOverlay;
 
 	public CursesUI() {
@@ -97,7 +97,7 @@ public class CursesUI {
 	bool closeMbOverlay() {
 		mbOverlay = null;
 		messages.redraw();
-		statuswin.redraw();
+		//statuswin.redraw();
 		// just call me once
 		return false;
 	}
@@ -113,6 +113,6 @@ public class CursesUI {
 		messages.redraw();
 		banner.redraw();
 		clkwin.redraw();
-		statuswin.redraw();
+		//statuswin.redraw();
 	}
 }
