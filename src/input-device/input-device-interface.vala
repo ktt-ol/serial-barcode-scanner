@@ -1,4 +1,4 @@
-/* Copyright 2013, Sebastian Reichel <sre@ring0.de>
+/* Copyright 2015, Sebastian Reichel <sre@ring0.de>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -13,8 +13,8 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-[DBus (name = "io.mainframe.shopsystem.SerialDevice")]
-public interface SerialDevice : Object {
+[DBus (name = "io.mainframe.shopsystem.InputDevice")]
+public interface InputDevice : Object {
 	public abstract signal void received_barcode(string barcode);
 	public abstract void blink(uint duration) throws IOError;
 }

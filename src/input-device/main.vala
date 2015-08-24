@@ -1,4 +1,4 @@
-/* Copyright 2013, Sebastian Reichel <sre@ring0.de>
+/* Copyright 2015, Sebastian Reichel <sre@ring0.de>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -18,7 +18,7 @@ Device dev;
 public static int main(string[] args) {
 	try {
 		Config cfg = Bus.get_proxy_sync(BusType.SESSION, "io.mainframe.shopsystem.Config", "/io/mainframe/shopsystem/config");
-		dev = new Device(cfg.get_string("INPUT", "device"), 9600, 8, 1);
+		dev = new Device(cfg.get_string("INPUT", "device"));
 	} catch(IOError e) {
 		error("IOError: %s\n", e.message);
 	} catch(KeyFileError e) {

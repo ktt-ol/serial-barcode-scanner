@@ -23,7 +23,7 @@ public class ScannerSessionImplementation {
 
   private Database db;
   private AudioPlayer audio;
-  private SerialDevice dev;
+  private InputDevice dev;
   private Cli cli;
 
 
@@ -33,7 +33,7 @@ public class ScannerSessionImplementation {
   public ScannerSessionImplementation() {
     try {
       db       = Bus.get_proxy_sync(BusType.SESSION, "io.mainframe.shopsystem.Database", "/io/mainframe/shopsystem/database");
-      dev      = Bus.get_proxy_sync(BusType.SESSION, "io.mainframe.shopsystem.SerialDevice", "/io/mainframe/shopsystem/device");
+      dev      = Bus.get_proxy_sync(BusType.SESSION, "io.mainframe.shopsystem.InputDevice", "/io/mainframe/shopsystem/device");
       cli      = Bus.get_proxy_sync(BusType.SESSION, "io.mainframe.shopsystem.Cli", "/io/mainframe/shopsystem/cli");
       audio    = Bus.get_proxy_sync(BusType.SESSION, "io.mainframe.shopsystem.AudioPlayer", "/io/mainframe/shopsystem/audio");
 

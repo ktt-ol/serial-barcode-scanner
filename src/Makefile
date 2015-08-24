@@ -1,4 +1,4 @@
-DAEMONS=audio config curses-ui database pdf-invoice pdf-stock pgp scanner-session serial-device web
+DAEMONS=audio config curses-ui database pdf-invoice pdf-stock pgp scanner-session serial-device input-device web
 
 all:
 	@$(foreach dir,$(DAEMONS),cd $(dir) && echo "Building $(dir)..." && make --no-print-directory all && cd ..;)

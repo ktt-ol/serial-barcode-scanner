@@ -1,7 +1,7 @@
 all: scanner-session
 	@echo > /dev/null
 
-scanner-session: main.vala scannersession.vala scannersession-interface.vala ../database/db-interface.vala ../serial-device/serial-device-interface.vala ../cli/cli-interface.vala ../audio/audio-interface.vala ../price.vapi
+scanner-session: main.vala scannersession.vala scannersession-interface.vala ../database/db-interface.vala ../input-device/input-device-interface.vala ../cli/cli-interface.vala ../audio/audio-interface.vala ../price.vapi
 	valac -X -w -o $@ --pkg gio-2.0 $^
 
 clean:

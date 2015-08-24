@@ -13,7 +13,7 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-[DBus (name = "io.mainframe.shopsystem.SerialDevice")]
+[DBus (name = "io.mainframe.shopsystem.InputDevice")]
 public class Device {
 	private Posix.termios newtio;
 	private Posix.termios restoretio;
