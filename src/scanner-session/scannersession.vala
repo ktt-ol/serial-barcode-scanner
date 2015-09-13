@@ -169,6 +169,7 @@ public class ScannerSessionImplementation {
       string name = "unknown product";
 
       try {
+        id = db.ean_alias_get(id);
         name = db.get_product_name(id);
       } catch(IOError e) {
         audio.play_user(theme, "error");

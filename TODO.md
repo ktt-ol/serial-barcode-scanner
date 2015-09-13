@@ -4,7 +4,6 @@
  * support "make install"
 
 #### CORE
- * add EAN alias table
  * disallow buying for disabled users
  * support user discounts
  * remove hardcoded stuff from invoice and pdf-invoice

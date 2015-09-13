@@ -129,6 +129,9 @@ public class DataBase : Object {
 		queries["cashbox_add"]       = "INSERT INTO cashbox_diff ('user', 'amount', 'timestamp') VALUES (?, ?, ?)";
 		queries["cashbox_history"]   = "SELECT user, amount, timestamp FROM cashbox_diff ORDER BY timestamp DESC LIMIT 10";
 		queries["cashbox_changes"]   = "SELECT user, amount, timestamp FROM cashbox_diff WHERE timestamp >= ? and timestamp < ? ORDER BY timestamp ASC";
+		queries["alias_ean_add"]     = "INSERT OR IGNORE INTO ean_aliases (id, real_ean) VALUES (?, ?)";
+		queries["alias_ean_get"]     = "SELECT real_ean FROM ean_aliases WHERE id = ?";
+		queries["alias_ean_list"]    = "SELECT id, real_ean FROM ean_aliases ORDER BY id ASC";
 
 		/* compile queries into statements */
 		foreach(var entry in queries.entries) {
@@ -967,6 +970,46 @@ public class DataBase : Object {
 			result += entry;
 		};
 
+		return result;
+	}
+
+	public void ean_alias_add(uint64 ean, uint64 real_ean) throws DatabaseError {
+		statements["alias_ean_add"].reset();
+		statements["alias_ean_add"].bind_text(1, "%llu".printf(ean));
+		statements["alias_ean_add"].bind_text(2, "%llu".printf(real_ean));
+
+		int rc = statements["alias_ean_add"].step();
+
+		if(rc != Sqlite.DONE) {
+			throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
+		}
+	}
+
+	public uint64 ean_alias_get(uint64 ean) {
+		uint64 result = ean;
+
+		statements["alias_ean_get"].reset();
+		statements["alias_ean_get"].bind_text(1, "%llu".printf(ean));
+
+		if(statements["alias_ean_get"].step() == Sqlite.ROW)
+			result = statements["alias_ean_get"].column_int64(0);
+
+		return result;
+	}
+
+	public EanAlias[] ean_alias_list() {
+		EanAlias[] result = {};
+
+		statements["alias_ean_list"].reset();
+
+		while(statements["alias_ean_list"].step() == Sqlite.ROW) {
+			EanAlias entry = {
+				statements["alias_ean_list"].column_int64(0),
+				statements["alias_ean_list"].column_int64(1),
+			};
+
+			result += entry;
+		};
 		return result;
 	}
 }

@@ -55,6 +55,9 @@ public interface Database : Object {
 	public abstract void cashbox_add(int user, Price amount, int64 timestamp) throws IOError, DatabaseError;
 	public abstract CashboxDiff[] cashbox_history() throws IOError;
 	public abstract CashboxDiff[] cashbox_changes(int64 start, int64 stop) throws IOError;
+	public abstract void ean_alias_add(uint64 ean, uint64 real_ean) throws IOError, DatabaseError;
+	public abstract uint64 ean_alias_get(uint64 ean) throws IOError;
+	public abstract EanAlias[] ean_alias_list() throws IOError;
 }
 
 public struct StockEntry {
@@ -139,6 +142,11 @@ public struct CashboxDiff {
 	public int user;
 	public Price amount;
 	public int64 timestamp;
+}
+
+public struct EanAlias {
+	public uint64 ean;
+	public uint64 real_ean;
 }
 
 public struct StatsInfo {

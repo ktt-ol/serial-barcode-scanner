@@ -767,6 +767,87 @@ public class WebServer {
 		}
 	}
 
+	void handler_alias_list(Soup.Server server, Soup.Message msg, string path, GLib.HashTable? query, Soup.ClientContext client) {
+		try {
+			var l = new WebSession(server, msg, path, query, client);
+			var t = new WebTemplate("aliases/index.html", l);
+			t.replace("TITLE", "KtT Shop System: Alias List");
+			t.menu_set_active("aliases");
+
+			string table = "";
+			foreach(var e in db.ean_alias_list()) {
+				var productname = db.get_product_name(e.real_ean);
+				table += @"<tr><td>$(e.ean)</td><td><a href=\"/products/$(e.real_ean)\">$(e.real_ean)</a></td><td><a href=\"/products/$(e.real_ean)\">$(productname)</a></td></tr>";
+			}
+
+			t.replace("DATA", table);
+
+			if(l.superuser || l.auth_products)
+				t.replace("NEWALIAS", "block");
+			else
+				t.replace("NEWALIAS", "none");
+
+			msg.set_response("text/html", Soup.MemoryUse.COPY, t.data);
+		} catch(TemplateError e) {
+			stderr.printf(e.message+"\n");
+			handler_404(server, msg, path, query, client);
+		} catch(DatabaseError e) {
+			stderr.printf(e.message+"\n");
+			handler_400(server, msg, path, query, client);
+		} catch(IOError e) {
+			stderr.printf(e.message+"\n");
+			handler_400(server, msg, path, query, client);
+		}
+	}
+
+	void handler_alias_new(Soup.Server server, Soup.Message msg, string path, GLib.HashTable<string,string>? query, Soup.ClientContext client) {
+		try {
+			var session = new WebSession(server, msg, path, query, client);
+			var template = new WebTemplate("aliases/new.html", session);
+			template.replace("TITLE", "KtT Shop System: New Alias");
+			template.menu_set_active("aliases");
+
+			if(!session.superuser && !session.auth_products) {
+				handler_403(server, msg, path, query, client);
+				return;
+			}
+
+			if(query != null && query.contains("ean") && query.contains("real_ean")) {
+				var ean = uint64.parse(query["ean"]);
+				var real_ean = uint64.parse(query["real_ean"]);
+
+				if(ean > 0 && real_ean > 0) {
+					db.ean_alias_add(ean, real_ean);
+					template.replace("EAN", @"$ean");
+					template.replace("REAL_EAN", @"$real_ean");
+					template.replace("NEW.OK", "block");
+					template.replace("NEW.FAIL", "none");
+				} else {
+					template.replace("EAN", "virtual ean");
+					template.replace("REAL_EAN", "real ean");
+					template.replace("NEW.OK", "none");
+					template.replace("NEW.FAIL", "block");
+				}
+			} else {
+				template.replace("EAN", "virtual ean");
+				template.replace("REAL_EAN", "real ean");
+				template.replace("NEW.OK", "none");
+				template.replace("NEW.FAIL", "block");
+			}
+
+			msg.set_response("text/html", Soup.MemoryUse.COPY, template.data);
+		} catch(TemplateError e) {
+			stderr.printf(e.message+"\n");
+			handler_404(server, msg, path, query, client);
+		} catch(DatabaseError e) {
+			stderr.printf(e.message+"\n");
+			handler_400(server, msg, path, query, client);
+		} catch(IOError e) {
+			stderr.printf(e.message+"\n");
+			handler_400(server, msg, path, query, client);
+		}
+	}
+
 #if 0
 	void handler_stats(Soup.Server server, Soup.Message msg, string path, GLib.HashTable? query, Soup.ClientContext client) {
 		try {
@@ -1205,6 +1286,9 @@ public class WebServer {
 		/* products */
 		srv.add_handler("/products", handler_products);
 		srv.add_handler("/products/new", handler_products_new);
+
+		srv.add_handler("/aliases", handler_alias_list);
+		srv.add_handler("/aliases/new", handler_alias_new);
 
 #if 0
 		/* stats */
