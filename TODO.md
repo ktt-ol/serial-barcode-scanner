@@ -46,7 +46,6 @@
  * Support generating a barcode userlist (USERLIST-PDF)
  * Support generating product price list (PRODUCTLIST-PDF)
  * Support generating shopping list (PRODUCTLIST-PDF)
- * Support to generate a sorted best before dates list
  * Implement a more fine-grained authentication system
  * OpenID based login
 

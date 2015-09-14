@@ -94,7 +94,8 @@ public class DataBase : Object {
 		queries["stock"]             = "INSERT INTO restock ('user', 'product', 'amount', 'price', 'timestamp', 'supplier', 'best_before_date') VALUES (?, ?, ?, ?, ?, ?, ?)";
 		queries["price"]             = "SELECT memberprice, guestprice FROM prices WHERE product = ? AND valid_from <= ? ORDER BY valid_from DESC LIMIT 1";
 		queries["prices"]            = "SELECT valid_from, memberprice, guestprice FROM prices WHERE product = ? ORDER BY valid_from ASC;";
-		queries["restocks"]          = "SELECT timestamp, amount, price, supplier, best_before_date FROM restock WHERE product = ? ORDER BY timestamp ASC;";
+		queries["restocks_asc"]      = "SELECT timestamp, amount, price, supplier, best_before_date FROM restock WHERE product = ? ORDER BY timestamp ASC;";
+		queries["restocks_desc"]     = "SELECT timestamp, amount, price, supplier, best_before_date FROM restock WHERE product = ? ORDER BY timestamp DESC;";
 		queries["profit_complex"]    = "SELECT SUM(memberprice - (SELECT price FROM purchaseprices WHERE product = purch.product)) FROM sales purch, prices WHERE purch.product = prices.product AND purch.user > 0 AND purch.timestamp > ? AND purch.timestamp < ? AND prices.valid_from = (SELECT valid_from FROM prices WHERE product = purch.product AND valid_from < purch.timestamp ORDER BY valid_from DESC LIMIT 1);";
 		queries["sales_complex"]     = "SELECT SUM(memberprice) FROM sales purch, prices WHERE purch.product = prices.product AND purch.user > 0 AND purch.timestamp > ? AND purch.timestamp < ? AND prices.valid_from = (SELECT valid_from FROM prices WHERE product = purch.product AND valid_from < purch.timestamp ORDER BY valid_from DESC LIMIT 1);";
 		queries["stock_status"]      = "SELECT id, name, amount, memberprice, guestprice FROM stock, prices WHERE stock.id = prices.product AND prices.valid_from = (SELECT valid_from FROM prices WHERE product = stock.id ORDER BY valid_from DESC LIMIT 1) ORDER BY name";
@@ -304,21 +305,23 @@ public class DataBase : Object {
 		return result;
 	}
 
-	public RestockEntry[] get_restocks(uint64 product) {
+	public RestockEntry[] get_restocks(uint64 product, bool descending) {
 		RestockEntry[] result = {};
 
-		statements["restocks"].reset();
-		statements["restocks"].bind_text(1, "%llu".printf(product));
-		while(statements["restocks"].step() == Sqlite.ROW) {
+		var statement = statements[descending ? "restocks_desc" : "restocks_asc"];
+
+		statement.reset();
+		statement.bind_text(1, "%llu".printf(product));
+		while(statement.step() == Sqlite.ROW) {
 			RestockEntry entry = {
-				statements["restocks"].column_int64(0),
-				statements["restocks"].column_int(1)
+				statement.column_int64(0),
+				statement.column_int(1)
 			};
 
-			Price p = statements["restocks"].column_int(2);
+			Price p = statement.column_int(2);
 			entry.price = @"$p";
-			entry.supplier = statements["restocks"].column_int(3);
-			entry.best_before_date = statements["restocks"].column_int64(4);
+			entry.supplier = statement.column_int(3);
+			entry.best_before_date = statement.column_int64(4);
 
 			result += entry;
 		}
@@ -1011,5 +1014,44 @@ public class DataBase : Object {
 			result += entry;
 		};
 		return result;
+	}
+
+	public static int sortBestBeforeEntry(BestBeforeEntry? a, BestBeforeEntry? b) {
+		if(a.best_before_date == b.best_before_date)
+			return 0;
+		else if(a.best_before_date < b.best_before_date)
+			return -1;
+		else
+			return 1;
+	}
+
+	public BestBeforeEntry?[] bestbeforelist() {
+		var bbdlist = new GLib.GenericArray<BestBeforeEntry?>();
+
+		foreach(var product in get_stock()) {
+			var amount = product.amount;
+			var pid = uint64.parse(product.id);
+
+			if(amount <= 0)
+				continue;
+
+			foreach(var restock in get_restocks(pid, true)) {
+				if (restock.amount > amount) {
+					BestBeforeEntry entry = { pid, product.name, amount, restock.best_before_date };
+					bbdlist.add(entry);
+				} else {
+					BestBeforeEntry entry = { pid, product.name, restock.amount, restock.best_before_date };
+					bbdlist.add(entry);
+				}
+
+				amount -= restock.amount;
+				if(amount <= 0)
+					break;
+			}
+		}
+
+		bbdlist.sort(sortBestBeforeEntry);
+
+		return bbdlist.data;
 	}
 }

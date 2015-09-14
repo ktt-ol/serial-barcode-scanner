@@ -17,7 +17,7 @@
 public interface Database : Object {
 	public abstract StockEntry[] get_stock() throws IOError;
 	public abstract PriceEntry[] get_prices(uint64 product) throws IOError;
-	public abstract RestockEntry[] get_restocks(uint64 product) throws IOError;
+	public abstract RestockEntry[] get_restocks(uint64 product, bool descending) throws IOError;
 	public abstract bool buy(int32 user, uint64 article) throws IOError, DatabaseError;
 	public abstract string get_product_name(uint64 article) throws IOError, DatabaseError;
 	public abstract int get_product_amount(uint64 article) throws IOError, DatabaseError;
@@ -58,6 +58,7 @@ public interface Database : Object {
 	public abstract void ean_alias_add(uint64 ean, uint64 real_ean) throws IOError, DatabaseError;
 	public abstract uint64 ean_alias_get(uint64 ean) throws IOError;
 	public abstract EanAlias[] ean_alias_list() throws IOError;
+	public abstract BestBeforeEntry[] bestbeforelist() throws IOError;
 }
 
 public struct StockEntry {
@@ -79,6 +80,13 @@ public struct RestockEntry {
 	public int amount;
 	public string price;
 	public int supplier;
+	public int64 best_before_date;
+}
+
+public struct BestBeforeEntry {
+	public uint64 ean;
+	public string name;
+	public int amount;
 	public int64 best_before_date;
 }
 

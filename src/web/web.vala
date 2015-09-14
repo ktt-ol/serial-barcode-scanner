@@ -512,6 +512,39 @@ public class WebServer {
 		}
 	}
 
+	void handler_product_bestbefore(Soup.Server server, Soup.Message msg, string path, GLib.HashTable? query, Soup.ClientContext client) {
+		try {
+			var l = new WebSession(server, msg, path, query, client);
+			var t = new WebTemplate("products/bestbefore.html", l);
+			t.replace("TITLE", "KtT Shop System: Best Before List");
+			t.menu_set_active("products");
+
+			string table = "";
+			foreach(var e in db.bestbeforelist()) {
+				string bbd;
+				if(e.best_before_date > 0)
+					bbd = (new DateTime.from_unix_local(e.best_before_date)).format("%Y-%m-%d");
+				else
+					bbd = "";
+
+				table += @"<tr><td><a href=\"/products/$(e.ean)\">$(e.ean)</a></td><td><a href=\"/products/$(e.ean)\">$(e.name)</a></td><td>$(e.amount)</td><td>$(bbd)</td></tr>";
+			}
+
+			t.replace("DATA", table);
+
+			msg.set_response("text/html", Soup.MemoryUse.COPY, t.data);
+		} catch(TemplateError e) {
+			stderr.printf(e.message+"\n");
+			handler_404(server, msg, path, query, client);
+		} catch(DatabaseError e) {
+			stderr.printf(e.message+"\n");
+			handler_400(server, msg, path, query, client);
+		} catch(IOError e) {
+			stderr.printf(e.message+"\n");
+			handler_400(server, msg, path, query, client);
+		}
+	}
+
 	void handler_product_togglestate(Soup.Server server, Soup.Message msg, string path, GLib.HashTable? query, Soup.ClientContext client, uint64 id) {
 		try {
 			var l = new WebSession(server, msg, path, query, client);
@@ -578,7 +611,7 @@ public class WebServer {
 
 			/* restocks */
 			string restocks = "";
-			foreach(var e in db.get_restocks(id)) {
+			foreach(var e in db.get_restocks(id, false)) {
 				var time = new DateTime.from_unix_local(e.timestamp);
 				var supplier = db.get_supplier(e.supplier).name;
 				if(supplier == "Unknown")
@@ -1286,6 +1319,7 @@ public class WebServer {
 		/* products */
 		srv.add_handler("/products", handler_products);
 		srv.add_handler("/products/new", handler_products_new);
+		srv.add_handler("/products/bestbefore", handler_product_bestbefore);
 
 		srv.add_handler("/aliases", handler_alias_list);
 		srv.add_handler("/aliases/new", handler_alias_new);
