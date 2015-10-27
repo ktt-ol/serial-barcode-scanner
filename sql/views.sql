@@ -5,9 +5,10 @@ CREATE VIEW IF NOT EXISTS invoice AS
 	SELECT user, timestamp, id AS productid, name AS productname,
 		CASE
 			WHEN user < 0 THEN
-				(SELECT price
-					FROM purchaseprices
-					WHERE purchaseprices.product = id)
+				(SELECT SUM(price * amount) / SUM(amount)
+					FROM restock
+					WHERE restock.product = id AND restock.timestamp <= sales.timestamp
+				)
 			else
 				(SELECT
 					CASE
