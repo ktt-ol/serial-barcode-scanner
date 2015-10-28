@@ -496,7 +496,7 @@ public class WebServer {
 
 			string categories = "";
 			foreach(var c in db.get_category_list()) {
-				categories += "<option value=\"%lld\">%s</option>".printf(c.id, c.name);
+				categories += @"<option value=\"$(c.id)\">$(c.name)</option>";
 			}
 			t.replace("CATEGORIES", categories);
 
