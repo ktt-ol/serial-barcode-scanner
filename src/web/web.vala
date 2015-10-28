@@ -635,6 +635,7 @@ public class WebServer {
 			t.replace("SUPPLIERS", suppliers);
 
 			msg.set_response("text/html", Soup.MemoryUse.COPY, t.data);
+			msg.set_status(200);
 		} catch(TemplateError e) {
 			stderr.printf(e.message+"\n");
 			handler_404(server, msg, path, query, client);
@@ -685,6 +686,7 @@ public class WebServer {
 			}
 
 			msg.set_response("text/html", Soup.MemoryUse.COPY, template.data);
+			msg.set_status(200);
 		} catch(TemplateError e) {
 			stderr.printf(e.message+"\n");
 			handler_404(server, msg, path, query, client);
@@ -734,6 +736,7 @@ public class WebServer {
 					template.replace("RESTOCK.OK", "block");
 					template.replace("RESTOCK.FAIL", "none");
 					msg.set_response("text/html", Soup.MemoryUse.COPY, template.data);
+					msg.set_status(200);
 					return;
 				}
 			}
@@ -741,6 +744,7 @@ public class WebServer {
 			template.replace("RESTOCK.OK", "none");
 			template.replace("RESTOCK.FAIL", "block");
 			msg.set_response("text/html", Soup.MemoryUse.COPY, template.data);
+			msg.set_status(200);
 			return;
 		} catch(TemplateError e) {
 			stderr.printf(e.message+"\n");
@@ -780,6 +784,7 @@ public class WebServer {
 					template.replace("NEWPRICE.OK", "block");
 					template.replace("NEWPRICE.FAIL", "none");
 					msg.set_response("text/html", Soup.MemoryUse.COPY, template.data);
+					msg.set_status(200);
 					return;
 				}
 			}
@@ -787,6 +792,7 @@ public class WebServer {
 			template.replace("NEWPRICE.OK", "none");
 			template.replace("NEWPRICE.FAIL", "block");
 			msg.set_response("text/html", Soup.MemoryUse.COPY, template.data);
+			msg.set_status(200);
 			return;
 		} catch(TemplateError e) {
 			stderr.printf(e.message+"\n");
@@ -821,6 +827,7 @@ public class WebServer {
 				t.replace("NEWALIAS", "none");
 
 			msg.set_response("text/html", Soup.MemoryUse.COPY, t.data);
+			msg.set_status(200);
 		} catch(TemplateError e) {
 			stderr.printf(e.message+"\n");
 			handler_404(server, msg, path, query, client);
@@ -869,6 +876,7 @@ public class WebServer {
 			}
 
 			msg.set_response("text/html", Soup.MemoryUse.COPY, template.data);
+			msg.set_status(200);
 		} catch(TemplateError e) {
 			stderr.printf(e.message+"\n");
 			handler_404(server, msg, path, query, client);
@@ -906,6 +914,7 @@ public class WebServer {
 			t.replace("PROFIT_PER_MONTH", @"$(stats.profit_per_month)€");
 
 			msg.set_response("text/html", Soup.MemoryUse.COPY, t.data);
+			msg.set_status(200);
 		} catch(TemplateError e) {
 			stderr.printf(e.message+"\n");
 			handler_404(server, msg, path, query, client);
@@ -921,6 +930,7 @@ public class WebServer {
 			t.replace("TITLE", "KtT Shop System: Statistics: Stock");
 			t.menu_set_active("stats");
 			msg.set_response("text/html", Soup.MemoryUse.COPY, t.data);
+			msg.set_status(200);
 		} catch(TemplateError e) {
 			stderr.printf(e.message+"\n");
 			handler_404(server, msg, path, query, client);
@@ -936,6 +946,7 @@ public class WebServer {
 			t.replace("TITLE", "KtT Shop System: Statistics: Profit");
 			t.menu_set_active("stats");
 			msg.set_response("text/html", Soup.MemoryUse.COPY, t.data);
+			msg.set_status(200);
 		} catch(TemplateError e) {
 			stderr.printf(e.message+"\n");
 			handler_404(server, msg, path, query, client);
@@ -951,6 +962,7 @@ public class WebServer {
 			t.replace("TITLE", "KtT Shop System: Statistics: Profit/Weekday");
 			t.menu_set_active("stats");
 			msg.set_response("text/html", Soup.MemoryUse.COPY, t.data);
+			msg.set_status(200);
 		} catch(TemplateError e) {
 			stderr.printf(e.message+"\n");
 			handler_404(server, msg, path, query, client);
@@ -966,6 +978,7 @@ public class WebServer {
 			t.replace("TITLE", "KtT Shop System: Statistics: Profit/Product");
 			t.menu_set_active("stats");
 			msg.set_response("text/html", Soup.MemoryUse.COPY, t.data);
+			msg.set_status(200);
 		} catch(TemplateError e) {
 			stderr.printf(e.message+"\n");
 			handler_404(server, msg, path, query, client);
@@ -977,6 +990,7 @@ public class WebServer {
 		try {
 			var t = new WebTemplate.DATA(path);
 			msg.set_response("text/javascript", Soup.MemoryUse.COPY, t.data);
+			msg.set_status(200);
 		} catch(TemplateError e) {
 			stderr.printf(e.message+"\n");
 			handler_404(server, msg, path, query, client);
@@ -987,6 +1001,7 @@ public class WebServer {
 		try {
 			var t = new WebTemplate.DATA(path);
 			msg.set_response("text/css", Soup.MemoryUse.COPY, t.data);
+			msg.set_status(200);
 		} catch(TemplateError e) {
 			stderr.printf(e.message+"\n");
 			handler_404(server, msg, path, query, client);
@@ -1000,6 +1015,7 @@ public class WebServer {
 
 			if(f.query_exists() && f.load_contents(null, out data, null)) {
 				msg.set_response("image/png", Soup.MemoryUse.COPY, data);
+				msg.set_status(200);
 				return;
 			}
 		} catch(Error e) {
@@ -1012,14 +1028,14 @@ public class WebServer {
 
 	void handler_400(Soup.Server server, Soup.Message msg, string path, GLib.HashTable? query, Soup.ClientContext client) {
 		string result = "Internal Server Error\n";
-		msg.set_status(400);
 		msg.set_response("text/plain", Soup.MemoryUse.COPY, result.data);
+		msg.set_status(400);
 	}
 
 	void handler_404(Soup.Server server, Soup.Message msg, string path, GLib.HashTable? query, Soup.ClientContext client) {
 		string result = "Page not Found\n";
-		msg.set_status(404);
 		msg.set_response("text/plain", Soup.MemoryUse.COPY, result.data);
+		msg.set_status(404);
 	}
 
 	void handler_403(Soup.Server server, Soup.Message msg, string path, GLib.HashTable? query, Soup.ClientContext client) {
@@ -1028,8 +1044,8 @@ public class WebServer {
 			var template = new WebTemplate("errors/403.html", session);
 			template.replace("TITLE", "Access Denied");
 			template.menu_set_active("");
-			msg.set_status(403);
 			msg.set_response("text/html", Soup.MemoryUse.COPY, template.data);
+			msg.set_status(403);
 		} catch(TemplateError e) {
 			stderr.printf(e.message+"\n");
 			handler_404(server, msg, path, query, client);
@@ -1049,6 +1065,7 @@ public class WebServer {
 			template.replace("TITLE", "KtT Shop System: ToDo");
 			template.menu_set_active("");
 			msg.set_response("text/html", Soup.MemoryUse.COPY, template.data);
+			msg.set_status(200);
 		} catch(TemplateError e) {
 			stderr.printf(e.message+"\n");
 			handler_404(server, msg, path, query, client);
