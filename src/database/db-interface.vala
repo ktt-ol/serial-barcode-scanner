@@ -20,13 +20,14 @@ public interface Database : Object {
 	public abstract RestockEntry[] get_restocks(uint64 product, bool descending) throws IOError;
 	public abstract bool buy(int32 user, uint64 article) throws IOError, DatabaseError;
 	public abstract string get_product_name(uint64 article) throws IOError, DatabaseError;
+	public abstract string get_product_category(uint64 article) throws IOError, DatabaseError;
 	public abstract int get_product_amount(uint64 article) throws IOError, DatabaseError;
 	public abstract bool get_product_deprecated(uint64 article) throws IOError, DatabaseError;
 	public abstract void product_deprecate(uint64 article, bool value) throws IOError, DatabaseError;
 	public abstract Price get_product_price(int user, uint64 article) throws IOError, DatabaseError;
 	public abstract string undo(int32 user) throws IOError, DatabaseError;
 	public abstract void restock(int user, uint64 product, uint amount, uint price, int supplier, int64 best_before_date) throws IOError, DatabaseError;
-	public abstract void new_product(uint64 id, string name, int memberprice, int guestprice) throws IOError, DatabaseError;
+	public abstract void new_product(uint64 id, string name, int category, int memberprice, int guestprice) throws IOError, DatabaseError;
 	public abstract void new_price(uint64 product, int64 timestamp, int memberprice, int guestprice) throws IOError, DatabaseError;
 	public abstract bool check_user_password(int32 user, string password) throws IOError;
 	public abstract void set_user_password(int32 user, string password) throws IOError, DatabaseError;
@@ -46,6 +47,7 @@ public interface Database : Object {
 	public abstract bool user_exists(int user) throws IOError, DatabaseError;
 	public abstract bool user_equals(UserInfo u) throws IOError, DatabaseError;
 	public abstract int64 get_timestamp_of_last_purchase() throws IOError;
+	public abstract Category[] get_category_list() throws IOError;
 	public abstract Supplier[] get_supplier_list() throws IOError;
 	public abstract Supplier get_supplier(int id) throws IOError;
 	public abstract void add_supplier(string name, string postal_code, string city, string street, string phone, string website) throws IOError, DatabaseError;
@@ -61,9 +63,15 @@ public interface Database : Object {
 	public abstract BestBeforeEntry[] bestbeforelist() throws IOError;
 }
 
+public struct Category {
+	public int id;
+	public string name;
+}
+
 public struct StockEntry {
 	public string id;
 	public string name;
+	public string category;
 	public int amount;
 	public Price memberprice;
 	public Price guestprice;

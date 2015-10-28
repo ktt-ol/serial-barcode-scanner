@@ -489,10 +489,16 @@ public class WebServer {
 
 			string table = "";
 			foreach(var e in db.get_stock()) {
-				table += @"<tr><td><a href=\"/products/$(e.id)\">$(e.id)</a></td><td><a href=\"/products/$(e.id)\">$(e.name)</a></td><td>$(e.amount)</td><td>$(e.memberprice)€</td><td>$(e.guestprice)€</td></tr>";
+				table += @"<tr><td><a href=\"/products/$(e.id)\">$(e.id)</a></td><td><a href=\"/products/$(e.id)\">$(e.name)</a></td><td>$(e.category)</td><td>$(e.amount)</td><td>$(e.memberprice)€</td><td>$(e.guestprice)€</td></tr>";
 			}
 
 			t.replace("DATA", table);
+
+			string categories = "";
+			foreach(var c in db.get_category_list()) {
+				categories += "<option value=\"%lld\">%s</option>".printf(c.id, c.name);
+			}
+			t.replace("CATEGORIES", categories);
 
 			if(l.superuser || l.auth_products)
 				t.replace("NEWPRODUCT", "block");
@@ -584,6 +590,10 @@ public class WebServer {
 			string name = db.get_product_name(id);
 			t.replace("NAME", name);
 
+			/* category */
+			string category = db.get_product_category(id);
+			t.replace("CATEGORY", category);
+
 			/* amount */
 			t.replace("AMOUNT", "%d".printf(db.get_product_amount(id)));
 
@@ -663,11 +673,12 @@ public class WebServer {
 			if(query != null && query.contains("name") && query.contains("id") && query.contains("memberprice") && query.contains("guestprice")) {
 				var name = query["name"];
 				var ean = uint64.parse(query["id"]);
+				int category = int.parse(query["category"]);
 				Price memberprice = Price.parse(query["memberprice"]);
 				Price guestprice  = Price.parse(query["guestprice"]);
 
-				if(ean > 0 && memberprice > 0 && guestprice > 0) {
-					db.new_product(ean, name, memberprice, guestprice);
+				if(ean > 0 && memberprice > 0 && guestprice > 0 && category >= 0) {
+					db.new_product(ean, name, category, memberprice, guestprice);
 					template.replace("NAME", name);
 					template.replace("EAN", @"$ean");
 					template.replace("MEMBERPRICE", @"$memberprice€");

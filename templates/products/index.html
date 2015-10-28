@@ -2,7 +2,7 @@
 
 <table class="sortable table table-bordered table-striped table-condensed">
 	<thead>
-		<tr><th>EAN</th></th><th>Name</th><th>Amount</th><th>Memberprice</th><th>Guestprice</th></tr>
+		<tr><th>EAN</th></th><th>Name</th><th>Category</th><th>Amount</th><th>Memberprice</th><th>Guestprice</th></tr>
 	</thead>
 	<tbody>
 		{{{DATA}}}
@@ -14,6 +14,9 @@
 		<legend>New Product</legend>
 		<input class="input-medium" name="id" type="number" min="0" placeholder="EAN" />
 		<input class="input-medium" name="name" type="text" placeholder="Name" />
+		<select name="category" title="Category">
+			{{{CATEGORIES}}}
+		</select>
 		<input class="input-medium" name="memberprice" type="number" step="0.01" min="0.01" placeholder="Memberprice" />
 		<input class="input-medium" name="guestprice"  type="number" step="0.01" min="0.01" placeholder="Guestprice" />
 		<button type="submit" class="btn btn-primary"><i class="icon-plus"></i></button>

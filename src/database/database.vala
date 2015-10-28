@@ -82,6 +82,7 @@ public class DataBase : Object {
 
 		/* setup queries */
 		queries["product_name"]      = "SELECT name FROM products WHERE id = ?";
+		queries["product_category"]  = "SELECT categories.name FROM categories, products WHERE products.category = categories.id AND products.id = ?";
 		queries["product_amount"]    = "SELECT amount FROM products WHERE id = ?";
 		queries["product_deprecated"]= "SELECT deprecated FROM products WHERE id = ?";
 		queries["product_set_deprecated"] = "UPDATE products SET deprecated=? WHERE id = ?";
@@ -89,7 +90,7 @@ public class DataBase : Object {
 		queries["purchase"]          = "INSERT INTO sales ('user', 'product', 'timestamp') VALUES (?, ?, ?)";
 		queries["last_purchase"]     = "SELECT product FROM sales WHERE user = ? ORDER BY timestamp DESC LIMIT 1";
 		queries["undo"]              = "DELETE FROM sales WHERE user = ? ORDER BY timestamp DESC LIMIT 1";
-		queries["product_create"]    = "INSERT INTO products ('id', 'name', 'amount') VALUES (?, ?, ?)";
+		queries["product_create"]    = "INSERT INTO products ('id', 'name', 'category', 'amount') VALUES (?, ?, ?, ?)";
 		queries["price_create"]      = "INSERT INTO prices ('product', 'valid_from', 'memberprice', 'guestprice') VALUES (?, ?, ?, ?)";
 		queries["stock"]             = "INSERT INTO restock ('user', 'product', 'amount', 'price', 'timestamp', 'supplier', 'best_before_date') VALUES (?, ?, ?, ?, ?, ?, ?)";
 		queries["price"]             = "SELECT memberprice, guestprice FROM prices WHERE product = ? AND valid_from <= ? ORDER BY valid_from DESC LIMIT 1";
@@ -98,7 +99,7 @@ public class DataBase : Object {
 		queries["restocks_desc"]     = "SELECT timestamp, amount, price, supplier, best_before_date FROM restock WHERE product = ? ORDER BY timestamp DESC;";
 		queries["profit_complex"]    = "SELECT SUM(memberprice - (SELECT price FROM purchaseprices WHERE product = purch.product)) FROM sales purch, prices WHERE purch.product = prices.product AND purch.user > 0 AND purch.timestamp > ? AND purch.timestamp < ? AND prices.valid_from = (SELECT valid_from FROM prices WHERE product = purch.product AND valid_from < purch.timestamp ORDER BY valid_from DESC LIMIT 1);";
 		queries["sales_complex"]     = "SELECT SUM(memberprice) FROM sales purch, prices WHERE purch.product = prices.product AND purch.user > 0 AND purch.timestamp > ? AND purch.timestamp < ? AND prices.valid_from = (SELECT valid_from FROM prices WHERE product = purch.product AND valid_from < purch.timestamp ORDER BY valid_from DESC LIMIT 1);";
-		queries["stock_status"]      = "SELECT id, name, amount, memberprice, guestprice FROM stock, prices WHERE stock.id = prices.product AND prices.valid_from = (SELECT valid_from FROM prices WHERE product = stock.id ORDER BY valid_from DESC LIMIT 1) ORDER BY name";
+		queries["stock_status"]      = "SELECT stock.id, stock.name, categories.name, amount, memberprice, guestprice FROM stock, prices, categories WHERE stock.id = prices.product AND categories.id = stock.category AND prices.valid_from = (SELECT valid_from FROM prices WHERE product = stock.id ORDER BY valid_from DESC LIMIT 1) ORDER BY categories.name, stock.name";
 		queries["stock_amount"]      = "SELECT timestamp, amount FROM restock WHERE product = ? UNION ALL SELECT timestamp, -1 AS amount FROM sales WHERE product = ? ORDER BY timestamp DESC";
 		queries["session_set"]       = "UPDATE authentication SET session=? WHERE user = ?";
 		queries["session_get"]       = "SELECT user FROM authentication WHERE session = ?";
@@ -121,6 +122,7 @@ public class DataBase : Object {
 		queries["user_auth_create"]  = "INSERT OR IGNORE INTO authentication (user) VALUES (?)";
 		queries["user_disable"]      = "UPDATE authentication SET disabled = ? WHERE user = ?";
 		queries["last_timestamp"]    = "SELECT timestamp FROM sales ORDER BY timestamp DESC LIMIT 1";
+		queries["category_list"]     = "SELECT id, name FROM categories";
 		queries["supplier_list"]     = "SELECT id, name, postal_code, city, street, phone, website FROM supplier";
 		queries["supplier_get"]      = "SELECT id, name, postal_code, city, street, phone, website FROM supplier WHERE id = ?";
 		queries["supplier_add"]      = "INSERT INTO supplier('name', 'postal_code', 'city', 'street', 'phone', 'website') VALUES (?, ?, ?, ?, ?, ?)";
@@ -276,9 +278,10 @@ public class DataBase : Object {
 			StockEntry entry = {
 				statements["stock_status"].column_text(0),
 				statements["stock_status"].column_text(1),
-				statements["stock_status"].column_int(2),
+				statements["stock_status"].column_text(2),
 				statements["stock_status"].column_int(3),
-				statements["stock_status"].column_int(4)
+				statements["stock_status"].column_int(4),
+				statements["stock_status"].column_int(5)
 			};
 
 			result += entry;
@@ -354,6 +357,22 @@ public class DataBase : Object {
 		switch(rc) {
 			case Sqlite.ROW:
 				return statements["product_name"].column_text(0);
+			case Sqlite.DONE:
+				throw new DatabaseError.PRODUCT_NOT_FOUND("unknown product: %llu", article);
+			default:
+				throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
+		}
+	}
+
+	public string get_product_category(uint64 article) throws DatabaseError {
+		statements["product_category"].reset();
+		statements["product_category"].bind_text(1, "%llu".printf(article));
+
+		int rc = statements["product_category"].step();
+
+		switch(rc) {
+			case Sqlite.ROW:
+				return statements["product_category"].column_text(0);
 			case Sqlite.DONE:
 				throw new DatabaseError.PRODUCT_NOT_FOUND("unknown product: %llu", article);
 			default:
@@ -484,11 +503,12 @@ public class DataBase : Object {
 			throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
 	}
 
-	public void new_product(uint64 id, string name, int memberprice, int guestprice) throws DatabaseError {
+	public void new_product(uint64 id, string name, int category, int memberprice, int guestprice) throws DatabaseError {
 		statements["product_create"].reset();
 		statements["product_create"].bind_text(1, @"$id");
 		statements["product_create"].bind_text(2, name);
-		statements["product_create"].bind_int(3, 0);
+		statements["product_create"].bind_int(3, category);
+		statements["product_create"].bind_int(4, 0);
 		int rc = statements["product_create"].step();
 
 		if(rc != Sqlite.DONE) {
@@ -822,6 +842,22 @@ public class DataBase : Object {
 		if(statements["last_timestamp"].step() != Sqlite.ROW)
 			return 0;
 		return statements["last_timestamp"].column_int64(0);
+	}
+
+	public Category[] get_category_list() {
+		Category[] result = {};
+
+		statements["category_list"].reset();
+		while(statements["category_list"].step() == Sqlite.ROW) {
+			Category entry = {
+				statements["category_list"].column_int(0),
+				statements["category_list"].column_text(1)
+			};
+
+			result += entry;
+		}
+
+		return result;
 	}
 
 	public Supplier[] get_supplier_list() {
