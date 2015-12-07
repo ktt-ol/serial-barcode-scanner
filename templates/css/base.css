@@ -75,3 +75,9 @@
 .text-right {
 	text-align: right !important;
 }
+
+@media print {
+	.navbar-fixed-top {
+		display: none !important;
+	}
+}
