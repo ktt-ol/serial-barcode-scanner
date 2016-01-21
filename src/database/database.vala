@@ -511,7 +511,9 @@ public class DataBase : Object {
 		statements["product_create"].bind_int(4, 0);
 		int rc = statements["product_create"].step();
 
-		if(rc != Sqlite.DONE) {
+		if(rc == Sqlite.CONSTRAINT) {
+			throw new DatabaseError.CONSTRAINT_FAILED(db.errmsg());
+		} else if(rc != Sqlite.DONE) {
 			throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
 		}
 
