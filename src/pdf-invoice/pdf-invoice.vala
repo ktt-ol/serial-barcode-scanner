@@ -262,7 +262,7 @@ public class InvoicePDF {
 		layout.set_width((int) 190 * Pango.SCALE);
 
 		/* TODO: get text from config file */
-		var text = "<b>Mail:</b> vorstand@kreativitaet-trifft-technik.de\n<b>Web:</b> www.kreativitaet-trifft-technik.de\n\n\n\n<b>BGB-Vorstand:</b>\nPatrick Günther, Christoph Heinisch, Markus Müller, Andreas Michaelis, Sebastian Reichel";
+		var text = "<b>Mail:</b> vorstand@kreativitaet-trifft-technik.de\n<b>Web:</b> www.kreativitaet-trifft-technik.de\n\n\n\n<b>BGB-Vorstand:</b>\nPatrick Günther, Christoph Heinisch, Markus Müller, Sebastian Reichel";
 
 		/* write invoice date */
 		layout.set_markup(text, text.length);
