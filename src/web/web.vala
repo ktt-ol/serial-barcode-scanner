@@ -72,6 +72,11 @@ public class WebServer {
 					case "stats":
 						handler_todo(server, msg, path, query, client);
 						break;
+					case "toggle_auth_products":
+					case "toggle_auth_cashbox":
+					case "toggle_auth_users":
+						handler_user_toggle_auth(server, msg, path, query, client, id, pathparts[3]);
+						break;
 					default:
 						handler_404(server, msg, path, query, client);
 						break;
@@ -266,6 +271,46 @@ public class WebServer {
 		}
 	}
 
+	void handler_user_toggle_auth(Soup.Server server, Soup.Message msg, string path, GLib.HashTable? query, Soup.ClientContext client, int id, string action) {
+		try {
+			var l = new WebSession(server, msg, path, query, client);
+
+			if(!l.superuser) {
+				handler_403(server, msg, path, query, client);
+				return;
+			}
+
+			var olduserauth = db.get_user_auth(id);
+
+			switch(action) {
+				case "toggle_auth_products":
+					olduserauth.auth_products = !olduserauth.auth_products;
+					break;
+				case "toggle_auth_cashbox":
+					olduserauth.auth_cashbox = !olduserauth.auth_cashbox;
+					break;
+				case "toggle_auth_users":
+					olduserauth.auth_users = !olduserauth.auth_users;
+					break;
+			}
+
+			db.set_user_auth(olduserauth);
+
+			var newuserauth = db.get_user_auth(id);
+
+			var auth_products = newuserauth.auth_products ? "true" : "false";
+			var auth_cashbox = newuserauth.auth_cashbox ? "true" : "false";
+			var auth_users = newuserauth.auth_users ? "true" : "false";
+
+			msg.set_response("application/json", Soup.MemoryUse.COPY, @"{ \"products\": \"$auth_products\", \"cashbox\": \"$auth_cashbox\", \"users\": \"$auth_users\"  }".data);
+			msg.set_status(200);
+		} catch(DatabaseError e) {
+			handler_400(server, msg, path, query, client, e.message);
+		} catch(IOError e) {
+			handler_400(server, msg, path, query, client, e.message);
+		}
+	}
+
 	void handler_user_entry(Soup.Server server, Soup.Message msg, string path, GLib.HashTable? query, Soup.ClientContext client, int id) {
 		try {
 			var session = new WebSession(server, msg, path, query, client);
@@ -292,9 +337,19 @@ public class WebServer {
 			var userauth = db.get_user_auth(id);
 			t.replace("DISABLED", userauth.disabled ? "true" : "false");
 			t.replace("ISSUPERUSER", userauth.superuser ? "true" : "false");
-			t.replace("HAS_AUTH_PRODUCTS", userauth.auth_products ? "true" : "false");
-			t.replace("HAS_AUTH_CASHBOX", userauth.auth_cashbox ? "true" : "false");
-			t.replace("HAS_AUTH_USERS", userauth.auth_users ? "true" : "false");
+			t.replace("HAS_AUTH_PRODUCTS", userauth.auth_products ? "Yes" : "No");
+			t.replace("HAS_AUTH_CASHBOX", userauth.auth_cashbox ? "Yes" : "No");
+			t.replace("HAS_AUTH_USERS", userauth.auth_users ? "Yes" : "No");
+
+			t.replace("BTN_AUTH_PRODUCTS", userauth.auth_products ? "btn-success" : "btn-danger");
+			t.replace("BTN_AUTH_CASHBOX", userauth.auth_cashbox ? "btn-success" : "btn-danger");
+			t.replace("BTN_AUTH_USERS", userauth.auth_users ? "btn-success" : "btn-danger");
+
+			if(session.superuser) {
+				t.replace("ISADMIN2", "");
+			} else {
+				t.replace("ISADMIN2", "disabled=\"disabled\"");
+			}
 
 			var postdata = Soup.Form.decode_multipart(msg, null, null, null, null);
 			if(postdata != null && postdata.contains("password1") && postdata.contains("password2")) {
