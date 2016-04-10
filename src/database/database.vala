@@ -108,6 +108,7 @@ public class DataBase : Object {
 		queries["password_set"]      = "UPDATE authentication SET password=? WHERE user = ?";
 		queries["userinfo"]          = "SELECT firstname, lastname, email, gender, street, plz, city, pgp FROM users WHERE id = ?";
 		queries["userauth"]          = "SELECT disabled, superuser, auth_users, auth_products, auth_cashbox FROM authentication WHERE user = ?";
+		queries["userauth_set"]      = "UPDATE authentication SET auth_users = ?, auth_products = ?, auth_cashbox = ? WHERE user = ?";
 		queries["profit_by_product"] = "SELECT name, SUM(memberprice - (SELECT price FROM purchaseprices WHERE product = purch.product)) AS price FROM sales purch, prices, products WHERE purch.product = products.id AND purch.product = prices.product AND purch.user > 0 AND purch.timestamp > ? AND purch.timestamp < ? AND prices.valid_from = (SELECT valid_from FROM prices WHERE product = purch.product AND valid_from < purch.timestamp ORDER BY valid_from DESC LIMIT 1) GROUP BY name ORDER BY price;";
 		queries["invoice"]           = "SELECT timestamp, id AS productid, name AS productname, CASE WHEN user < 0 THEN (SELECT SUM(price * amount) / SUM(amount) FROM restock WHERE restock.product = id AND restock.timestamp <= sales.timestamp) else (SELECT CASE WHEN user=0 THEN guestprice else memberprice END FROM prices WHERE product = id AND valid_from <= timestamp ORDER BY valid_from DESC LIMIT 1) END AS price FROM sales INNER JOIN products ON sales.product = products.id WHERE user = ? AND timestamp >= ? AND timestamp <= ? ORDER BY timestamp";
 		queries["purchase_first"]    = "SELECT timestamp FROM sales WHERE user = ? ORDER BY timestamp ASC  LIMIT 1";
@@ -639,6 +640,28 @@ public class DataBase : Object {
 		}
 
 		return result;
+	}
+
+	public void set_user_auth(UserAuth auth) throws DatabaseError {
+		int rc;
+
+		/* create user auth line if not existing */
+		statements["user_auth_create"].reset();
+		statements["user_auth_create"].bind_int(1, auth.id);
+		rc = statements["user_auth_create"].step();
+		if(rc != Sqlite.DONE)
+			throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
+
+		/* set authentication */
+		statements["userauth_set"].reset();
+		statements["userauth_set"].bind_int(1, auth.auth_users ? 1 : 0);
+		statements["userauth_set"].bind_int(2, auth.auth_products ? 1 : 0);
+		statements["userauth_set"].bind_int(3, auth.auth_cashbox ? 1 : 0);
+		statements["userauth_set"].bind_int(4, auth.id);
+
+		rc = statements["userauth_set"].step();
+		if(rc != Sqlite.DONE)
+			throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
 	}
 
 	public string get_username(int user) throws DatabaseError {

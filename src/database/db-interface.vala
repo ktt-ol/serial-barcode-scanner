@@ -35,6 +35,7 @@ public interface Database : Object {
 	public abstract int get_user_by_sessionid(string sessionid) throws IOError, DatabaseError;
 	public abstract UserInfo get_user_info(int user) throws IOError, DatabaseError;
 	public abstract UserAuth get_user_auth(int user) throws IOError, DatabaseError;
+	public abstract void set_user_auth(UserAuth auth) throws IOError, DatabaseError;
 	public abstract string get_username(int user) throws IOError, DatabaseError;
 	public abstract InvoiceEntry[] get_invoice(int user, int64 from=0, int64 to=-1) throws IOError, DatabaseError;
 	public abstract int64 get_first_purchase(int user) throws IOError;
