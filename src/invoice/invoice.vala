@@ -20,6 +20,13 @@ public struct Timespan {
 	int64 to;
 }
 
+public struct InvoiceData {
+	string pdffilename;
+	uint8[] pdfdata;
+	string plain;
+	string html;
+}
+
 public class InvoiceImplementation {
 	Mailer mailer;
 	Database db;
@@ -34,12 +41,11 @@ public class InvoiceImplementation {
 		datadir = cfg.get_string("INVOICE", "datadir");
 	}
 
-	public void send_invoices(bool temporary, int64 timestamp) throws IOError, InvoicePDFError, DatabaseError {
+	public void send_invoice(bool temporary, int64 timestamp, int user) throws IOError, InvoicePDFError, DatabaseError {
 		int64 prevtimestamp = timestamp - day_in_seconds;
 
-		if(!temporary) {
+		if(!temporary)
 			prevtimestamp = new DateTime.from_unix_local(timestamp).add_months(-1).to_unix();
-		}
 
 		Timespan ts = get_timespan(temporary, prevtimestamp);
 		Timespan tst = get_timespan(false, prevtimestamp);
@@ -67,18 +73,127 @@ public class InvoiceImplementation {
 		var csvinvoicedata     = "";
 
 		foreach(var userid in users) {
-			uint8[] pdfdata = null;
+			number++;
+			string invoiceid = "SH" + start.format("%Y%m") + "5" + "%03d".printf(number);
+			var userdata = db.get_user_info(userid);
+			var total_sum = db.get_user_invoice_sum(userid, tst.from, tst.to);
+
+			if(userid == user) {
+				var invoicedata = generate_invoice(temporary, timestamp, userid, invoiceid);
+				string mail_path = mailer.create_mail();
+				Mail mail = Bus.get_proxy_sync(BusType.SESSION, "io.mainframe.shopsystem.Mail", mail_path);
+				mail.from = {"KtT Shopsystem", "shop@kreativitaet-trifft-technik.de"};
+				mail.subject = mailtitle;
+				mail.add_recipient({@"$(userdata.firstname) $(userdata.lastname)", userdata.email}, RecipientType.TO);
+
+				if(!temporary) {
+					mail.add_attachment(invoicedata.pdffilename, "application/pdf", invoicedata.pdfdata);
+					treasurer_mail.add_attachment(invoicedata.pdffilename, "application/pdf", invoicedata.pdfdata);
+				}
+
+				mail.set_main_part(invoicedata.plain, MessageType.PLAIN);
+				mail.set_main_part(invoicedata.html, MessageType.HTML);
+
+				mailer.send_mail(mail_path);
+			}
+
+			if(!temporary) {
+				csvinvoicedata += @"$(userdata.id),$(userdata.lastname),$(userdata.firstname),$invoiceid,$total_sum\n";
+			}
+		}
+
+		if(!temporary) {
+			treasurer_mail.set_main_part(get_treasurer_text(), MessageType.PLAIN);
+			treasurer_mail.add_attachment("invoice.csv", "text/csv; charset=utf-8", csvinvoicedata.data);
+			mailer.send_mail(treasurer_path);
+		}
+	}
+
+	public void send_invoices(bool temporary, int64 timestamp) throws IOError, InvoicePDFError, DatabaseError {
+		int64 prevtimestamp = timestamp - day_in_seconds;
+
+		if(!temporary)
+			prevtimestamp = new DateTime.from_unix_local(timestamp).add_months(-1).to_unix();
+
+		Timespan ts = get_timespan(temporary, prevtimestamp);
+		Timespan tst = get_timespan(false, prevtimestamp);
+		int number = 0;
+
+
+		var start = new DateTime.from_unix_local(ts.from);
+		var stop  = new DateTime.from_unix_local(ts.to);
+		var startstring = start.format("%d.%m.%Y %H:%M:%S");
+		var stopstring  = stop.format("%d.%m.%Y %H:%M:%S");
+
+		/* title */
+		string mailtitle = temporary ? "Getränkezwischenstand" : "Getränkerechnung";
+		mailtitle += @" $startstring - $stopstring";
+
+		stdout.printf(mailtitle + "\n\n");
+
+		var users = db.get_users_with_sales(ts.from, ts.to);
+
+		string treasurer_path  = mailer.create_mail();
+		Mail treasurer_mail    = Bus.get_proxy_sync(BusType.SESSION, "io.mainframe.shopsystem.Mail", treasurer_path);
+		treasurer_mail.from    = {"KtT Shopsystem", "shop@kreativitaet-trifft-technik.de"};
+		treasurer_mail.subject = mailtitle;
+		treasurer_mail.add_recipient({"Schatzmeister", "schatzmeister@kreativitaet-trifft-technik.de"}, RecipientType.TO);
+		var csvinvoicedata     = "";
+
+		foreach(var userid in users) {
+			number++;
+			string invoiceid = "SH" + start.format("%Y%m") + "5" + "%03d".printf(number);
+			var invoicedata = generate_invoice(temporary, timestamp, userid, invoiceid);
+			var userdata = db.get_user_info(userid);
+			var total_sum = db.get_user_invoice_sum(userid, tst.from, tst.to);
+
+			string mail_path = mailer.create_mail();
+			Mail mail = Bus.get_proxy_sync(BusType.SESSION, "io.mainframe.shopsystem.Mail", mail_path);
+			mail.from = {"KtT Shopsystem", "shop@kreativitaet-trifft-technik.de"};
+			mail.subject = mailtitle;
+			mail.add_recipient({@"$(userdata.firstname) $(userdata.lastname)", userdata.email}, RecipientType.TO);
+
+			if(!temporary)
+				mail.add_attachment(invoicedata.pdffilename, "application/pdf", invoicedata.pdfdata);
+
+			mail.set_main_part(invoicedata.plain, MessageType.PLAIN);
+
+			mail.set_main_part(invoicedata.html, MessageType.HTML);
+
+			mailer.send_mail(mail_path);
+
+			if(!temporary) {
+				treasurer_mail.add_attachment(invoicedata.pdffilename, "application/pdf", invoicedata.pdfdata);
+				csvinvoicedata += @"$(userdata.id),$(userdata.lastname),$(userdata.firstname),$invoiceid,$total_sum\n";
+			}
+		}
+
+		if(!temporary) {
+			treasurer_mail.set_main_part(get_treasurer_text(), MessageType.PLAIN);
+			treasurer_mail.add_attachment("invoice.csv", "text/csv; charset=utf-8", csvinvoicedata.data);
+			mailer.send_mail(treasurer_path);
+		}
+	}
+
+	public InvoiceData generate_invoice(bool temporary, int64 timestamp, int userid, string invoiceid) throws IOError, InvoicePDFError, DatabaseError {
+			int64 prevtimestamp = timestamp - day_in_seconds;
+			if(!temporary)
+				prevtimestamp = new DateTime.from_unix_local(timestamp).add_months(-1).to_unix();
+
 			var userdata = db.get_user_info(userid);
 
+			InvoiceData result = InvoiceData();
+
 			stdout.printf("%d (%s %s)...\n", userdata.id, userdata.firstname, userdata.lastname);
+
+			Timespan ts = get_timespan(temporary, prevtimestamp);
+			Timespan tst = get_timespan(false, prevtimestamp);
 
 			var invoiceentries = db.get_invoice(userid, ts.from, ts.to);
 			var total_sum = db.get_user_invoice_sum(userid, tst.from, tst.to);
 
 			/* invoice id */
-			number++;
-			string invoiceid = "SH" + start.format("%Y%m") + "5" + "%03d".printf(number);
-			string pdffilename = invoiceid + @"_$(userdata.firstname)_$(userdata.lastname).pdf";
+			result.pdffilename = invoiceid + @"_$(userdata.firstname)_$(userdata.lastname).pdf";
 
 			/* pdf generation */
 			if(!temporary) {
@@ -94,42 +209,17 @@ public class InvoiceImplementation {
 						userdata.gender
 					};
 					pdf.invoice_entries = invoiceentries;
-					pdfdata = pdf.generate();
+					result.pdfdata = pdf.generate();
 					pdf.clear();
 				} catch(DBusError e) {
 					throw new IOError.FAILED("PDF Generation failed");
 				}
 			}
 
-			string mail_path = mailer.create_mail();
-			Mail mail = Bus.get_proxy_sync(BusType.SESSION, "io.mainframe.shopsystem.Mail", mail_path);
-			mail.from = {"KtT Shopsystem", "shop@kreativitaet-trifft-technik.de"};
-			mail.subject = mailtitle;
-			mail.add_recipient({@"$(userdata.firstname) $(userdata.lastname)", userdata.email}, RecipientType.TO);
+			result.plain = generate_invoice_message(MessageType.PLAIN, temporary, get_address(userdata.gender), userdata.lastname, invoiceentries, total_sum);
+			result.html = generate_invoice_message(MessageType.HTML, temporary, get_address(userdata.gender), userdata.lastname, invoiceentries, total_sum);
 
-			if(!temporary) {
-				mail.add_attachment(pdffilename, "application/pdf", pdfdata);
-			}
-
-			var plain = generate_invoice_message(MessageType.PLAIN, temporary, get_address(userdata.gender), userdata.lastname, invoiceentries, total_sum);
-			mail.set_main_part(plain, MessageType.PLAIN);
-
-			var html = generate_invoice_message(MessageType.HTML, temporary, get_address(userdata.gender), userdata.lastname, invoiceentries, total_sum);
-			mail.set_main_part(html, MessageType.HTML);
-
-			mailer.send_mail(mail_path);
-
-			if(!temporary) {
-				treasurer_mail.add_attachment(pdffilename, "application/pdf", pdfdata);
-				csvinvoicedata += @"$(userdata.id),$(userdata.lastname),$(userdata.firstname),$invoiceid,$total_sum\n";
-			}
-		}
-
-		if(!temporary) {
-			treasurer_mail.set_main_part(get_treasurer_text(), MessageType.PLAIN);
-			treasurer_mail.add_attachment("invoice.csv", "text/csv; charset=utf-8", csvinvoicedata.data);
-			mailer.send_mail(treasurer_path);
-		}
+			return result;
 	}
 
 	private string get_treasurer_text() throws IOError {
