@@ -69,7 +69,7 @@ public class InvoiceImplementation {
 		Mail treasurer_mail    = Bus.get_proxy_sync(BusType.SESSION, "io.mainframe.shopsystem.Mail", treasurer_path);
 		treasurer_mail.from    = {"KtT Shopsystem", "shop@kreativitaet-trifft-technik.de"};
 		treasurer_mail.subject = mailtitle;
-		treasurer_mail.add_recipient({"Schatzmeister", "schatzmeister@kreativitaet-trifft-technik.de"}, RecipientType.TO);
+		treasurer_mail.add_recipient({"Schatzmeister", "shop-einzug@kreativitaet-trifft-technik.de"}, RecipientType.TO);
 		var csvinvoicedata     = "";
 
 		foreach(var userid in users) {
@@ -137,7 +137,7 @@ public class InvoiceImplementation {
 		Mail treasurer_mail    = Bus.get_proxy_sync(BusType.SESSION, "io.mainframe.shopsystem.Mail", treasurer_path);
 		treasurer_mail.from    = {"KtT Shopsystem", "shop@kreativitaet-trifft-technik.de"};
 		treasurer_mail.subject = mailtitle;
-		treasurer_mail.add_recipient({"Schatzmeister", "schatzmeister@kreativitaet-trifft-technik.de"}, RecipientType.TO);
+		treasurer_mail.add_recipient({"Schatzmeister", "shop-einzug@kreativitaet-trifft-technik.de"}, RecipientType.TO);
 		var csvinvoicedata     = "";
 
 		foreach(var userid in users) {
