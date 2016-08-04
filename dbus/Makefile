@@ -1,6 +1,6 @@
 SERVICEFILESIN=$(wildcard *.service.in)
 SERVICEFILES=$(basename ${SERVICEFILESIN})
-INSTALLPATH=~/.local/share/dbus-1/services/
+INSTALLPATH=/usr/share/dbus-1/services/
 BINARYPATH=$(realpath $(dir $(lastword $(MAKEFILE_LIST)))/../src)
 ESCAPEDBINARYPATH=
 
