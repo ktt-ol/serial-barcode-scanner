@@ -32,6 +32,29 @@ support for the following tasks:
 The system consists of multiple daemons written in Vala, which communicate
 with each other using DBus.
 
+Build Dependencies:
+ * build-essential
+ * valac
+ * libesmtp-dev
+ * libgpgme11-dev
+ * libncursesw5-dev
+ * libncurses5-dev
+ * libgee-dev
+ * libgmime-2.6-dev
+ * libarchive-dev
+ * libgstreamer0.10-dev
+ * librsvg2-dev
+ * libsqlite3-dev
+ * libpango1.0-dev
+ * libssl-dev
+ * dbus-x11
+
+Additional runtime dependencies:
+ * fonts-lmodern
+
+Suggested runtime dependencies:
+ * sqlite3
+
 Building:
  * ./configure
  * make shop.db
