@@ -31,6 +31,7 @@ public class MailerImplementation {
 	string server;
 	string username;
 	string password;
+	bool starttls;
 
 	unowned string? callback(out string? buf, int *len) {
 		buf = null;
@@ -86,15 +87,24 @@ public class MailerImplementation {
 			password = "";
 		}
 
+		try {
+			starttls = config.get_boolean("MAIL", "starttls");
+		} catch(KeyFileError e) {
+			starttls = true;
+		}
+
 		/* setup server */
 		result = session.set_server(server);
 		if(result == 0)
 			throw new IOError.FAILED("could not setup server");
 
 		/* Use TLS if possible */
-		result = session.starttls_enable(Smtp.StartTlsOption.ENABLED);
+		if (starttls)
+			result = session.starttls_enable(Smtp.StartTlsOption.ENABLED);
+		else
+			result = session.starttls_enable(Smtp.StartTlsOption.DISABLED);
 		if(result == 0)
-			throw new IOError.FAILED("could not setup TLS");
+			throw new IOError.FAILED("could not configure STARTTLS");
 
 		/* setup authentication */
 		if(username != "") {
