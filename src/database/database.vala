@@ -106,8 +106,8 @@ public class DataBase : Object {
 		queries["username"]          = "SELECT firstname, lastname FROM users WHERE id = ?";
 		queries["password_get"]      = "SELECT password FROM authentication WHERE user = ?";
 		queries["password_set"]      = "UPDATE authentication SET password=? WHERE user = ?";
-		queries["userinfo"]          = "SELECT firstname, lastname, email, gender, street, plz, city, pgp FROM users WHERE id = ?";
-		queries["userauth"]          = "SELECT disabled, superuser, auth_users, auth_products, auth_cashbox FROM authentication WHERE user = ?";
+		queries["userinfo"]          = "SELECT firstname, lastname, email, gender, street, plz, city, pgp, hidden, disabled FROM users WHERE id = ?";
+		queries["userauth"]          = "SELECT superuser, auth_users, auth_products, auth_cashbox FROM authentication WHERE user = ?";
 		queries["userauth_set"]      = "UPDATE authentication SET auth_users = ?, auth_products = ?, auth_cashbox = ? WHERE user = ?";
 		queries["profit_by_product"] = "SELECT name, SUM(memberprice - (SELECT price FROM purchaseprices WHERE product = purch.product)) AS price FROM sales purch, prices, products WHERE purch.product = products.id AND purch.product = prices.product AND purch.user > 0 AND purch.timestamp > ? AND purch.timestamp < ? AND prices.valid_from = (SELECT valid_from FROM prices WHERE product = purch.product AND valid_from < purch.timestamp ORDER BY valid_from DESC LIMIT 1) GROUP BY name ORDER BY price;";
 		queries["invoice"]           = "SELECT timestamp, id AS productid, name AS productname, CASE WHEN user < 0 THEN (SELECT SUM(price * amount) / SUM(amount) FROM restock WHERE restock.product = id AND restock.timestamp <= sales.timestamp) else (SELECT CASE WHEN user=0 THEN guestprice else memberprice END FROM prices WHERE product = id AND valid_from <= timestamp ORDER BY valid_from DESC LIMIT 1) END AS price FROM sales INNER JOIN products ON sales.product = products.id WHERE user = ? AND timestamp >= ? AND timestamp <= ? ORDER BY timestamp";
@@ -119,9 +119,9 @@ public class DataBase : Object {
 		queries["total_sales"]       = "SELECT SUM(price) FROM invoice WHERE user >= 0 AND timestamp >= ?";
 		queries["total_profit"]      = "SELECT SUM(price - (SELECT price FROM purchaseprices WHERE product = productid)) FROM invoice WHERE user >= 0 AND timestamp >= ?";
 		queries["user_get_ids"]      = "SELECT id FROM users WHERE id > 0";
-		queries["user_replace"]      = "INSERT OR REPLACE INTO users ('id', 'email', 'firstname', 'lastname', 'gender', 'street', 'plz', 'city', 'pgp') VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+		queries["user_replace"]      = "INSERT OR REPLACE INTO users ('id', 'email', 'firstname', 'lastname', 'gender', 'street', 'plz', 'city', 'pgp', 'hidden', 'disabled') VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 		queries["user_auth_create"]  = "INSERT OR IGNORE INTO authentication (user) VALUES (?)";
-		queries["user_disable"]      = "UPDATE authentication SET disabled = ? WHERE user = ?";
+		queries["user_disable"]      = "UPDATE users SET disabled = ? WHERE id = ?";
 		queries["last_timestamp"]    = "SELECT timestamp FROM sales ORDER BY timestamp DESC LIMIT 1";
 		queries["category_list"]     = "SELECT id, name FROM categories";
 		queries["supplier_list"]     = "SELECT id, name, postal_code, city, street, phone, website FROM supplier";
@@ -605,6 +605,8 @@ public class DataBase : Object {
 			result.postcode  = statements["userinfo"].column_text(5);
 			result.city      = statements["userinfo"].column_text(6);
 			result.pgp       = statements["userinfo"].column_text(7);
+			result.hidden    = statements["userinfo"].column_int(8) == 1;
+			result.disabled  = statements["userinfo"].column_int(9) == 1;
 		} else if(rc == Sqlite.DONE) {
 			throw new DatabaseError.USER_NOT_FOUND("user not found");
 		} else {
@@ -617,7 +619,6 @@ public class DataBase : Object {
 	public UserAuth get_user_auth(int user) throws DatabaseError {
 		var result = UserAuth();
 		result.id = user;
-		result.disabled = false;
 		result.superuser = false;
 		result.auth_cashbox = false;
 		result.auth_products = false;
@@ -628,11 +629,10 @@ public class DataBase : Object {
 		int rc = statements["userauth"].step();
 
 		if(rc == Sqlite.ROW) {
-			result.disabled  = statements["userauth"].column_int(0) == 1;
-			result.superuser = statements["userauth"].column_int(1) == 1;
-			result.auth_users = statements["userauth"].column_int(2) == 1;
-			result.auth_products = statements["userauth"].column_int(3) == 1;
-			result.auth_cashbox = statements["userauth"].column_int(4) == 1;
+			result.superuser = statements["userauth"].column_int(0) == 1;
+			result.auth_users = statements["userauth"].column_int(1) == 1;
+			result.auth_products = statements["userauth"].column_int(2) == 1;
+			result.auth_cashbox = statements["userauth"].column_int(3) == 1;
 		} else if(rc == Sqlite.DONE) {
 			/* entry not found, we return defaults */
 		} else {
@@ -841,6 +841,8 @@ public class DataBase : Object {
 		statements["user_replace"].bind_text(7, u.postcode);
 		statements["user_replace"].bind_text(8, u.city);
 		statements["user_replace"].bind_text(9, u.pgp);
+		statements["user_replace"].bind_int(10, u.hidden ? 1 : 0);
+		statements["user_replace"].bind_int(11, u.disabled ? 1 : 0);
 
 		int rc = statements["user_replace"].step();
 		if(rc != Sqlite.DONE)
@@ -848,7 +850,7 @@ public class DataBase : Object {
 	}
 
 	public bool user_is_disabled(int user) throws DatabaseError {
-		return get_user_auth(user).disabled;
+		return get_user_info(user).disabled;
 	}
 
 	public bool user_exists(int user) throws DatabaseError {

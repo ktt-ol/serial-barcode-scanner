@@ -52,7 +52,7 @@ public class CSVMemberFile {
 	public CSVMemberFile(string data) {
 		foreach(var line in data.split("\n")) {
 			var linedata = csv_split(line);
-			if(linedata.length >= 9) {
+			if(linedata.length >= 11) {
 				var m = UserInfo();
 				m.id = int.parse(csv_value(linedata[0]));
 				m.email = csv_value(linedata[1]);
@@ -63,6 +63,8 @@ public class CSVMemberFile {
 				m.city = csv_value(linedata[6]);
 				m.gender = csv_value(linedata[7]) == "m" ? "masculinum" : csv_value(linedata[7]) == "w" ? "femininum" : "unknown";
 				m.pgp = csv_value(linedata[8]);
+				m.hidden = int.parse(csv_value(linedata[9])) != 0;
+				m.disabled = int.parse(csv_value(linedata[10])) != 0;
 				if(csv_value(linedata[0]) != "EXTERNEMITGLIEDSNUMMER")
 					members += m;
 			}

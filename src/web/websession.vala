@@ -84,7 +84,7 @@ public class WebSession {
 
 	private void setup_auth(int user) throws DatabaseError, IOError {
 		var auth = db.get_user_auth(user);
-		this.disabled  = auth.disabled;
+		this.disabled  = db.user_is_disabled(user);
 		this.superuser = auth.superuser;
 		this.auth_cashbox = auth.auth_cashbox;
 		this.auth_products = auth.auth_products;

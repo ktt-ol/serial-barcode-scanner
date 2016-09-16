@@ -333,9 +333,10 @@ public class WebServer {
 			t.replace("POSTALCODE", userinfo.postcode);
 			t.replace("CITY", userinfo.city);
 			t.replace("PGPKEYID", userinfo.pgp);
+			t.replace("DISABLED", userinfo.disabled ? "true" : "false");
+			t.replace("HIDDEN", userinfo.hidden ? "true" : "false");
 
 			var userauth = db.get_user_auth(id);
-			t.replace("DISABLED", userauth.disabled ? "true" : "false");
 			t.replace("ISSUPERUSER", userauth.superuser ? "true" : "false");
 			t.replace("HAS_AUTH_PRODUCTS", userauth.auth_products ? "Yes" : "No");
 			t.replace("HAS_AUTH_CASHBOX", userauth.auth_cashbox ? "Yes" : "No");

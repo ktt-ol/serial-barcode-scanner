@@ -119,6 +119,8 @@ public struct UserInfo {
 	public string postcode;
 	public string city;
 	public string pgp;
+	public bool disabled;
+	public bool hidden;
 
 	public bool equals(UserInfo x) {
 		if(id != x.id) return false;
@@ -130,6 +132,8 @@ public struct UserInfo {
 		if(postcode != x.postcode) return false;
 		if(city != x.city) return false;
 		if(pgp != x.pgp) return false;
+		if(disabled != x.disabled) return false;
+		if(hidden != x.hidden) return false;
 
 		return true;
 	}
@@ -137,7 +141,6 @@ public struct UserInfo {
 
 public struct UserAuth {
 	public int id;
-	public bool disabled;
 	public bool superuser;
 	public bool auth_cashbox;
 	public bool auth_products;

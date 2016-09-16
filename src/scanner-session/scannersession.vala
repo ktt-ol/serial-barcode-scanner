@@ -59,7 +59,7 @@ public class ScannerSessionImplementation {
     this.user      = user;
     try {
       this.name      = db.get_username(user);
-      this.disabled  = db.get_user_auth(user).disabled;
+      this.disabled  = db.user_is_disabled(user);
     } catch(DatabaseError e) {
       send_message(MessageType.ERROR, "Error (user=%d): %s", user, e.message);
       return false;
