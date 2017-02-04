@@ -23,6 +23,7 @@ public class WebServer {
 			t.replace("TITLE", "KtT Shop System");
 			t.menu_set_active("home");
 			msg.set_response("text/html", Soup.MemoryUse.COPY, t.data);
+			msg.set_status(200);
 		} catch(TemplateError e) {
 			stderr.printf(e.message+"\n");
 			handler_404(server, msg, path, query, client);
@@ -41,6 +42,7 @@ public class WebServer {
 			t.replace("TITLE", "KtT Shop System");
 			t.menu_set_active("home");
 			msg.set_response("text/html", Soup.MemoryUse.COPY, t.data);
+			msg.set_status(200);
 		} catch(TemplateError e) {
 			stderr.printf(e.message+"\n");
 			handler_404(server, msg, path, query, client);
@@ -108,6 +110,7 @@ public class WebServer {
 			t.replace("DATA", data);
 
 			msg.set_response("text/html", Soup.MemoryUse.COPY, t.data);
+			msg.set_status(200);
 		} catch(TemplateError e) {
 			stderr.printf(e.message+"\n");
 			handler_404(server, msg, path, query, client);
@@ -138,6 +141,7 @@ public class WebServer {
 				t.replace("STEP1",  "block");
 				t.replace("STEP2",  "none");
 				msg.set_response("text/html", Soup.MemoryUse.COPY, t.data);
+				msg.set_status(200);
 				return;
 			} else {
 				var keylist = pgp.import_archive(filedata.data);
@@ -157,6 +161,7 @@ public class WebServer {
 				t.replace("STEP1",  "none");
 				t.replace("STEP2",  "block");
 				msg.set_response("text/html", Soup.MemoryUse.COPY, t.data);
+				msg.set_status(200);
 				return;
 			}
 		} catch(TemplateError e) {
@@ -190,6 +195,7 @@ public class WebServer {
 				t.replace("STEP23", "none");
 				t.replace("STEP3",  "none");
 				msg.set_response("text/html", Soup.MemoryUse.COPY, t.data);
+				msg.set_status(200);
 				return;
 			} else {
 				if(filedata != null) {
@@ -261,6 +267,7 @@ public class WebServer {
 			}
 
 			msg.set_response("text/html", Soup.MemoryUse.COPY, t.data);
+			msg.set_status(200);
 		} catch(TemplateError e) {
 			stderr.printf(e.message+"\n");
 			handler_404(server, msg, path, query, client);
@@ -367,6 +374,7 @@ public class WebServer {
 			}
 
 			msg.set_response("text/html", Soup.MemoryUse.COPY, t.data);
+			msg.set_status(200);
 		} catch(TemplateError e) {
 			stderr.printf(e.message+"\n");
 			handler_404(server, msg, path, query, client);
@@ -483,6 +491,7 @@ public class WebServer {
 			t.replace("SUM", @"$sum €");
 
 			msg.set_response("text/html", Soup.MemoryUse.COPY, t.data);
+			msg.set_status(200);
 		} catch(TemplateError e) {
 			stderr.printf(e.message+"\n");
 			handler_404(server, msg, path, query, client);
@@ -548,6 +557,7 @@ public class WebServer {
 				t.replace("NEWPRODUCT", "none");
 
 			msg.set_response("text/html", Soup.MemoryUse.COPY, t.data);
+			msg.set_status(200);
 		} catch(TemplateError e) {
 			stderr.printf(e.message+"\n");
 			handler_404(server, msg, path, query, client);
@@ -579,6 +589,7 @@ public class WebServer {
 			t.replace("DATA", table);
 
 			msg.set_response("text/html", Soup.MemoryUse.COPY, t.data);
+			msg.set_status(200);
 		} catch(TemplateError e) {
 			stderr.printf(e.message+"\n");
 			handler_404(server, msg, path, query, client);
@@ -1169,6 +1180,7 @@ public class WebServer {
 			template.replace("CASHBOX_HISTORY", hist);
 			template.menu_set_active("cashbox");
 			msg.set_response("text/html", Soup.MemoryUse.COPY, template.data);
+			msg.set_status(200);
 		} catch(TemplateError e) {
 			stderr.printf(e.message+"\n");
 			handler_404(server, msg, path, query, client);
@@ -1239,6 +1251,7 @@ public class WebServer {
 			}
 
 			msg.set_response("text/html", Soup.MemoryUse.COPY, template.data);
+			msg.set_status(200);
 		} catch(TemplateError e) {
 			stderr.printf(e.message+"\n");
 			handler_404(server, msg, path, query, client);
@@ -1263,6 +1276,7 @@ public class WebServer {
 				template.replace("TITLE", "KtT Shop System: Cashbox Detail");
 				template.menu_set_active("cashbox");
 				msg.set_response("text/html", Soup.MemoryUse.COPY, template.data);
+				msg.set_status(200);
 			} catch(TemplateError e) {
 				stderr.printf(e.message+"\n");
 				handler_404(server, msg, path, query, client);
@@ -1343,6 +1357,7 @@ public class WebServer {
 			template.replace("WITHDRAWAL_LIST", withdrawal_list);
 
 			msg.set_response("text/html", Soup.MemoryUse.COPY, template.data);
+			msg.set_status(200);
 		} catch(TemplateError e) {
 			stderr.printf(e.message+"\n");
 			handler_404(server, msg, path, query, client);
