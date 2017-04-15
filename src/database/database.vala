@@ -104,9 +104,11 @@ public class DataBase : Object {
 		queries["session_set"]       = "UPDATE authentication SET session=? WHERE user = ?";
 		queries["session_get"]       = "SELECT user FROM authentication WHERE session = ?";
 		queries["username"]          = "SELECT firstname, lastname FROM users WHERE id = ?";
+		queries["user_theme_get"]    = "SELECT CASE WHEN sound_theme IS NULL THEN ? ELSE sound_theme END FROM users WHERE id = ?";
+		queries["user_theme_set"]    = "UPDATE users SET sound_theme=? WHERE id = ?";
 		queries["password_get"]      = "SELECT password FROM authentication WHERE user = ?";
 		queries["password_set"]      = "UPDATE authentication SET password=? WHERE user = ?";
-		queries["userinfo"]          = "SELECT firstname, lastname, email, gender, street, plz, city, pgp, hidden, disabled FROM users WHERE id = ?";
+		queries["userinfo"]          = "SELECT firstname, lastname, email, gender, street, plz, city, pgp, hidden, disabled, sound_theme FROM users WHERE id = ?";
 		queries["userauth"]          = "SELECT superuser, auth_users, auth_products, auth_cashbox FROM authentication WHERE user = ?";
 		queries["userauth_set"]      = "UPDATE authentication SET auth_users = ?, auth_products = ?, auth_cashbox = ? WHERE user = ?";
 		queries["profit_by_product"] = "SELECT name, SUM(memberprice - (SELECT price FROM purchaseprices WHERE product = purch.product)) AS price FROM sales purch, prices, products WHERE purch.product = products.id AND purch.product = prices.product AND purch.user > 0 AND purch.timestamp > ? AND purch.timestamp < ? AND prices.valid_from = (SELECT valid_from FROM prices WHERE product = purch.product AND valid_from < purch.timestamp ORDER BY valid_from DESC LIMIT 1) GROUP BY name ORDER BY price;";
@@ -597,16 +599,17 @@ public class DataBase : Object {
 
 		if(rc == Sqlite.ROW) {
 			result.id = user;
-			result.firstname = statements["userinfo"].column_text(0);
-			result.lastname  = statements["userinfo"].column_text(1);
-			result.email     = statements["userinfo"].column_text(2);
-			result.gender    = statements["userinfo"].column_text(3);
-			result.street    = statements["userinfo"].column_text(4);
-			result.postcode  = statements["userinfo"].column_text(5);
-			result.city      = statements["userinfo"].column_text(6);
-			result.pgp       = statements["userinfo"].column_text(7);
-			result.hidden    = statements["userinfo"].column_int(8) == 1;
-			result.disabled  = statements["userinfo"].column_int(9) == 1;
+			result.firstname   = statements["userinfo"].column_text(0);
+			result.lastname    = statements["userinfo"].column_text(1);
+			result.email       = statements["userinfo"].column_text(2);
+			result.gender      = statements["userinfo"].column_text(3);
+			result.street      = statements["userinfo"].column_text(4);
+			result.postcode    = statements["userinfo"].column_text(5);
+			result.city        = statements["userinfo"].column_text(6);
+			result.pgp         = statements["userinfo"].column_text(7);
+			result.hidden      = statements["userinfo"].column_int(8) == 1;
+			result.disabled	   = statements["userinfo"].column_int(9) == 1;
+			result.soundTheme  = statements["userinfo"].column_text(10);
 		} else if(rc == Sqlite.DONE) {
 			throw new DatabaseError.USER_NOT_FOUND("user not found");
 		} else {
@@ -673,6 +676,32 @@ public class DataBase : Object {
 		} else {
 			throw new DatabaseError.USER_NOT_FOUND("No such user available in database!");
 		}
+	}
+
+	public string get_user_theme(int user, string fallback) throws DatabaseError {
+		statements["user_theme_get"].reset();
+		statements["user_theme_get"].bind_text(1, fallback);
+		statements["user_theme_get"].bind_int(2, user);
+
+		if(statements["user_theme_get"].step() == Sqlite.ROW) {
+			return statements["user_theme_get"].column_text(0);
+		} else {
+			throw new DatabaseError.USER_NOT_FOUND("No such user available in database!");
+		}
+	}
+
+	public void set_userTheme(int user, string userTheme) throws DatabaseError {
+		statements["user_theme_set"].reset();
+		if (userTheme == "") {
+			statements["user_theme_set"].bind_null(1);
+		} else {
+			statements["user_theme_set"].bind_text(1, userTheme);
+		}
+		statements["user_theme_set"].bind_int(2, user);
+
+		int rc = statements["user_theme_set"].step();
+		if(rc != Sqlite.DONE)
+			throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
 	}
 
 	public InvoiceEntry[] get_invoice(int user, int64 from=0, int64 to=-1) throws DatabaseError {

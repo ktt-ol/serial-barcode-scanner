@@ -359,19 +359,36 @@ public class WebServer {
 				t.replace("ISADMIN2", "disabled=\"disabled\"");
 			}
 
+			var userThemeList = audio.get_user_themes();
+			var message = "";
 			var postdata = Soup.Form.decode_multipart(msg, null, null, null, null);
 			if(postdata != null && postdata.contains("password1") && postdata.contains("password2")) {
 				if(postdata["password1"] != postdata["password2"]) {
-					t.replace("MESSAGE", "<div class=\"alert alert-error\">Error! Passwords do not match!</div>");
+					message = "<div class=\"alert alert-error\">Error! Passwords do not match!</div>";
 				} else if(postdata["password1"] == "") {
-					t.replace("MESSAGE", "<div class=\"alert alert-error\">Error! Empty Password not allowed!</div>");
+					message = "<div class=\"alert alert-error\">Error! Empty Password not allowed!</div>";
 				} else {
 					db.set_user_password(id, postdata["password1"]);
-					t.replace("MESSAGE", "<div class=\"alert alert-success\">Password Changed!</div>");
+					message = "<div class=\"alert alert-success\">Password Changed!</div>";
 				}
-			} else {
-				t.replace("MESSAGE", "");
+			} else if(postdata != null && postdata.contains("soundTheme")) {
+				if (postdata["soundTheme"] in userThemeList) {
+					userinfo.soundTheme = postdata["soundTheme"];
+					db.set_userTheme(id, postdata["soundTheme"]);
+				} else {
+					userinfo.soundTheme = null;
+					db.set_userTheme(id, "");
+				}
+				message = "<div class=\"alert alert-success\">Sound theme changed.</div>";
 			}
+			t.replace("MESSAGE", message);
+
+			var soundThemes = "";
+			foreach(var theme in userThemeList) {
+				var selected = userinfo.soundTheme == theme ? "selected" : "";
+			  soundThemes += @"<option $selected>$theme</option>";
+			}
+			t.replace("SOUND_THEMES", soundThemes);
 
 			msg.set_response("text/html", Soup.MemoryUse.COPY, t.data);
 			msg.set_status(200);

@@ -32,11 +32,13 @@ public interface Database : Object {
 	public abstract bool check_user_password(int32 user, string password) throws IOError;
 	public abstract void set_user_password(int32 user, string password) throws IOError, DatabaseError;
 	public abstract void set_sessionid(int user, string sessionid) throws IOError, DatabaseError;
+	public abstract void set_userTheme(int user, string userTheme) throws IOError, DatabaseError;
 	public abstract int get_user_by_sessionid(string sessionid) throws IOError, DatabaseError;
 	public abstract UserInfo get_user_info(int user) throws IOError, DatabaseError;
 	public abstract UserAuth get_user_auth(int user) throws IOError, DatabaseError;
 	public abstract void set_user_auth(UserAuth auth) throws IOError, DatabaseError;
 	public abstract string get_username(int user) throws IOError, DatabaseError;
+	public abstract string get_user_theme(int user, string fallback) throws IOError, DatabaseError;
 	public abstract InvoiceEntry[] get_invoice(int user, int64 from=0, int64 to=-1) throws IOError, DatabaseError;
 	public abstract int64 get_first_purchase(int user) throws IOError;
 	public abstract int64 get_last_purchase(int user) throws IOError;
@@ -121,6 +123,7 @@ public struct UserInfo {
 	public string pgp;
 	public bool disabled;
 	public bool hidden;
+	public string soundTheme;
 
 	public bool equals(UserInfo x) {
 		if(id != x.id) return false;

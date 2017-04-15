@@ -74,6 +74,10 @@ public class AudioPlayerImplementation {
 		return get_random_file(path + "user/");
 	}
 
+	public string[] get_user_themes() {
+		return get_files(path + "user/");
+	}
+
 	public void play_user(string theme, string type) {
 		p.set_state(Gst.State.NULL);
 		var file = get_random_file(path + "user/" + theme+ "/" + type);

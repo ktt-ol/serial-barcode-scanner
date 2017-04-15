@@ -67,7 +67,10 @@ public class ScannerSessionImplementation {
     this.logged_in = true;
 
     try {
-      this.theme = audio.get_random_user_theme();
+      this.theme = db.get_user_theme(user, "");
+      if (this.theme == "") {
+        this.theme = audio.get_random_user_theme();
+      }
     } catch(IOError e) {
       this.theme = "beep";
     }
