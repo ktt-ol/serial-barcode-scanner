@@ -19,7 +19,7 @@ public static int main(string[] args) {
 	Gst.init(ref args);
 
 	Bus.own_name(
-		BusType.SESSION,
+		BusType.SYSTEM,
 		"io.mainframe.shopsystem.AudioPlayer",
 		BusNameOwnerFlags.NONE,
 		on_bus_aquired,
@@ -27,7 +27,7 @@ public static int main(string[] args) {
 		() => stderr.printf("Could not aquire name\n"));
 
 	try {
-		Config cfg = Bus.get_proxy_sync(BusType.SESSION, "io.mainframe.shopsystem.Config", "/io/mainframe/shopsystem/config");
+		Config cfg = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Config", "/io/mainframe/shopsystem/config");
 		var path = cfg.get_string("AUDIO", "path");
 		player = new AudioPlayerImplementation(path);
 	} catch(IOError e) {

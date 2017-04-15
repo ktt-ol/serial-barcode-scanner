@@ -17,7 +17,7 @@ ScannerSessionImplementation session;
 
 public static int main(string[] args) {
 	Bus.own_name(
-		BusType.SESSION,
+		BusType.SYSTEM,
 		"io.mainframe.shopsystem.ScannerSession",
 		BusNameOwnerFlags.NONE,
 		on_bus_aquired,

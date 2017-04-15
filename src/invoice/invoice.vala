@@ -34,10 +34,10 @@ public class InvoiceImplementation {
 	string datadir;
 
 	public InvoiceImplementation() throws IOError, KeyFileError {
-		mailer = Bus.get_proxy_sync(BusType.SESSION, "io.mainframe.shopsystem.Mail", "/io/mainframe/shopsystem/mailer");
-		db = Bus.get_proxy_sync(BusType.SESSION, "io.mainframe.shopsystem.Database", "/io/mainframe/shopsystem/database");
-		pdf = Bus.get_proxy_sync(BusType.SESSION, "io.mainframe.shopsystem.InvoicePDF", "/io/mainframe/shopsystem/invoicepdf");
-		Config cfg = Bus.get_proxy_sync(BusType.SESSION, "io.mainframe.shopsystem.Config", "/io/mainframe/shopsystem/config");
+		mailer = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Mail", "/io/mainframe/shopsystem/mailer");
+		db = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Database", "/io/mainframe/shopsystem/database");
+		pdf = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.InvoicePDF", "/io/mainframe/shopsystem/invoicepdf");
+		Config cfg = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Config", "/io/mainframe/shopsystem/config");
 		datadir = cfg.get_string("INVOICE", "datadir");
 	}
 
@@ -66,7 +66,7 @@ public class InvoiceImplementation {
 		var users = db.get_users_with_sales(ts.from, ts.to);
 
 		string treasurer_path  = mailer.create_mail();
-		Mail treasurer_mail    = Bus.get_proxy_sync(BusType.SESSION, "io.mainframe.shopsystem.Mail", treasurer_path);
+		Mail treasurer_mail    = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Mail", treasurer_path);
 		treasurer_mail.from    = {"KtT Shopsystem", "shop@kreativitaet-trifft-technik.de"};
 		treasurer_mail.subject = mailtitle;
 		treasurer_mail.add_recipient({"Schatzmeister", "shop-einzug@kreativitaet-trifft-technik.de"}, RecipientType.TO);
@@ -81,7 +81,7 @@ public class InvoiceImplementation {
 			if(userid == user) {
 				var invoicedata = generate_invoice(temporary, timestamp, userid, invoiceid);
 				string mail_path = mailer.create_mail();
-				Mail mail = Bus.get_proxy_sync(BusType.SESSION, "io.mainframe.shopsystem.Mail", mail_path);
+				Mail mail = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Mail", mail_path);
 				mail.from = {"KtT Shopsystem", "shop@kreativitaet-trifft-technik.de"};
 				mail.subject = mailtitle;
 				mail.add_recipient({@"$(userdata.firstname) $(userdata.lastname)", userdata.email}, RecipientType.TO);
@@ -134,7 +134,7 @@ public class InvoiceImplementation {
 		var users = db.get_users_with_sales(ts.from, ts.to);
 
 		string treasurer_path  = mailer.create_mail();
-		Mail treasurer_mail    = Bus.get_proxy_sync(BusType.SESSION, "io.mainframe.shopsystem.Mail", treasurer_path);
+		Mail treasurer_mail    = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Mail", treasurer_path);
 		treasurer_mail.from    = {"KtT Shopsystem", "shop@kreativitaet-trifft-technik.de"};
 		treasurer_mail.subject = mailtitle;
 		treasurer_mail.add_recipient({"Schatzmeister", "shop-einzug@kreativitaet-trifft-technik.de"}, RecipientType.TO);
@@ -148,7 +148,7 @@ public class InvoiceImplementation {
 			var total_sum = db.get_user_invoice_sum(userid, tst.from, tst.to);
 
 			string mail_path = mailer.create_mail();
-			Mail mail = Bus.get_proxy_sync(BusType.SESSION, "io.mainframe.shopsystem.Mail", mail_path);
+			Mail mail = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Mail", mail_path);
 			mail.from = {"KtT Shopsystem", "shop@kreativitaet-trifft-technik.de"};
 			mail.subject = mailtitle;
 			mail.add_recipient({@"$(userdata.firstname) $(userdata.lastname)", userdata.email}, RecipientType.TO);

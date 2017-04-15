@@ -1,3 +1,4 @@
 [D-BUS Service]
 Name=io.mainframe.shopsystem.Database
 Exec=${PATH}/database/database
+User=shop

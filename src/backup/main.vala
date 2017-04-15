@@ -15,12 +15,12 @@
 
 public static int main(string[] args) {
 	try {
-		Mailer mailer = Bus.get_proxy_sync(BusType.SESSION, "io.mainframe.shopsystem.Mail", "/io/mainframe/shopsystem/mailer");
-		Config cfg = Bus.get_proxy_sync(BusType.SESSION, "io.mainframe.shopsystem.Config", "/io/mainframe/shopsystem/config");
+		Mailer mailer = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Mail", "/io/mainframe/shopsystem/mailer");
+		Config cfg = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Config", "/io/mainframe/shopsystem/config");
 		string dbfile = cfg.get_string("DATABASE", "file");
 
 		string mailpath = mailer.create_mail();
-		Mail mail = Bus.get_proxy_sync(BusType.SESSION, "io.mainframe.shopsystem.Mail", mailpath);
+		Mail mail = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Mail", mailpath);
 
 		uint8[] dbdata;
 		FileUtils.get_data(dbfile, out dbdata);

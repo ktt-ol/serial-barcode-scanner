@@ -1,3 +1,4 @@
 [D-BUS Service]
 Name=io.mainframe.shopsystem.AudioPlayer
 Exec=${PATH}/audio/audio
+User=shop

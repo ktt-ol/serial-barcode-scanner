@@ -21,7 +21,7 @@ public static int main(string[] args) {
 	cfg = new Cfg(binarylocation + "/../../ktt-shopsystem.cfg");
 
 	Bus.own_name(
-		BusType.SESSION,
+		BusType.SYSTEM,
 		"io.mainframe.shopsystem.Config",
 		BusNameOwnerFlags.NONE,
 		on_bus_aquired,

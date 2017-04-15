@@ -70,7 +70,7 @@ public class MailerImplementation {
 		Posix.signal(Posix.SIGPIPE, Posix.SIG_IGN);
 
 		/* get configuration */
-		Config config = Bus.get_proxy_sync(BusType.SESSION, "io.mainframe.shopsystem.Config", "/io/mainframe/shopsystem/config");
+		Config config = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Config", "/io/mainframe/shopsystem/config");
 		try {
 			var cfgserv = config.get_string("MAIL", "server");
 			var cfgport	= config.get_integer("MAIL", "port");

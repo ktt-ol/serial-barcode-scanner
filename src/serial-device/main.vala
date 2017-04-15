@@ -17,7 +17,7 @@ Device dev;
 
 public static int main(string[] args) {
 	try {
-		Config cfg = Bus.get_proxy_sync(BusType.SESSION, "io.mainframe.shopsystem.Config", "/io/mainframe/shopsystem/config");
+		Config cfg = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Config", "/io/mainframe/shopsystem/config");
 		dev = new Device(cfg.get_string("INPUT", "device"), 9600, 8, 1);
 	} catch(IOError e) {
 		error("IOError: %s\n", e.message);
@@ -26,7 +26,7 @@ public static int main(string[] args) {
 	}
 
 	Bus.own_name(
-		BusType.SESSION,
+		BusType.SYSTEM,
 		"io.mainframe.shopsystem.InputDevice",
 		BusNameOwnerFlags.NONE,
 		on_bus_aquired,

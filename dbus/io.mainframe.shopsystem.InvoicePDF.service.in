@@ -1,3 +1,4 @@
 [D-BUS Service]
 Name=io.mainframe.shopsystem.InvoicePDF
 Exec=${PATH}/pdf-invoice/pdf-invoice
+User=shop

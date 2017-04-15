@@ -17,7 +17,7 @@ private string datadir;
 
 public static int main(string[] args) {
 	try {
-		Config cfg = Bus.get_proxy_sync(BusType.SESSION, "io.mainframe.shopsystem.Config", "/io/mainframe/shopsystem/config");
+		Config cfg = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Config", "/io/mainframe/shopsystem/config");
 		datadir = cfg.get_string("INVOICE", "datadir");
 	} catch(IOError e) {
 		error("IOError: %s\n", e.message);
@@ -26,7 +26,7 @@ public static int main(string[] args) {
 	}
 
 	Bus.own_name(
-		BusType.SESSION,
+		BusType.SYSTEM,
 		"io.mainframe.shopsystem.InvoicePDF",
 		BusNameOwnerFlags.NONE,
 		on_bus_aquired,

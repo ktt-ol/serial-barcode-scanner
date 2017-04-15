@@ -1,3 +1,4 @@
 [D-BUS Service]
 Name=io.mainframe.shopsystem.PGP
 Exec=${PATH}/pgp/pgp
+User=shop

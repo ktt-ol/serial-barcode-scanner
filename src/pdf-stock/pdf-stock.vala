@@ -169,7 +169,7 @@ public class StockPDF {
 
 		/* get stock */
 		try {
-			Database db = Bus.get_proxy_sync(BusType.SESSION, "io.mainframe.shopsystem.Database", "/io/mainframe/shopsystem/database");
+			Database db = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Database", "/io/mainframe/shopsystem/database");
 			stock = db.get_stock();
 			timestamp = new DateTime.now_local().to_unix();
 		} catch(IOError e) {

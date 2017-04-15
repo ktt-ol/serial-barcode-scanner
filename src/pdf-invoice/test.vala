@@ -14,7 +14,7 @@
  */
 
 public static int main(string args[]) {
-	PDFInvoice invoice = Bus.get_proxy_sync(BusType.SESSION, "io.mainframe.shopsystem.InvoicePDF", "/io/mainframe/shopsystem/invoicepdf");
+	PDFInvoice invoice = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.InvoicePDF", "/io/mainframe/shopsystem/invoicepdf");
 
 	InvoiceRecipient r = {
 		"Max",

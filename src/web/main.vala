@@ -26,9 +26,9 @@ public static int main(string[] args) {
 	uint port = 8080;
 
 	try {
-		db  = Bus.get_proxy_sync(BusType.SESSION, "io.mainframe.shopsystem.Database", "/io/mainframe/shopsystem/database");
-		pgp = Bus.get_proxy_sync(BusType.SESSION, "io.mainframe.shopsystem.PGP", "/io/mainframe/shopsystem/pgp");
-		cfg = Bus.get_proxy_sync(BusType.SESSION, "io.mainframe.shopsystem.Config", "/io/mainframe/shopsystem/config");
+		db  = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Database", "/io/mainframe/shopsystem/database");
+		pgp = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.PGP", "/io/mainframe/shopsystem/pgp");
+		cfg = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Config", "/io/mainframe/shopsystem/config");
 		templatedir = cfg.get_string("WEB", "filepath");
 		port = cfg.get_integer("WEB", "port");
 
