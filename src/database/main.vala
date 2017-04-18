@@ -21,7 +21,7 @@ DataBase db;
 
 public static int main(string[] args) {
 	try {
-		Config cfg = Bus.get_proxy_sync(BusType.SESSION, "io.mainframe.shopsystem.Config", "/io/mainframe/shopsystem/config");
+		Config cfg = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Config", "/io/mainframe/shopsystem/config");
 		var dbfile = cfg.get_string("DATABASE", "file");
 		db = new DataBase(dbfile);
 	} catch(IOError e) {
@@ -31,7 +31,7 @@ public static int main(string[] args) {
 	}
 
 	Bus.own_name(
-		BusType.SESSION,
+		BusType.SYSTEM,
 		"io.mainframe.shopsystem.Database",
 		BusNameOwnerFlags.NONE,
 		on_bus_aquired,

@@ -1,0 +1,15 @@
+[Unit]
+Description=Shop System Web Interface
+Requires=shopsystem-dbus.service
+After=shopsystem-dbus.service
+
+[Service]
+User=shop
+Group=shop
+Type=simple
+ExecStart=/home/shop/serial-barcode-scanner/src/web/web
+StandardInput=null
+StandardOutput=journal
+
+[Install]
+WantedBy=multi-user.target

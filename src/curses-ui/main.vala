@@ -47,8 +47,8 @@ public static int main(string[] args) {
 	Unix.signal_add(Posix.SIGINT,  handle_signals);
 
 	try {
-		audio = Bus.get_proxy_sync(BusType.SESSION, "io.mainframe.shopsystem.AudioPlayer", "/io/mainframe/shopsystem/audio");
-		scanner = Bus.get_proxy_sync(BusType.SESSION, "io.mainframe.shopsystem.ScannerSession", "/io/mainframe/shopsystem/scanner_session");
+		audio = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.AudioPlayer", "/io/mainframe/shopsystem/audio");
+		scanner = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.ScannerSession", "/io/mainframe/shopsystem/scanner_session");
 	} catch(IOError e) {
 		error("IOError: %s\n", e.message);
 	}

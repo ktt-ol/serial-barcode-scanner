@@ -1,0 +1,12 @@
+[Unit]
+Description=Send shopsystem backup mail
+DefaultDependencies=no
+Conflicts=shutdown.target
+Before=shutdown.target
+
+[Service]
+Type=oneshot
+User=shop
+Group=shop
+ExecStart=/home/shop/serial-barcode-scanner/src/backup/backup
+IOSchedulingClass=idle

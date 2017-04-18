@@ -1,0 +1,14 @@
+[Unit]
+Description=Shop System UI
+
+[Service]
+User=shop
+Group=shop
+Type=simple
+ExecStart=/home/shop/serial-barcode-scanner/src/curses-ui/curses-ui
+StandardInput=tty
+StandardOutput=tty
+TTYPath=/dev/tty3
+
+[Install]
+WantedBy=multi-user.target

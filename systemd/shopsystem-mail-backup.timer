@@ -1,0 +1,9 @@
+[Unit]
+Description=Run shopsystem backup mail daily
+
+[Timer]
+OnCalendar=*-*-* 08:00:00
+Persistent=true
+
+[Install]
+WantedBy=timers.target

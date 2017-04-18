@@ -24,7 +24,7 @@ public static int main(string[] args) {
 	}
 
 	Bus.own_name(
-		BusType.SESSION,
+		BusType.SYSTEM,
 		"io.mainframe.shopsystem.Mail",
 		BusNameOwnerFlags.NONE,
 		on_mail_bus_aquired,

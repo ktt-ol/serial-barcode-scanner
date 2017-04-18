@@ -1,3 +1,4 @@
 [D-BUS Service]
 Name=io.mainframe.shopsystem.SerialDevice
 Exec=${PATH}/serial-device/serial-device
+User=shop

@@ -26,7 +26,7 @@ public static int main(string[] args) {
 	
 	cli = new CliImpl();
 	Bus.own_name(
-		BusType.SESSION,
+		BusType.SYSTEM,
 		"io.mainframe.shopsystem.Cli",
 		BusNameOwnerFlags.NONE,
 		on_bus_aquired,

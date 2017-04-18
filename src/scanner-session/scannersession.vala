@@ -32,10 +32,10 @@ public class ScannerSessionImplementation {
 
   public ScannerSessionImplementation() {
     try {
-      db       = Bus.get_proxy_sync(BusType.SESSION, "io.mainframe.shopsystem.Database", "/io/mainframe/shopsystem/database");
-      dev      = Bus.get_proxy_sync(BusType.SESSION, "io.mainframe.shopsystem.InputDevice", "/io/mainframe/shopsystem/device");
-      cli      = Bus.get_proxy_sync(BusType.SESSION, "io.mainframe.shopsystem.Cli", "/io/mainframe/shopsystem/cli");
-      audio    = Bus.get_proxy_sync(BusType.SESSION, "io.mainframe.shopsystem.AudioPlayer", "/io/mainframe/shopsystem/audio");
+      db       = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Database", "/io/mainframe/shopsystem/database");
+      dev      = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.InputDevice", "/io/mainframe/shopsystem/device");
+      cli      = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Cli", "/io/mainframe/shopsystem/cli");
+      audio    = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.AudioPlayer", "/io/mainframe/shopsystem/audio");
 
       dev.received_barcode.connect(handle_barcode);
       cli.received_barcode.connect(handle_barcode);
