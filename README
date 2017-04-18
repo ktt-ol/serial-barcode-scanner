@@ -67,4 +67,6 @@ Usage:
  * setup ktt-shopsystem.cfg
  * start the curses UI in /etc/inittab
  * start the web UI via /etc/init.d/
+ * create new user `TODO`
+ * Sets a user's password with `mdbus2 io.mainframe.shopsystem.Database /io/mainframe/shopsystem/database io.mainframe.shopsystem.Database.SetUserPassword 1 test`
  * call the invoice tool via cron

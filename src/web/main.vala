@@ -17,6 +17,7 @@ Database db;
 public CSVMemberFile csvimport;
 public PGP pgp;
 public Config cfg;
+public AudioPlayer audio;
 string templatedir;
 
 public static int main(string[] args) {
@@ -29,6 +30,7 @@ public static int main(string[] args) {
 		db  = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Database", "/io/mainframe/shopsystem/database");
 		pgp = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.PGP", "/io/mainframe/shopsystem/pgp");
 		cfg = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Config", "/io/mainframe/shopsystem/config");
+    audio	= Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.AudioPlayer", "/io/mainframe/shopsystem/audio");
 		templatedir = cfg.get_string("WEB", "filepath");
 		port = cfg.get_integer("WEB", "port");
 
