@@ -1,0 +1,13 @@
+[Unit]
+Description=Send shopsystem monthly invoice mail
+DefaultDependencies=no
+Conflicts=shutdown.target
+
+[Service]
+Type=oneshot
+User=shop
+Group=shop
+ExecStart=/home/shop/serial-barcode-scanner/src/invoice/invoice final
+StandardOutput=journal
+StandardError=journal
+IOSchedulingClass=idle

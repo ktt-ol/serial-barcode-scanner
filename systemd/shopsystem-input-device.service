@@ -1,0 +1,20 @@
+[Unit]
+Description=Shop System Input Device Handler
+BindsTo=dev-barcodescanner.device
+Requires=dev-barcodescanner.device
+After=dev-barcodescanner.device
+
+[Service]
+Type=dbus
+BusName=io.mainframe.shopsystem.InputDevice
+User=shop
+Group=shop
+Restart=always
+RestartSec=10
+ExecStart=/home/shop/serial-barcode-scanner/src/input-device/input-device
+StandardInput=tty
+StandardOutput=tty
+TTYPath=/dev/tty3
+
+[Install]
+WantedBy=multi-user.target
