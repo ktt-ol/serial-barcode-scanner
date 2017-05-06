@@ -65,6 +65,7 @@ public class CSVMemberFile {
 				m.pgp = csv_value(linedata[8]);
 				m.hidden = int.parse(csv_value(linedata[9])) != 0;
 				m.disabled = int.parse(csv_value(linedata[10])) != 0;
+				m.soundTheme = "";
 				if(csv_value(linedata[0]) != "EXTERNEMITGLIEDSNUMMER")
 					members += m;
 			}
