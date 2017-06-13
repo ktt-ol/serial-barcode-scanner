@@ -121,6 +121,7 @@ public struct UserInfo {
 	public string postcode;
 	public string city;
 	public string pgp;
+	public int64 joined_at;
 	public bool disabled;
 	public bool hidden;
 	public string soundTheme;
@@ -135,6 +136,7 @@ public struct UserInfo {
 		if(postcode != x.postcode) return false;
 		if(city != x.city) return false;
 		if(pgp != x.pgp) return false;
+		if(joined_at != x.joined_at) return false;
 		if(disabled != x.disabled) return false;
 		if(hidden != x.hidden) return false;
 
