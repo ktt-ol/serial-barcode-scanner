@@ -62,9 +62,10 @@ public class CSVMemberFile {
 				m.postcode = csv_value(linedata[5]);
 				m.city = csv_value(linedata[6]);
 				m.gender = csv_value(linedata[7]) == "m" ? "masculinum" : csv_value(linedata[7]) == "w" ? "femininum" : "unknown";
-				m.pgp = csv_value(linedata[8]);
-				m.hidden = int.parse(csv_value(linedata[9])) != 0;
-				m.disabled = int.parse(csv_value(linedata[10])) != 0;
+				m.joined_at = int.parse(csv_value(linedata[8]));
+				m.pgp = csv_value(linedata[9]);
+				m.hidden = int.parse(csv_value(linedata[10])) != 0;
+				m.disabled = int.parse(csv_value(linedata[11])) != 0;
 				m.soundTheme = "";
 				if(csv_value(linedata[0]) != "EXTERNEMITGLIEDSNUMMER")
 					members += m;

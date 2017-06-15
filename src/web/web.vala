@@ -214,10 +214,10 @@ public class WebServer {
 				foreach(var member in csvimport.get_members()) {
 					if(db.user_exists(member.id) && !db.user_equals(member)) {
 						var dbmember = db.get_user_info(member.id);
-						data1 += @"<tr class=\"error\"><td><i class=\"icon-minus-sign\"></i><td>$(dbmember.id)</td><td>$(dbmember.firstname)</td><td>$(dbmember.lastname)</td><td>$(dbmember.email)</td><td>$(dbmember.gender)</td><td>$(dbmember.street)</td><td>$(dbmember.postcode)</td><td>$(dbmember.city)</td><td>$(dbmember.pgp)</td><td>$(dbmember.hidden)</td><td>$(dbmember.disabled)</td></tr>";
+						data1 += @"<tr class=\"error\"><td><i class=\"icon-minus-sign\"></i><td>$(dbmember.id)</td><td>$(dbmember.firstname)</td><td>$(dbmember.lastname)</td><td>$(dbmember.email)</td><td>$(dbmember.gender)</td><td>$(dbmember.street)</td><td>$(dbmember.postcode)</td><td>$(dbmember.city)</td><td>$(dbmember.pgp)</td><td>$(dbmember.hidden)</td><td>$(dbmember.disabled)</td><td>$(dbmember.joined_at)</td></tr>";
 					}
 					if(!db.user_exists(member.id) || !db.user_equals(member)) {
-						data1 += @"<tr class=\"success\"><td><i class=\"icon-plus-sign\"></td><td>$(member.id)</td><td>$(member.firstname)</td><td>$(member.lastname)</td><td>$(member.email)</td><td>$(member.gender)</td><td>$(member.street)</td><td>$(member.postcode)</td><td>$(member.city)</td><td>$(member.pgp)</td><td>$(member.hidden)</td><td>$(member.disabled)</td></tr>";
+						data1 += @"<tr class=\"success\"><td><i class=\"icon-plus-sign\"></td><td>$(member.id)</td><td>$(member.firstname)</td><td>$(member.lastname)</td><td>$(member.email)</td><td>$(member.gender)</td><td>$(member.street)</td><td>$(member.postcode)</td><td>$(member.city)</td><td>$(member.pgp)</td><td>$(member.hidden)</td><td>$(member.disabled)</td><td>$(member.joined_at)</td></tr>";
 					}
 				}
 				t.replace("DATA1", data1);
