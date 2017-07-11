@@ -52,7 +52,7 @@ public class CSVMemberFile {
 	public CSVMemberFile(string data) {
 		foreach(var line in data.split("\n")) {
 			var linedata = csv_split(line);
-			if(linedata.length >= 11) {
+			if(linedata.length >= 12) {
 				var m = UserInfo();
 				m.id = int.parse(csv_value(linedata[0]));
 				m.email = csv_value(linedata[1]);
