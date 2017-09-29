@@ -197,23 +197,19 @@ public class InvoiceImplementation {
 
 			/* pdf generation */
 			if(!temporary) {
-				try {
-					pdf.invoice_id = invoiceid;
-					pdf.invoice_date = timestamp;
-					pdf.invoice_recipient = {
-						userdata.firstname,
-						userdata.lastname,
-						userdata.street,
-						userdata.postcode,
-						userdata.city,
-						userdata.gender
-					};
-					pdf.invoice_entries = invoiceentries;
-					result.pdfdata = pdf.generate();
-					pdf.clear();
-				} catch(DBusError e) {
-					throw new IOError.FAILED("PDF Generation failed");
-				}
+				pdf.invoice_id = invoiceid;
+				pdf.invoice_date = timestamp;
+				pdf.invoice_recipient = {
+					userdata.firstname,
+					userdata.lastname,
+					userdata.street,
+					userdata.postcode,
+					userdata.city,
+					userdata.gender
+				};
+				pdf.invoice_entries = invoiceentries;
+				result.pdfdata = pdf.generate();
+				pdf.clear();
 			}
 
 			result.plain = generate_invoice_message(MessageType.PLAIN, temporary, get_address(userdata.gender), userdata.lastname, invoiceentries, total_sum);
