@@ -10,7 +10,10 @@ public struct Price : int {
 	public static Price parse(string data) {
 		if("." in data) {
 			var parts = data.split(".");
-			return int.parse(parts[0])*100 + int.parse(parts[1]);
+			if (parts[1].length <= 1)
+				return int.parse(parts[0])*100 + int.parse(parts[1])*10;
+			else
+				return int.parse(parts[0])*100 + int.parse(parts[1].substring(0,2));
 		} else {
 			return int.parse(data);
 		}
