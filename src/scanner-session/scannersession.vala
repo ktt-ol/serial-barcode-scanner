@@ -71,7 +71,7 @@ public class ScannerSessionImplementation {
       if (this.theme == "") {
         this.theme = audio.get_random_user_theme();
       }
-    } catch(IOError e) {
+    } catch(DatabaseError e) {
       this.theme = "beep";
     }
 
