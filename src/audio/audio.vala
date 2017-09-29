@@ -36,7 +36,7 @@ public class AudioPlayerImplementation {
 		var alsa = Gst.ElementFactory.make("alsasink", "alsa");
 		p = Gst.ElementFactory.make("playbin2", "play");
 		p.set("audio-sink", alsa);
-		p.get_bus().add_watch(bus_callback);
+		p.get_bus().add_watch(Priority.DEFAULT, bus_callback);
 	}
 
 	public void play_system(string file) {
