@@ -282,7 +282,7 @@ public class WebServer {
 		try {
 			var l = new WebSession(server, msg, path, query, client);
 
-			if(!l.superuser) {
+			if(!(l.superuser || l.auth_users)) {
 				handler_403(server, msg, path, query, client);
 				return;
 			}
@@ -321,7 +321,8 @@ public class WebServer {
 	void handler_user_entry(Soup.Server server, Soup.Message msg, string path, GLib.HashTable? query, Soup.ClientContext client, int id) {
 		try {
 			var session = new WebSession(server, msg, path, query, client);
-			if(id != session.user && !session.superuser) {
+
+			if(id != session.user && !(session.superuser || session.auth_users)) {
 				handler_403(server, msg, path, query, client);
 				return;
 			}
@@ -425,7 +426,7 @@ public class WebServer {
 
 		try {
 			var l = new WebSession(server, msg, path, query, client);
-			if(id != l.user && !l.superuser) {
+			if(id != l.user && !(l.superuser || l.auth_users)) {
 				handler_403(server, msg, path, query, client);
 				return;
 			}
