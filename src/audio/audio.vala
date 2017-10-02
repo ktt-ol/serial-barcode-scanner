@@ -15,7 +15,7 @@
 
 [DBus (name = "io.mainframe.shopsystem.AudioPlayer")]
 public class AudioPlayerImplementation {
-	private dynamic Gst.Element p;
+	private dynamic Gst.Element? p;
 	string path;
 
 	public signal void end_of_stream();
@@ -30,18 +30,24 @@ public class AudioPlayerImplementation {
 		return true;
 	}
 
-	public AudioPlayerImplementation(string path) {
+	public AudioPlayerImplementation(string path) throws IOError {
 		this.path = path;
 
 		var alsa = Gst.ElementFactory.make("alsasink", "alsa");
-		p = Gst.ElementFactory.make("playbin2", "play");
+		if (alsa == null)
+			throw new GLib.IOError.FAILED("Cannot find alsa GStreamer plugin");
+
+		p = Gst.ElementFactory.make("playbin", "player");
+		if (p == null)
+			throw new GLib.IOError.FAILED("Cannot find playbin2 GStreamer plugin");
+
 		p.set("audio-sink", alsa);
 		p.get_bus().add_watch(Priority.DEFAULT, bus_callback);
 	}
 
 	public void play_system(string file) {
 		p.set_state(Gst.State.NULL);
-		p.uri = "file://" + path + "system/"+file;
+		p.uri = "file://" + path + "system/" + file;
 		p.set_state(Gst.State.PLAYING);
 	}
 
