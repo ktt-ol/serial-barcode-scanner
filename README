@@ -39,10 +39,10 @@ Build Dependencies:
  * libgpgme11-dev
  * libncursesw5-dev
  * libncurses5-dev
- * libgee-dev
+ * libgee-0.8-dev
  * libgmime-2.6-dev
  * libarchive-dev
- * libgstreamer0.10-dev
+ * libgstreamer1.0-dev
  * librsvg2-dev
  * libsqlite3-dev
  * libpango1.0-dev
@@ -51,22 +51,47 @@ Build Dependencies:
 
 Additional runtime dependencies:
  * fonts-lmodern
+ * gstreamer1.0-alsa
+ * gstreamer1.0-plugins-base
 
 Suggested runtime dependencies:
  * sqlite3
 
-Building:
+== Installation ==
+
+You can install to different location or use a different username,
+but you need to modify a few things.
+
+=== Git Setup ===
+
+ * adduser "shop" with homedir in /home/shop
+ * clone git repository into /home/shop/serial-barcode-scanner
+
+=== Build the Software ===
+
  * ./configure
  * make shop.db
  * make
 
-Installation:
- * make install (TODO)
+=== DBus Configuration ===
 
-Usage:
- * setup ktt-shopsystem.cfg
- * start the curses UI in /etc/inittab
- * start the web UI via /etc/init.d/
- * create new user `TODO`
- * Sets a user's password with `mdbus2 io.mainframe.shopsystem.Database /io/mainframe/shopsystem/database io.mainframe.shopsystem.Database.SetUserPassword 1 test`
- * call the invoice tool via cron
+ * cd dbus
+ * make
+ * sudo make install
+
+=== Systemd ===
+
+ * cd systemd
+ * sudo make install
+
+=== Configuration ===
+
+ * mv example.cfg ktt-shopsystem.cfg
+ * edit ktt-shopsystem.cfg
+
+=== Database ===
+
+ * Create user
+   `sqlite3 shop.db "INSERT INTO users (id, email, firstname, lastname) VALUES (1, "test@tester", "Firstname", "Lastname");`
+ * Setup user password
+   `mdbus2 io.mainframe.shopsystem.Database /io/mainframe/shopsystem/database io.mainframe.shopsystem.Database.SetUserPassword 1 "password"`
