@@ -9,6 +9,9 @@ ExecStart=/home/shop/serial-barcode-scanner/src/curses-ui/curses-ui
 StandardInput=tty
 StandardOutput=tty
 TTYPath=/dev/tty3
+TTYReset=yes
+TTYVHangup=yes
+TTYVTDisallocate=yes
 
 [Install]
 WantedBy=multi-user.target
