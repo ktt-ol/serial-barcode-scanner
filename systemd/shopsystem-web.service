@@ -1,7 +1,5 @@
 [Unit]
 Description=Shop System Web Interface
-Requires=shopsystem-dbus.service
-After=shopsystem-dbus.service
 
 [Service]
 User=shop
