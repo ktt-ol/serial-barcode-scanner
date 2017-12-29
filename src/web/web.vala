@@ -1170,7 +1170,7 @@ public class WebServer {
 			var session = new WebSession(server, msg, path, query, client);
 			var template = new WebTemplate("errors/todo.html", session);
 			template.replace("TITLE", shortname + " Shop System: ToDo");
-            template.replace("SHORTNAME", shortname);
+      template.replace("SHORTNAME", shortname);
 			template.menu_set_active("");
 			msg.set_response("text/html", Soup.MemoryUse.COPY, template.data);
 			msg.set_status(200);
@@ -1216,6 +1216,7 @@ public class WebServer {
 			}
 
 			template.replace("TITLE", shortname + " Shop System: Cashbox");
+      template.replace("SHORTNAME", shortname);
 			template.replace("CASHBOX_STATUS", status);
 			template.replace("CASHBOX_HISTORY", hist);
 			template.menu_set_active("cashbox");
@@ -1242,7 +1243,7 @@ public class WebServer {
 
 			var template = new WebTemplate("cashbox/add.html", session);
 			template.replace("TITLE", shortname + " Shop System: Cashbox Balance");
-            template.replace("SHORTNAME", shortname);
+      template.replace("SHORTNAME", shortname);
 			template.menu_set_active("cashbox");
 
 			bool error = false;
@@ -1315,7 +1316,7 @@ public class WebServer {
 				var session = new WebSession(server, msg, path, query, client);
 				var template = new WebTemplate("cashbox/selection.html", session);
 				template.replace("TITLE", shortname + " Shop System: Cashbox Detail");
-                template.replace("SHORTNAME", shortname);
+        template.replace("SHORTNAME", shortname);
 				template.menu_set_active("cashbox");
 				msg.set_response("text/html", Soup.MemoryUse.COPY, template.data);
 				msg.set_status(200);
