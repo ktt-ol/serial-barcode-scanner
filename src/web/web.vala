@@ -15,6 +15,8 @@
 
 public class WebServer {
 	private Soup.Server srv;
+  private string logname;
+  private string shortname;
 
 	void handler_default(Soup.Server server, Soup.Message msg, string path, GLib.HashTable<string,string>? query, Soup.ClientContext client) {
 		try {
@@ -1387,6 +1389,19 @@ public class WebServer {
 	}
 
 	public WebServer(uint port = 8080, TlsCertificate? cert = null) throws Error {
+
+    /* get configuration */
+    Config config = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Config", "/io/mainframe/shopsystem/config");
+    logname = "logname";
+    shortname = "shortname";
+    try {
+      logname = config.get_string("GENERAL", "longname");
+      shortname = config.get_string("GENERAL", "shortname");
+    } catch(KeyFileError e) {
+      logname = "Logname Missing in Config";
+      shortname = "Shortname Missing in Config";
+    }
+
 		srv = new Soup.Server("tls-certificate", cert);
 		Soup.ServerListenOptions options = 0;
 
