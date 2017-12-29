@@ -18,13 +18,13 @@ using Curses;
 public class Logo {
 	Window win;
 
-	public Logo() {
+	public Logo(string binarylocation) {
 		win = new Window(8, COLS - 2, 0, 1);
 		win.bkgdset(COLOR_PAIR(1) | Attribute.BOLD);
 
 		win.addstr("\n");
 
-        var file = File.new_for_path ("logo.txt");
+        var file = File.new_for_path (binarylocation + "/../../logo.txt");
 
         if (!file.query_exists ()) {
             stderr.printf ("File '%s' doesn't exist.\n", file.get_path ());
