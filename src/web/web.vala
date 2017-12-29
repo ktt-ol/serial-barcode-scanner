@@ -22,7 +22,8 @@ public class WebServer {
 		try {
 			var l = new WebSession(server, msg, path, query, client);
 			var t = new WebTemplate("index.html", l);
-			t.replace("TITLE", "KtT Shop System");
+			t.replace("TITLE", shortname + " Shop System");
+            t.replace("SHORTNAME", shortname);
 			t.menu_set_active("home");
 			msg.set_response("text/html", Soup.MemoryUse.COPY, t.data);
 			msg.set_status(200);
@@ -41,7 +42,8 @@ public class WebServer {
 			var l = new WebSession(server, msg, path, query, client);
 			l.logout();
 			var t = new WebTemplate("logout.html", l);
-			t.replace("TITLE", "KtT Shop System");
+			t.replace("TITLE", shortname + " Shop System");
+            t.replace("SHORTNAME", shortname);
 			t.menu_set_active("home");
 			msg.set_response("text/html", Soup.MemoryUse.COPY, t.data);
 			msg.set_status(200);
@@ -98,7 +100,8 @@ public class WebServer {
 			}
 
 			var t = new WebTemplate("users/index.html", session);
-			t.replace("TITLE", "KtT Shop System: User");
+			t.replace("TITLE", shortname + " Shop System: User");
+            t.replace("SHORTNAME", shortname);
 			t.menu_set_active("users");
 			var data = "";
 			foreach(var m in db.get_member_ids()) {
@@ -132,7 +135,8 @@ public class WebServer {
 			}
 
 			var t = new WebTemplate("users/import-pgp.html", session);
-			t.replace("TITLE", "KtT Shop System: PGP Key Import");
+			t.replace("TITLE", shortname + " Shop System: PGP Key Import");
+            t.replace("SHORTNAME", shortname);
 			t.menu_set_active("users");
 
 			Soup.Buffer filedata;
@@ -184,7 +188,8 @@ public class WebServer {
 				return;
 			}
 			var t = new WebTemplate("users/import.html", session);
-			t.replace("TITLE", "KtT Shop System: User Import");
+			t.replace("TITLE", shortname + " Shop System: User Import");
+            t.replace("SHORTNAME", shortname);
 			t.menu_set_active("users");
 
 			Soup.Buffer filedata;
@@ -329,7 +334,8 @@ public class WebServer {
 				return;
 			}
 			var t = new WebTemplate("users/entry.html", session);
-			t.replace("TITLE", "KtT Shop System: User Info %llu".printf(id));
+			t.replace("TITLE", shortname + " Shop System: User Info %llu".printf(id));
+            t.replace("SHORTNAME", shortname);
 			t.menu_set_active("users");
 
 			var userinfo = db.get_user_info(id);
@@ -433,7 +439,8 @@ public class WebServer {
 				return;
 			}
 			var t = new WebTemplate("users/invoice.html", l);
-			t.replace("TITLE", "KtT Shop System: User Invoice %llu".printf(id));
+			t.replace("TITLE", shortname + " Shop System: User Invoice %llu".printf(id));
+            t.replace("SHORTNAME", shortname);
 			t.menu_set_active("users");
 
 			/* years, in which something has been purchased by the user */
@@ -555,7 +562,8 @@ public class WebServer {
 		try {
 			var l = new WebSession(server, msg, path, query, client);
 			var t = new WebTemplate("products/index.html", l);
-			t.replace("TITLE", "KtT Shop System: Product List");
+			t.replace("TITLE", shortname + " Shop System: Product List");
+            t.replace("SHORTNAME", shortname);
 			t.menu_set_active("products");
 
 			string table = "";
@@ -592,7 +600,8 @@ public class WebServer {
 		try {
 			var l = new WebSession(server, msg, path, query, client);
 			var t = new WebTemplate("products/bestbefore.html", l);
-			t.replace("TITLE", "KtT Shop System: Best Before List");
+			t.replace("TITLE", shortname + " Shop System: Best Before List");
+            t.replace("SHORTNAME", shortname);
 			t.menu_set_active("products");
 
 			string table = "";
@@ -647,7 +656,8 @@ public class WebServer {
 		try {
 			var l = new WebSession(server, msg, path, query, client);
 			var t = new WebTemplate("products/entry.html", l);
-			t.replace("TITLE", "KtT Shop System: Product %llu".printf(id));
+			t.replace("TITLE", shortname + " Shop System: Product %llu".printf(id));
+            t.replace("SHORTNAME", shortname);
 			t.menu_set_active("products");
 
 			/* ean */
@@ -727,7 +737,8 @@ public class WebServer {
 		try {
 			var session = new WebSession(server, msg, path, query, client);
 			var template = new WebTemplate("products/new.html", session);
-			template.replace("TITLE", "KtT Shop System: New Product");
+			template.replace("TITLE", shortname + " Shop System: New Product");
+            template.replace("SHORTNAME", shortname);
 			template.menu_set_active("products");
 
 			if(!session.superuser && !session.auth_products) {
@@ -783,7 +794,8 @@ public class WebServer {
 			}
 
 			var template = new WebTemplate("products/restock.html", session);
-			template.replace("TITLE", "KtT Shop System: Restock Product %llu".printf(id));
+			template.replace("TITLE", shortname + " Shop System: Restock Product %llu".printf(id));
+            template.replace("SHORTNAME", shortname);
 			template.replace("NAME", db.get_product_name(id));
 			template.menu_set_active("products");
 
@@ -841,7 +853,7 @@ public class WebServer {
 			}
 
 			var template = new WebTemplate("products/newprice.html", session);
-			template.replace("TITLE", "KtT Shop System: New Price for Product %llu".printf(id));
+			template.replace("TITLE", shortname + " Shop System: New Price for Product %llu".printf(id));
 			template.replace("NAME", db.get_product_name(id));
 			template.menu_set_active("products");
 
@@ -880,7 +892,8 @@ public class WebServer {
 		try {
 			var l = new WebSession(server, msg, path, query, client);
 			var t = new WebTemplate("aliases/index.html", l);
-			t.replace("TITLE", "KtT Shop System: Alias List");
+			t.replace("TITLE", shortname + " Shop System: Alias List");
+            t.replace("SHORTNAME", shortname);
 			t.menu_set_active("aliases");
 
 			string table = "";
@@ -912,7 +925,8 @@ public class WebServer {
 		try {
 			var session = new WebSession(server, msg, path, query, client);
 			var template = new WebTemplate("aliases/new.html", session);
-			template.replace("TITLE", "KtT Shop System: New Alias");
+			template.replace("TITLE", shortname + " Shop System: New Alias");
+            template.replace("SHORTNAME", shortname);
 			template.menu_set_active("aliases");
 
 			if(!session.superuser && !session.auth_products) {
@@ -960,7 +974,8 @@ public class WebServer {
 		try {
 			var l = new WebSession(server, msg, path, query, client);
 			var t = new WebTemplate("stats/index.html", l);
-			t.replace("TITLE", "KtT Shop System: Statistics");
+			t.replace("TITLE", shortname + " Shop System: Statistics");
+            t.replace("SHORTNAME", shortname);
 			t.menu_set_active("stats");
 
 			var stats = db.get_stats_info();
@@ -993,7 +1008,8 @@ public class WebServer {
 			var t = new WebTemplate("stats/stock.html", l);
 			string data = db.get_stats_stock().json;
 			t.replace("DATA", data);
-			t.replace("TITLE", "KtT Shop System: Statistics: Stock");
+            t.replace("SHORTNAME", shortname);
+			t.replace("TITLE", shortname + " Shop System: Statistics: Stock");
 			t.menu_set_active("stats");
 			msg.set_response("text/html", Soup.MemoryUse.COPY, t.data);
 			msg.set_status(200);
@@ -1009,7 +1025,8 @@ public class WebServer {
 			var t = new WebTemplate("stats/profit_per_day.html", l);
 			string data = db.get_stats_profit_per_day().json;
 			t.replace("DATA", data);
-			t.replace("TITLE", "KtT Shop System: Statistics: Profit");
+            t.replace("SHORTNAME", shortname);
+			t.replace("TITLE", shortname + " Shop System: Statistics: Profit");
 			t.menu_set_active("stats");
 			msg.set_response("text/html", Soup.MemoryUse.COPY, t.data);
 			msg.set_status(200);
@@ -1025,7 +1042,8 @@ public class WebServer {
 			var t = new WebTemplate("stats/profit_per_weekday.html", l);
 			string data = db.get_stats_profit_per_weekday().json;
 			t.replace("DATA", data);
-			t.replace("TITLE", "KtT Shop System: Statistics: Profit/Weekday");
+            t.replace("SHORTNAME", shortname);
+			t.replace("TITLE", shortname + " Shop System: Statistics: Profit/Weekday");
 			t.menu_set_active("stats");
 			msg.set_response("text/html", Soup.MemoryUse.COPY, t.data);
 			msg.set_status(200);
@@ -1041,7 +1059,8 @@ public class WebServer {
 			var t = new WebTemplate("stats/profit_per_product.html", l);
 			string data = db.get_stats_profit_per_products().json;
 			t.replace("DATA", data);
-			t.replace("TITLE", "KtT Shop System: Statistics: Profit/Product");
+            t.replace("SHORTNAME", shortname);
+			t.replace("TITLE", shortname + " Shop System: Statistics: Profit/Product");
 			t.menu_set_active("stats");
 			msg.set_response("text/html", Soup.MemoryUse.COPY, t.data);
 			msg.set_status(200);
@@ -1150,7 +1169,8 @@ public class WebServer {
 		try {
 			var session = new WebSession(server, msg, path, query, client);
 			var template = new WebTemplate("errors/todo.html", session);
-			template.replace("TITLE", "KtT Shop System: ToDo");
+			template.replace("TITLE", shortname + " Shop System: ToDo");
+            template.replace("SHORTNAME", shortname);
 			template.menu_set_active("");
 			msg.set_response("text/html", Soup.MemoryUse.COPY, template.data);
 			msg.set_status(200);
@@ -1195,7 +1215,7 @@ public class WebServer {
 				hist += "</tr>\n";
 			}
 
-			template.replace("TITLE", "KtT Shop System: Cashbox");
+			template.replace("TITLE", shortname + " Shop System: Cashbox");
 			template.replace("CASHBOX_STATUS", status);
 			template.replace("CASHBOX_HISTORY", hist);
 			template.menu_set_active("cashbox");
@@ -1221,7 +1241,8 @@ public class WebServer {
 			}
 
 			var template = new WebTemplate("cashbox/add.html", session);
-			template.replace("TITLE", "KtT Shop System: Cashbox Balance");
+			template.replace("TITLE", shortname + " Shop System: Cashbox Balance");
+            template.replace("SHORTNAME", shortname);
 			template.menu_set_active("cashbox");
 
 			bool error = false;
@@ -1293,7 +1314,8 @@ public class WebServer {
 			try {
 				var session = new WebSession(server, msg, path, query, client);
 				var template = new WebTemplate("cashbox/selection.html", session);
-				template.replace("TITLE", "KtT Shop System: Cashbox Detail");
+				template.replace("TITLE", shortname + " Shop System: Cashbox Detail");
+                template.replace("SHORTNAME", shortname);
 				template.menu_set_active("cashbox");
 				msg.set_response("text/html", Soup.MemoryUse.COPY, template.data);
 				msg.set_status(200);
@@ -1363,9 +1385,9 @@ public class WebServer {
 			}
 
 			var template = new WebTemplate("cashbox/detail.html", session);
-			template.replace("TITLE", "KtT Shop System: Cashbox Detail");
+			template.replace("TITLE", shortname + " Shop System: Cashbox Detail");
 			template.menu_set_active("cashbox");
-
+            template.replace("SHORTNAME", shortname);
 			template.replace("DATE", start.format("%B %Y"));
 			template.replace("DEBIT", debit.to_string());
 			template.replace("LOSS", loss.to_string());
