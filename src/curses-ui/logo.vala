@@ -23,12 +23,25 @@ public class Logo {
 		win.bkgdset(COLOR_PAIR(1) | Attribute.BOLD);
 
 		win.addstr("\n");
-		win.addstr("   _  ___  _____   ____  _                 \n");
-		win.addstr("  | |/ / ||_   _| / ___|| |__   ___  _ __  \n");
-		win.addstr("  | ' /| __|| |   \\___ \\| '_ \\ / _ \\| '_ \\ \n");
-		win.addstr("  | . \\| |_ | |    ___) | | | | (_) | |_) )\n");
-		win.addstr("  |_|\\_\\\\__||_|   |____/|_| |_|\\___/| .__/ \n");
-		win.addstr("                                    |_|    \n");
+
+        var file = File.new_for_path ("logo.txt");
+
+        if (!file.query_exists ()) {
+            stderr.printf ("File '%s' doesn't exist.\n", file.get_path ());
+        }
+
+        try {
+            // Open file for reading and wrap returned FileInputStream into a
+            // DataInputStream, so we can read line by line
+            var dis = new DataInputStream (file.read ());
+            string line;
+            // Read lines until end of file (null) is reached
+            while ((line = dis.read_line (null)) != null) {
+                win.addstr(line+"\n");
+            }
+        } catch (Error e) {
+            error ("%s", e.message);
+        }
 
 		win.clrtobot();
 
