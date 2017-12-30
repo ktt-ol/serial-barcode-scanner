@@ -343,6 +343,12 @@ public class WebServer {
 			t.replace("PGPKEYID", userinfo.pgp);
 			t.replace("DISABLED", userinfo.disabled ? "true" : "false");
 			t.replace("HIDDEN", userinfo.hidden ? "true" : "false");
+			var rfidstring = "<ul>";
+			for(int i=0; i<userinfo.rfid.length; i++) {
+				rfidstring +=  "<li>" + userinfo.rfid[i] + "</li>";
+			}
+			rfidstring += "</ul>";
+			t.replace("RFID", rfidstring);
 
 			var userauth = db.get_user_auth(id);
 			t.replace("ISSUPERUSER", userauth.superuser ? "true" : "false");
