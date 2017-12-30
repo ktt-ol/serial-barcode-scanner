@@ -121,6 +121,7 @@ public struct UserInfo {
 	public string postcode;
 	public string city;
 	public string pgp;
+	public string[] rfid;
 	public int64 joined_at;
 	public bool disabled;
 	public bool hidden;

@@ -109,6 +109,7 @@ public class DataBase : Object {
 		queries["password_get"]      = "SELECT password FROM authentication WHERE user = ?";
 		queries["password_set"]      = "UPDATE authentication SET password=? WHERE user = ?";
 		queries["userinfo"]          = "SELECT firstname, lastname, email, gender, street, plz, city, pgp, hidden, disabled, sound_theme, joined_at FROM users WHERE id = ?";
+		queries["userrfid"]          = "SELECT rfid FROM rfid WHERE user = ?";
 		queries["userauth"]          = "SELECT superuser, auth_users, auth_products, auth_cashbox FROM authentication WHERE user = ?";
 		queries["userauth_set"]      = "UPDATE authentication SET auth_users = ?, auth_products = ?, auth_cashbox = ? WHERE user = ?";
 		queries["profit_by_product"] = "SELECT name, SUM(memberprice - (SELECT price FROM purchaseprices WHERE product = purch.product)) AS price FROM sales purch, prices, products WHERE purch.product = products.id AND purch.product = prices.product AND purch.user > 0 AND purch.timestamp > ? AND purch.timestamp < ? AND prices.valid_from = (SELECT valid_from FROM prices WHERE product = purch.product AND valid_from < purch.timestamp ORDER BY valid_from DESC LIMIT 1) GROUP BY name ORDER BY price;";
@@ -614,6 +615,28 @@ public class DataBase : Object {
 		} else if(rc == Sqlite.DONE) {
 			throw new DatabaseError.USER_NOT_FOUND("user not found");
 		} else {
+			throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
+		}
+
+		result.rfid = get_user_rfid(user);
+
+		return result;
+	}
+
+	private string[] get_user_rfid(int user) throws DatabaseError {
+
+		string[] result = {};
+
+		statements["userrfid"].reset();
+		statements["userrfid"].bind_int(1, user);
+		int rc = statements["userrfid"].step();
+
+		while(rc == Sqlite.ROW) {
+			result += statements["userrfid"].column_text(0);
+			rc = statements["userrfid"].step();
+		}
+
+		if(rc != Sqlite.DONE) {
 			throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
 		}
 
