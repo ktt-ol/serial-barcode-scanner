@@ -621,6 +621,26 @@ public class DataBase : Object {
 		return result;
 	}
 
+	private string[] get_user_rfid(int user) throws DatabaseError {
+
+		string[] result = {};
+
+		statements["userrfid"].reset();
+		statements["userrfid"].bind_int(1, user);
+		int rc = statements["userrfid"].step();
+
+		while(rc == Sqlite.ROW) {
+			result += statements["userrfid"].column_text(0);
+			rc = statements["userrfid"].step();
+		}
+
+		if(rc != Sqlite.DONE) {
+			throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
+		}
+
+		return result;
+	}
+
 	public UserAuth get_user_auth(int user) throws DatabaseError {
 		var result = UserAuth();
 		result.id = user;
