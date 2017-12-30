@@ -618,6 +618,8 @@ public class DataBase : Object {
 			throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
 		}
 
+		result.rfid = get_user_rfid(user);
+
 		return result;
 	}
 
