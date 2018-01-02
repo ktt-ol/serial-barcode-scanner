@@ -63,9 +63,14 @@ public class InvoicePDF {
 		"Dezember"
 	};
 
+	string longname;
+	string umsatzsteuer;
+
 	public InvoicePDF(string datadir) {
 		this.datadir = datadir;
 		cfg = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Config", "/io/mainframe/shopsystem/config");
+		longname = cfg.get_string("GENERAL", "longname");
+		umsatzsteuer = cfg.get_string("INVOICE", "umsatzsteuer");
 	}
 
 	private void render_svg(Cairo.Context ctx, string file) {
@@ -361,6 +366,24 @@ public class InvoicePDF {
 			text = text.replace("{{{ADDRESS}}}", address);
 			text = text.replace("{{{LASTNAME}}}", invoice_recipient.lastname);
 			text = text.replace("{{{SUM}}}", @"$sum");
+			text = text.replace("{{{VEREINSNAME}}}", longname);
+
+			if(umsatzsteuer == "yes") {
+				text = text.replace("{{{UMSATZSTEUER}}}", "");
+			}
+			else {
+				string umsatzsteuertext;
+
+				try {
+					FileUtils.get_contents(datadir + "/" + "umsatzsteuer.txt", out umsatzsteuertext);
+				} catch(GLib.FileError e) {
+					throw new IOError.FAILED("Could not open umsatzsteuer template: %s", e.message);
+				}
+
+				text = text.replace("{{{UMSATZSTEUER}}}", umsatzsteuertext);
+			}
+
+
 			layout.set_markup(text, text.length);
 		} catch(GLib.FileError e) {
 			error("File Error: %s\n", e.message);

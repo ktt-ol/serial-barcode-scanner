@@ -9,4 +9,4 @@ Eine detaillierte Auflistung der einzelnen Posten befindet sich, mit genauer Zei
 Der Gesamtbetrag wird in 10 Tagen von dem angegebenen Bankkonto eingezogen.
 Mit freundlichen Grüßen
 
-Kreativität trifft Technik e.V.
+{{{VEREINSNAME}}}
