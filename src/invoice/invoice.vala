@@ -162,7 +162,7 @@ public class InvoiceImplementation {
 
 			string mail_path = mailer.create_mail();
 			Mail mail = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Mail", mail_path);
-			mail.from = {shortname + " Shopsystem", mailfromaddress};
+			mail.from = {"KtT Shopsystem", "shop@kreativitaet-trifft-technik.de"};
 			mail.subject = mailtitle;
 			mail.add_recipient({@"$(userdata.firstname) $(userdata.lastname)", userdata.email}, RecipientType.TO);
 
