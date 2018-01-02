@@ -4,7 +4,7 @@ wir erlauben uns, Ihnen für den Verzehr von Speisen und Getränken <b>{{{SUM}}}
 
 Eine detaillierte Auflistung der einzelnen Posten befindet sich, mit genauer Zeitangabe des Einkaufs, auf den folgenden Seiten.
 
-Umsatzsteuer wird nicht erhoben, da der Verein Kreativität trifft Technik e.V. als Kleinunternehmen unter die Regelung des § 19 Abs. 1 UStG fällt.
+{{{UMSATZSTEUER}}}
 
 Der Gesamtbetrag wird in 10 Tagen von dem angegebenen Bankkonto eingezogen.
 Mit freundlichen Grüßen

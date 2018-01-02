@@ -35,6 +35,7 @@ public class InvoiceImplementation {
 	string mailfromaddress;
 	string treasurermailaddress;
 	string shortname;
+	string umsatzsteuer;
 
 	public InvoiceImplementation() throws IOError, KeyFileError {
 		mailer = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Mail", "/io/mainframe/shopsystem/mailer");
@@ -45,6 +46,7 @@ public class InvoiceImplementation {
 		mailfromaddress = cfg.get_string("MAIL", "mailfromaddress");
 		treasurermailaddress = cfg.get_string("MAIL", "treasurermailaddress");
 		shortname = cfg.get_string("GENERAL", "shortname");
+		umsatzsteuer = cfg.get_string("INVOICE", "umsatzsteuer");
 	}
 
 	public void send_invoice(bool temporary, int64 timestamp, int user) throws IOError, InvoicePDFError, DatabaseError {
@@ -302,6 +304,28 @@ public class InvoiceImplementation {
 		text = text.replace("{{{LASTNAME}}}", name);
 		text = text.replace("{{{INVOICE_TABLE}}}", table);
 		text = text.replace("{{{SUM_MONTH}}}", "%d,%02d".printf(total_sum / 100, total_sum % 100));
+
+		if(umsatzsteuer == "yes") {
+			text = text.replace("{{{UMSATZSTEUER}}}", "");
+		}
+		else {
+			string umsatzsteuertext;
+			string umsatzsteuertextfilename;
+			if(type == MessageType.HTML) {
+				umsatzsteuertextfilename = "umsatzsteuer.html"
+			}
+			else {
+				umsatzsteuertextfilename = "umsatzsteuer.txt"
+			}
+
+			try {
+				FileUtils.get_contents(datadir + "/" + umsatzsteuertextfilename, out umsatzsteuertext);
+			} catch(GLib.FileError e) {
+				throw new IOError.FAILED("Could not open umsatzsteuer template: %s", e.message);
+			}
+
+			text = text.replace("{{{UMSATZSTEUER}}}", umsatzsteuertext);
+		}
 
 		return text;
 	}
