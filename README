@@ -33,7 +33,7 @@ The system consists of multiple daemons written in Vala, which communicate
 with each other using DBus.
 
 Build Dependencies:
- * apt install build-essential valac libesmtp-dev libgpgme11-dev libncursesw5-dev libncurses5-dev libgee-0.8-dev libgmime-2.6-dev libarchive-dev libgstreamer1.0-dev libgtk2.0-dev librsvg2-dev libsoup2.4-dev libsqlite3-dev libpango1.0-dev libssl-dev dbus-x11
+ * apt install build-essential valac libesmtp-dev libgpgme11-dev libncursesw5-dev libncurses5-dev libgee-0.8-dev libgmime-2.6-dev libarchive-dev libgstreamer1.0-dev libgtk2.0-dev librsvg2-dev libsoup2.4-dev libsqlite3-dev libpango1.0-dev libssl-dev dbus-x11 mdbus2 policykit-1
 
 Additional runtime dependencies:
  * apt install fonts-lmodern gstreamer1.0-alsa gstreamer1.0-plugins-base
@@ -76,9 +76,9 @@ but you need to modify a few things.
 === Database ===
 
  * Create user
-   `sqlite3 shop.db "INSERT INTO users (id, email, firstname, lastname) VALUES (1, "test@tester", "Firstname", "Lastname");`
+  `sqlite3 shop.db "INSERT INTO users (id, email, firstname, lastname) VALUES (1, 'test@tester', 'Firstname', 'Lastname');"`
  * Setup user password
-   `mdbus2 io.mainframe.shopsystem.Database /io/mainframe/shopsystem/database io.mainframe.shopsystem.Database.SetUserPassword 1 "password"`
+   `mdbus2 -s io.mainframe.shopsystem.Database /io/mainframe/shopsystem/database io.mainframe.shopsystem.Database.SetUserPassword 1 "password"`
    `sqlite3 shop.db "UPDATE authentication set superuser = 1,auth_users = 1, auth_products = 1,auth_cashbox = 1 where user = 1";`
  * Demo Data
  `sqlite3 shop.db "INSERT INTO categories (name) VALUES ('Getränke')";`
