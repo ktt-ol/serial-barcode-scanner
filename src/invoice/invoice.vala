@@ -237,6 +237,8 @@ public class InvoiceImplementation {
 			throw new IOError.FAILED("Could not open invoice template: %s", e.message);
 		}
 
+		text = text.replace("{{{SHORTNAME}}}", shortname);
+
 		return text;
 	}
 
