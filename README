@@ -79,3 +79,7 @@ but you need to modify a few things.
   `sqlite3 shop.db "INSERT INTO users (id, email, firstname, lastname) VALUES (1, 'test@tester', 'Firstname', 'Lastname');"`
  * Setup user password
    `mdbus2 -s io.mainframe.shopsystem.Database /io/mainframe/shopsystem/database io.mainframe.shopsystem.Database.SetUserPassword 1 "password"`
+   `sqlite3 shop.db "UPDATE authentication set superuser = 1,auth_users = 1, auth_products = 1,auth_cashbox = 1 where user = 1";`
+ * Demo Data
+ `sqlite3 shop.db "INSERT INTO categories (name) VALUES ('Getränke')";`
+ `sqlite3 shop.db "INSERT INTO supplier (name,city,postal_code,street,phone,website) VALUES ('Demo Lieferant','Musterstadt','12345','Musterstraße 5','+49 1234 56789','https://www.ktt.de')";`
