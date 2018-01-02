@@ -35,6 +35,7 @@ public class InvoiceImplementation {
 	string mailfromaddress;
 	string treasurermailaddress;
 	string shortname;
+	string spacename;
 	string umsatzsteuer;
 
 	public InvoiceImplementation() throws IOError, KeyFileError {
@@ -46,6 +47,7 @@ public class InvoiceImplementation {
 		mailfromaddress = cfg.get_string("MAIL", "mailfromaddress");
 		treasurermailaddress = cfg.get_string("MAIL", "treasurermailaddress");
 		shortname = cfg.get_string("GENERAL", "shortname");
+		spacename = cfg.get_string("GENERAL", "spacename");
 		umsatzsteuer = cfg.get_string("INVOICE", "umsatzsteuer");
 	}
 
@@ -302,6 +304,7 @@ public class InvoiceImplementation {
 
 		text = text.replace("{{{ADDRESS}}}", address);
 		text = text.replace("{{{LASTNAME}}}", name);
+		text = text.replace("{{{SPACENAME}}}", spacename);
 		text = text.replace("{{{INVOICE_TABLE}}}", table);
 		text = text.replace("{{{SUM_MONTH}}}", "%d,%02d".printf(total_sum / 100, total_sum % 100));
 

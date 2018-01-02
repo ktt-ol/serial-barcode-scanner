@@ -13,5 +13,5 @@ Gesamtbetrag wird dann vom angegebenen Bankkonto eingezogen.
 
 Der Gesamtbetrag für den aktuellen Monat beträgt bisher: {{{SUM_MONTH}}} €
 
-Grüße aus dem Mainframe,
+Grüße aus dem {{{SPACENAME}}},
 das Shop-System

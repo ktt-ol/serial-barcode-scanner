@@ -7,5 +7,5 @@ wie folgt zu berechnen:
 
 {{{UMSATZSTEUER}}}
 
-Grüße aus dem Mainframe,
+Grüße aus dem {{{SPACENAME}}},
 das Shop-System
