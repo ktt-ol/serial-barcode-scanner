@@ -146,7 +146,7 @@ public class InvoiceImplementation {
 		treasurer_mail.add_recipient({"Schatzmeister", "shop-einzug@kreativitaet-trifft-technik.de"}, RecipientType.TO);
 		var csvinvoicedata     = "";
 		var csvjvereininvoicedata = "";
-		if(jvereinmitgliedsnummern == "extern"{
+		if(jvereinmitgliedsnummern == "extern"){
 			csvjvereininvoicedata = "Ext_Mitglieds_Nr;Betrag;Buchungstext;Fälligkeit;Intervall;Endedatum";
 		}
 		else {
