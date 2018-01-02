@@ -15,6 +15,9 @@
 
 [DBus (name = "io.mainframe.shopsystem.InvoicePDF")]
 public class InvoicePDF {
+
+	Config cfg;
+
 	/* A4 sizes (in points, 72 DPI) */
 	private const double width = 595.27559;  /* 210mm */
 	private const double height = 841.88976; /* 297mm */
@@ -60,8 +63,14 @@ public class InvoicePDF {
 		"Dezember"
 	};
 
+	string longname;
+	string umsatzsteuer;
+
 	public InvoicePDF(string datadir) {
 		this.datadir = datadir;
+		cfg = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Config", "/io/mainframe/shopsystem/config");
+		longname = cfg.get_string("GENERAL", "longname");
+		umsatzsteuer = cfg.get_string("INVOICE", "umsatzsteuer");
 	}
 
 	private void render_svg(Cairo.Context ctx, string file) {
@@ -104,8 +113,7 @@ public class InvoicePDF {
 		ctx.set_font_size(8.45);
 
 		ctx.move_to(56.5, 142);
-		/* TODO: get string from config file */
-		ctx.show_text("Kreativität trifft Technik e.V., Bahnhofsplatz 10, 26122 Oldenburg");
+		ctx.show_text(cfg.get_string("INVOICE", "addressrow"));
 
 		/* actually LMRoman12 */
 		ctx.select_font_face("LMSans10", Cairo.FontSlant.NORMAL, Cairo.FontWeight.NORMAL);
@@ -194,7 +202,6 @@ public class InvoicePDF {
 
 		ctx.move_to(56.5, 323);
 
-		/* TODO: get text from config file */
 		ctx.show_text(@"Rechnung Nr. $invoice_id");
 
 		ctx.restore();
@@ -224,8 +231,7 @@ public class InvoicePDF {
 		/* set page width */
 		layout.set_width((int) 140 * Pango.SCALE);
 
-		/* TODO: get text from config file */
-		var text = "<b>Kreativität trifft Technik e.V.</b>\nAmtsgericht Oldenburg VR 201044\n\nHackspace „Mainframe“\nFabLab „Fab-O-Lab“\nSchnittstelle „Schnittstelle“\n\nBahnhofsplatz 10 • 26122 Oldenburg";
+		var text = cfg.get_string("INVOICE", "footer1");
 
 		/* write invoice date */
 		layout.set_markup(text, text.length);
@@ -261,8 +267,7 @@ public class InvoicePDF {
 		/* set page width */
 		layout.set_width((int) 190 * Pango.SCALE);
 
-		/* TODO: get text from config file */
-		var text = "<b>Mail:</b> vorstand@kreativitaet-trifft-technik.de\n<b>Web:</b> www.kreativitaet-trifft-technik.de\n\n\n\n<b>BGB-Vorstand:</b>\nPatrick Günther, Michael Pensler, Jan Janssen";
+		var text = cfg.get_string("INVOICE", "footer2");
 
 		/* write invoice date */
 		layout.set_markup(text, text.length);
@@ -298,8 +303,7 @@ public class InvoicePDF {
 		/* set page width */
 		layout.set_width((int) 150 * Pango.SCALE);
 
-		/* TODO: get text from config file */
-		var text = "<b>Raiffeisenbank Oldenburg</b>\nIBAN: DE34 2806 0228 0037 0185 00\nBIC: GENODEF1OL2\n\n\n<b>Finanzamt Oldenburg</b>\nAls gemeinnützig anerkannt.\nSteuer Nr.: 64/220/18413";
+		var text = cfg.get_string("INVOICE", "footer3");
 
 		/* write invoice date */
 		layout.set_markup(text, text.length);
@@ -362,6 +366,24 @@ public class InvoicePDF {
 			text = text.replace("{{{ADDRESS}}}", address);
 			text = text.replace("{{{LASTNAME}}}", invoice_recipient.lastname);
 			text = text.replace("{{{SUM}}}", @"$sum");
+			text = text.replace("{{{VEREINSNAME}}}", longname);
+
+			if(umsatzsteuer == "yes") {
+				text = text.replace("{{{UMSATZSTEUER}}}", "");
+			}
+			else {
+				string umsatzsteuertext;
+
+				try {
+					FileUtils.get_contents(datadir + "/" + "umsatzsteuer.txt", out umsatzsteuertext);
+				} catch(GLib.FileError e) {
+					throw new IOError.FAILED("Could not open umsatzsteuer template: %s", e.message);
+				}
+
+				text = text.replace("{{{UMSATZSTEUER}}}", umsatzsteuertext);
+			}
+
+
 			layout.set_markup(text, text.length);
 		} catch(GLib.FileError e) {
 			error("File Error: %s\n", e.message);
