@@ -32,6 +32,7 @@ public class InvoiceImplementation {
 	Database db;
 	PDFInvoice pdf;
 	string datadir;
+	string jvereinmitgliedsnummern;
 
 	public InvoiceImplementation() throws IOError, KeyFileError {
 		mailer = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Mail", "/io/mainframe/shopsystem/mailer");
@@ -39,6 +40,7 @@ public class InvoiceImplementation {
 		pdf = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.InvoicePDF", "/io/mainframe/shopsystem/invoicepdf");
 		Config cfg = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Config", "/io/mainframe/shopsystem/config");
 		datadir = cfg.get_string("INVOICE", "datadir");
+		jvereinmitgliedsnummern = cfg.get_string("JVEREIN", "mitgliedsnummern");
 	}
 
 	public void send_invoice(bool temporary, int64 timestamp, int user) throws IOError, InvoicePDFError, DatabaseError {
@@ -111,9 +113,13 @@ public class InvoiceImplementation {
 
 	public void send_invoices(bool temporary, int64 timestamp) throws IOError, InvoicePDFError, DatabaseError {
 		int64 prevtimestamp = timestamp - day_in_seconds;
+		string faelligkeitsdatumstring = "";
 
-		if(!temporary)
+		if(!temporary){
 			prevtimestamp = new DateTime.from_unix_local(timestamp).add_months(-1).to_unix();
+			var faelligkeitsdatum = new DateTime.from_unix_local(timestamp).add_days(10);
+			faelligkeitsdatumstring = faelligkeitsdatum.format("%d.%m.%Y");
+		}
 
 		Timespan ts = get_timespan(temporary, prevtimestamp);
 		Timespan tst = get_timespan(false, prevtimestamp);
@@ -139,6 +145,13 @@ public class InvoiceImplementation {
 		treasurer_mail.subject = mailtitle;
 		treasurer_mail.add_recipient({"Schatzmeister", "shop-einzug@kreativitaet-trifft-technik.de"}, RecipientType.TO);
 		var csvinvoicedata     = "";
+		var csvjvereininvoicedata = "";
+		if(jvereinmitgliedsnummern == "extern"){
+			csvjvereininvoicedata = "Ext_Mitglieds_Nr;Betrag;Buchungstext;Fälligkeit;Intervall;Endedatum";
+		}
+		else {
+			csvjvereininvoicedata = "Mitglieds_Nr;Betrag;Buchungstext;Fälligkeit;Intervall;Endedatum";
+		}
 
 		foreach(var userid in users) {
 			number++;
@@ -165,12 +178,14 @@ public class InvoiceImplementation {
 			if(!temporary) {
 				treasurer_mail.add_attachment(invoicedata.pdffilename, "application/pdf", invoicedata.pdfdata);
 				csvinvoicedata += @"$(userdata.id),$(userdata.lastname),$(userdata.firstname),$invoiceid,$total_sum\n";
+				csvjvereininvoicedata += @"$(userdata.id);$total_sum;Shopsystem Rechnung Nummer $invoiceid;$faelligkeitsdatumstring;0;$faelligkeitsdatumstring\n";
 			}
 		}
 
 		if(!temporary) {
 			treasurer_mail.set_main_part(get_treasurer_text(), MessageType.PLAIN);
 			treasurer_mail.add_attachment("invoice.csv", "text/csv; charset=utf-8", csvinvoicedata.data);
+			treasurer_mail.add_attachment("jvereininvoice.csv", "text/csv; charset=utf-8", csvjvereininvoicedata.data);
 			mailer.send_mail(treasurer_path);
 		}
 	}
