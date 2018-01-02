@@ -5,9 +5,7 @@ wie folgt zu berechnen:
 
 {{{INVOICE_TABLE}}}
 
-Umsatzsteuer wird nicht erhoben, da der Verein Kreativität trifft
-Technik e.V. als Kleinunternehmen unter die Regelung des § 19
-Abs. 1 UStG fällt.
+{{{VAT}}}
 
 Bei dieser Abrechnung handelt es sich lediglich um einen Zwischenstand.
 Die Hauptrechnung wird einmal monatlich getrennt zugestellt und der
@@ -15,5 +13,5 @@ Gesamtbetrag wird dann vom angegebenen Bankkonto eingezogen.
 
 Der Gesamtbetrag für den aktuellen Monat beträgt bisher: {{{SUM_MONTH}}} €
 
-Grüße aus dem Mainframe,
+Grüße aus dem {{{SPACENAME}}},
 das Shop-System

@@ -62,6 +62,15 @@ public static int main(string[] args) {
 	scanner.msg.connect(msg_handler);
 	scanner.msg_overlay.connect(msg_overlay_handler);
 
+	/* get configuration */
+	Config config = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Config", "/io/mainframe/shopsystem/config");
+	var shopname = "--SHOPNAME--";
+	try {
+		shopname = config.get_string("GENERAL", "longname");
+	} catch(KeyFileError e) {
+		shopname = "Missing in Config";
+	}
+
 	ui.log(MessageType.INFO, "KtT Shop System has been started");
 	play("startup.ogg");
 
