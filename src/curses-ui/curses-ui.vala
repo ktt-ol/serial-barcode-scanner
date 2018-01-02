@@ -21,7 +21,7 @@ public class CursesUI {
 	//StatusPanel statuswin;
 	MessageBoxOverlay mbOverlay;
 
-	public CursesUI() {
+	public CursesUI(string binarylocation) {
 		/* unicode support */
 		Intl.setlocale(LocaleCategory.CTYPE, "");
 
@@ -37,8 +37,8 @@ public class CursesUI {
 		Curses.init_pair(1, Curses.Color.GREEN, Curses.Color.BLACK);
 		Curses.init_pair(2, Curses.Color.WHITE, Curses.Color.RED);
 
-		/* initialize widgets */		
-		banner    = new Logo();
+		/* initialize widgets */
+		banner    = new Logo(binarylocation);
 		//statuswin = new StatusPanel();
 		messages  = new MessageBox();
 		clkwin    = new ClockWindow();
@@ -68,18 +68,18 @@ public class CursesUI {
 	//}
 
 	public void log(MessageType type, string message) {
-		switch (type) {		
+		switch (type) {
 			case MessageType.WARNING:
 				messages.add(message, MessageBox.WARN_COLOR);
 				break;
-			case MessageType.ERROR: 
+			case MessageType.ERROR:
 				messages.add(message, MessageBox.ERROR_COLOR);
 				break;
 			default:
 				messages.add(message, MessageBox.INFO_COLOR);
 				break;
 		}
-		
+
 	}
 
 	public void log_overlay(string title, string message, int closeAfter) {
@@ -87,7 +87,7 @@ public class CursesUI {
 		Timeout.add_seconds(closeAfter, closeMbOverlay);
 	}
 
-	public void dialog_open(string title, string message, int closeAfter=0) {		
+	public void dialog_open(string title, string message, int closeAfter=0) {
 		dialog = new Dialog(message, title, closeAfter);
 		if (closeAfter > 0) {
 			Timeout.add_seconds(closeAfter, close);
@@ -102,7 +102,7 @@ public class CursesUI {
 		return false;
 	}
 
-	bool close() {		
+	bool close() {
 		dialog_close();
 		// just call me once
 		return false;
