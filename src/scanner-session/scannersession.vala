@@ -26,6 +26,8 @@ public class ScannerSessionImplementation {
   private InputDevice dev;
   private Cli cli;
 
+  private ScannerSessionState state = ScannerSessionState.READY;
+  private DetailedProduct[] shoppingCard = {};
 
   public signal void msg(MessageType type, string message);
   public signal void msg_overlay(string title, string message);
@@ -49,10 +51,6 @@ public class ScannerSessionImplementation {
     var message = format.vprintf(arguments);
 
     msg(type, message);
-  }
-
-  private void logout() {
-    logged_in = false;
   }
 
   private bool login(int user) throws IOError {
@@ -120,6 +118,168 @@ public class ScannerSessionImplementation {
     }
   }
 
+  private ScannerResult handleReadyState(string scannerdata) throws DatabaseError, IOError{
+    ScannerSessionCodeType codeType = getCodeType(scannerdata);
+    ScannerResult scannerResult = ScannerResult();
+    switch (codeType) {
+      case ScannerSessionCodeType.USER:
+        int32 userid = int.parse(scannerdata.substring(5));
+        if(login(userid)) {
+          scannerResult.type = MessageType.INFO;
+          scannerResult.message = "Login: %s (%d)".printf(name, user);
+          scannerResult.audioType = AudioType.LOGIN;
+          shoppingCard = {};
+          state = ScannerSessionState.USER;
+        } else {
+          scannerResult.type = MessageType.ERROR;
+          scannerResult.message = "Login failed (User ID = %d)".printf(userid);
+          scannerResult.audioType = AudioType.ERROR;
+          state = ScannerSessionState.READY;
+        }
+        return scannerResult;
+      case ScannerSessionCodeType.GUEST:
+        if(login(0)) {
+          scannerResult.type = MessageType.INFO;
+          scannerResult.message = "Login as GUEST";
+          scannerResult.audioType = AudioType.LOGIN;
+          shoppingCard = {};
+          state = ScannerSessionState.USER;
+        } else {
+          scannerResult.type = MessageType.ERROR;
+          scannerResult.message = "Login failed as GUEST";
+          scannerResult.audioType = AudioType.ERROR;
+          state = ScannerSessionState.READY;
+        }
+        return scannerResult;
+      case ScannerSessionCodeType.EAN:
+        uint64 ean = 0;
+        scannerdata.scanf("%llu", out ean);
+        var p = DetailedProduct();
+        try {
+          p = db.get_product_for_ean(ean);
+        } catch(IOError e) {
+          scannerResult.type = MessageType.ERROR;
+          scannerResult.message = "Internal Error!";
+          scannerResult.audioType = AudioType.ERROR;
+          return scannerResult;
+        } catch(DatabaseError e) {
+          if(e is DatabaseError.PRODUCT_NOT_FOUND) {
+            scannerResult.type = MessageType.ERROR;
+            scannerResult.message = "Error: unknown product: %llu".printf(ean);
+            scannerResult.audioType = AudioType.ERROR;
+          } else {
+            scannerResult.type = MessageType.ERROR;
+            scannerResult.message = "Error: %s".printf(e.message);
+            scannerResult.audioType = AudioType.ERROR;
+          }
+          return scannerResult;
+        }
+
+        var mprice = p.memberprice;
+        var gprice = p.guestprice;
+        var pname = p.name;
+
+        scannerResult.type = MessageType.INFO;
+        scannerResult.message = @"article info: $pname (Member: $mprice €, Guest: $gprice €)";
+        scannerResult.audioType = AudioType.ERROR;
+        state = ScannerSessionState.READY;
+        return scannerResult;
+      default:
+        state = ScannerSessionState.READY;
+        return scannerResult;
+    }
+  }
+
+  private ScannerResult handleUserState(string scannerdata) throws DatabaseError, IOError {
+    ScannerSessionCodeType codeType = getCodeType(scannerdata);
+    ScannerResult scannerResult = ScannerResult();
+    switch (codeType) {
+      case ScannerSessionCodeType.EAN:
+        uint64 ean = 0;
+        scannerdata.scanf("%llu", out ean);
+        var p = DetailedProduct();
+        try {
+          p = db.get_product_for_ean(ean);
+          } catch(IOError e) {
+            scannerResult.type = MessageType.ERROR;
+            scannerResult.message = "Internal Error!";
+            scannerResult.audioType = AudioType.ERROR;
+            return scannerResult;
+          } catch(DatabaseError e) {
+            if(e is DatabaseError.PRODUCT_NOT_FOUND) {
+              scannerResult.type = MessageType.ERROR;
+              scannerResult.message = "Error: unknown product: %llu".printf(ean);
+              scannerResult.audioType = AudioType.ERROR;
+            } else {
+              scannerResult.type = MessageType.ERROR;
+              scannerResult.message = "Error: %s".printf(e.message);
+              scannerResult.audioType = AudioType.ERROR;
+            }
+            return scannerResult;
+          }
+
+        shoppingCard += p;
+
+        Price price = p.memberprice;
+
+        if(user == 0){
+          price = p.guestprice;
+        }
+
+        scannerResult.type = MessageType.INFO;
+        scannerResult.message = @"article added to shopping card: $(p.name) ($price €)";
+        scannerResult.audioType = AudioType.PURCHASE;
+        state = ScannerSessionState.USER;
+        break;
+      case ScannerSessionCodeType.UNDO:
+        if(shoppingCard.length > 0){
+          var removedProduct = shoppingCard[shoppingCard.length-1];
+          shoppingCard = shoppingCard[0:shoppingCard.length-1];
+          scannerResult.type = MessageType.INFO;
+          scannerResult.message = @"removed last Item from Shopping Cart: $(removedProduct.name)";
+          scannerResult.audioType = AudioType.INFO;
+        } else {
+          scannerResult.type = MessageType.INFO;
+          scannerResult.message = @"No more Items on your Shopping Cart";
+          scannerResult.audioType = AudioType.ERROR;
+        }
+        break;
+      case ScannerSessionCodeType.LOGOUT:
+        scannerResult = logout();
+        break;
+      case ScannerSessionCodeType.USER:
+      case ScannerSessionCodeType.GUEST:
+        //Logout alten User und akrtikel kaufen
+        scannerResult = logout();
+        scannerResult.nextScannerdata = scannerdata;
+        break;
+    }
+
+    return scannerResult;
+  }
+
+  private ScannerResult buyShoppingCard() {
+    ScannerResult scannerResult = ScannerResult();
+    uint8 amountOfItems = 0;
+    Price totalPrice = 0;
+    uint8 i = 0;
+    DetailedProduct p = DetailedProduct();
+    for(i = 0; i < shoppingCard.length; i++) {
+      p = shoppingCard[i];
+      db.buy(user, p.ean);
+      amountOfItems++;
+      Price price = p.memberprice;
+      if(user == 0) {
+        price = p.guestprice;
+      }
+      totalPrice += price;
+    }
+    scannerResult.type = MessageType.INFO;
+    scannerResult.message = @"$name bought $amountOfItems items for $totalPrice €";
+    scannerResult.audioType = AudioType.INFO;
+    return scannerResult;
+  }
+
   private void handle_barcode(string scannerdata) {
     try {
       stdout.printf("scannerdata: %s\n", scannerdata);
@@ -133,128 +293,31 @@ public class ScannerSessionImplementation {
   }
 
   private bool interpret(string scannerdata) throws DatabaseError, IOError {
-    if(scannerdata.has_prefix("USER ")) {
-      string str_id = scannerdata.substring(5);
-      int32 id = int.parse(str_id);
-
-      /* check if scannerdata has valid format */
-      if(scannerdata != "USER %d".printf(id)) {
-        audio.play_system("error.ogg");
-        send_message(MessageType.ERROR, "Invalid User ID: %s", scannerdata);
-        return false;
-      }
-
-      if(logged_in) {
-        send_message(MessageType.WARNING, "Last user forgot to logout");
-        logout();
-      }
-
-      if(login(id)) {
-        audio.play_user(theme, "login");
-        send_message(MessageType.INFO, "Login: %s (%d)", name, user);
-        return true;
-      } else {
-        audio.play_system("error.ogg");
-        send_message(MessageType.ERROR, "Login failed (User ID = %d)", id);
-        return false;
-      }
-    } else if(scannerdata == "GUEST") {
-      if(logged_in) {
-        send_message(MessageType.WARNING, "Last user forgot to logout");
-        logout();
-      }
-
-      if(login(0)) {
-        audio.play_user(theme, "login");
-        send_message(MessageType.INFO, "Login: %s (%d)", name, user);
-        return true;
-      } else {
-        audio.play_system("error.ogg");
-        send_message(MessageType.ERROR, "Login failed (User ID = 0)");
-        return false;
-      }
-    } else if(scannerdata == "UNDO") {
-      if(!logged_in) {
-        audio.play_system("error.ogg");
-        send_message(MessageType.ERROR, "Can't undo if not logged in!");
-        return false;
-      } else {
-        string product = db.undo(user);
-
-        if(product != "") {
-          audio.play_user(theme, "purchase");
-          send_message(MessageType.INFO, "Removed purchase of %s", product);
-          return true;
-        } else {
-          audio.play_user(theme, "error");
-          send_message(MessageType.ERROR, "Couldn't undo last purchase!");
-          return false;
-        }
-      }
-    } else if(scannerdata == "LOGOUT") {
-      if(logged_in) {
-        audio.play_user(theme, "logout");
-        send_message(MessageType.INFO, "Logout!");
-        logout();
-        return true;
-      }
-
-      return false;
-    } else {
-      uint64 id = 0;
-      scannerdata.scanf("%llu", out id);
-
-      /* check if scannerdata has valid format */
-      if(scannerdata != "%llu".printf(id) && scannerdata != "%08llu".printf(id) && scannerdata != "%013llu".printf(id)) {
-        audio.play_user(theme, "error");
-        send_message(MessageType.ERROR, "invalid product: %s", scannerdata);
-        return false;
-      }
-
-      string name = "unknown product";
-
-      try {
-        id = db.ean_alias_get(id);
-        name = db.get_product_name(id);
-      } catch(IOError e) {
-        audio.play_user(theme, "error");
-        send_message(MessageType.ERROR, "Internal Error!");
-        return false;
-      } catch(DatabaseError e) {
-        if(e is DatabaseError.PRODUCT_NOT_FOUND) {
-          audio.play_user(theme, "error");
-          var msg = "Error: unknown product: %llu".printf(id);
-          send_message(MessageType.ERROR, msg);
-          msg_overlay("Attention", msg);
-        } else {
-          audio.play_user(theme, "error");
-          send_message(MessageType.ERROR, "Error: %s", e.message);
-        }
-        return false;
-      }
-
-      if(!logged_in) {
-        var mprice = db.get_product_price(1, id);
-        var gprice = db.get_product_price(0, id);
-        var msg = @"article info: $name (Member: $mprice €, Guest: $gprice €)";
-        audio.play_system("error.ogg");
-        send_message(MessageType.INFO, msg);
-        send_message(MessageType.ERROR, "Login required for purchase!");
-        msg_overlay("Attention", "%s\nLogin required for purchase!".printf(msg));
-
-        return false;
-      }
-
-      if(db.buy(user, id)) {
-        var price = db.get_product_price(user, id);
-        audio.play_user(theme, "purchase");
-        send_message(MessageType.INFO, @"article bought: $name ($price €)");
-        return true;
-      } else {
-        audio.play_user(theme, "error");
-        send_message(MessageType.ERROR, "purchase failed!");
-        return false;
-      }
+    ScannerResult scannerResult = ScannerResult();
+    switch (state) {
+      case ScannerSessionState.READY:
+        scannerResult = handleReadyState(scannerdata);
+        break;
+      case ScannerSessionState.USER:
+        scannerResult = handleUserState(scannerdata);
+        break;
     }
+
+    play_audio(scannerResult.audioType);
+    send_message(scannerResult.type, scannerResult.message);
+    if(scannerResult.nextScannerdata != null){
+      interpret(scannerResult.nextScannerdata);
+    }
+    return true;
   }
+
+  private ScannerResult logout() {
+    ScannerResult scannerResult = ScannerResult();
+    scannerResult = buyShoppingCard();
+    logged_in = false;
+    state = ScannerSessionState.READY;
+    return scannerResult;
+  }
+
+
 }
