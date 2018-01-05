@@ -24,3 +24,8 @@ public enum MessageType {
 	WARNING,
 	ERROR
 }
+
+public enum ScannerSessionState{
+	READY,
+	USER
+}
