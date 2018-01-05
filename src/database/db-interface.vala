@@ -64,6 +64,7 @@ public interface Database : Object {
 	public abstract uint64 ean_alias_get(uint64 ean) throws IOError;
 	public abstract EanAlias[] ean_alias_list() throws IOError;
 	public abstract BestBeforeEntry[] bestbeforelist() throws IOError;
+	public abstract Product get_product_for_ean(uint64 ean) throws IOError, DatabaseError;
 }
 
 public struct Category {
