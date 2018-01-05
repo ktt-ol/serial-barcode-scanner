@@ -568,7 +568,7 @@ public class WebServer {
 
 			string table = "";
 			foreach(var e in db.get_stock()) {
-				table += @"<tr><td><a href=\"/products/$(e.id)\">$(e.id)</a></td><td><a href=\"/products/$(e.id)\">$(e.name)</a></td><td>$(e.category)</td><td>$(e.amount)</td><td>$(e.memberprice)€</td><td>$(e.guestprice)€</td></tr>";
+				table += @"<tr><td><a href=\"/products/$(e.ean)\">$(e.ean)</a></td><td><a href=\"/products/$(e.ean)\">$(e.name)</a></td><td>$(e.category)</td><td>$(e.amount)</td><td>$(e.memberprice)€</td><td>$(e.guestprice)€</td></tr>";
 			}
 
 			t.replace("DATA", table);

@@ -273,13 +273,13 @@ public class DataBase : Object {
 	}
 #endif
 
-	public StockEntry[] get_stock() {
-		StockEntry[] result = {};
+	public DetailedProduct[] get_stock() {
+		DetailedProduct[] result = {};
 
 		statements["stock_status"].reset();
 		while(statements["stock_status"].step() == Sqlite.ROW) {
-			StockEntry entry = {
-				statements["stock_status"].column_text(0),
+			DetailedProduct entry = {
+				statements["stock_status"].column_int(0),
 				statements["stock_status"].column_text(1),
 				statements["stock_status"].column_text(2),
 				statements["stock_status"].column_int(3),
@@ -291,6 +291,21 @@ public class DataBase : Object {
 		}
 
 		return result;
+	}
+
+	public DetailedProduct get_product_for_ean(uint64 ean) throws DatabaseError {
+		var p = new DetailedProduct();
+		try {
+			p.ean = ean_alias_get(ean);
+			p.name = get_product_name(ean);
+			p.category = get_product_category(ean);
+			p.amount = get_product_amount(ean);
+			p.memberprice = get_product_price(1, ean);
+			p.guestprice = get_product_price(0, ean);
+			return p;
+		} catch(DatabaseError e){
+			throw e;
+		}
 	}
 
 	public PriceEntry[] get_prices(uint64 product) {
@@ -1125,7 +1140,7 @@ public class DataBase : Object {
 
 		foreach(var product in get_stock()) {
 			var amount = product.amount;
-			var pid = uint64.parse(product.id);
+			var pid = product.ean;
 
 			if(amount <= 0)
 				continue;

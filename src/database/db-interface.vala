@@ -15,7 +15,8 @@
 
 [DBus (name = "io.mainframe.shopsystem.Database")]
 public interface Database : Object {
-	public abstract StockEntry[] get_stock() throws IOError;
+	public abstract DetailedProduct[] get_stock() throws IOError;
+	public abstract DetailedProduct get_product_for_ean(uint64 ean) throws IOError, DatabaseError;
 	public abstract PriceEntry[] get_prices(uint64 product) throws IOError;
 	public abstract RestockEntry[] get_restocks(uint64 product, bool descending) throws IOError;
 	public abstract bool buy(int32 user, uint64 article) throws IOError, DatabaseError;
@@ -71,8 +72,8 @@ public struct Category {
 	public string name;
 }
 
-public struct StockEntry {
-	public string id;
+public struct DetailedProduct {
+	public uint64 ean;
 	public string name;
 	public string category;
 	public int amount;
