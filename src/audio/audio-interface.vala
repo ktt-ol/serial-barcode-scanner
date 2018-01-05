@@ -27,5 +27,6 @@ public enum AudioType {
 	ERROR,
 	LOGIN,
 	LOGOUT,
-	PURCHASE
+	PURCHASE,
+	INFO
 }
