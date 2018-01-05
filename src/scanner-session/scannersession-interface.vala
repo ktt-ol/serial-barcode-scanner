@@ -29,3 +29,12 @@ public enum ScannerSessionState{
 	READY,
 	USER
 }
+
+public enum ScannerSesseionCodeType {
+	USER,
+	GUEST,
+	UNDO,
+	LOGOUT,
+	EAN,
+	UNKNOWN
+}
