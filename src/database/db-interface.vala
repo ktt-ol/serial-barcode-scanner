@@ -155,6 +155,8 @@ public struct UserAuth {
 public struct Product {
 	public uint64 ean;
 	public string name;
+	public Price memberprice;
+	public Price guestprice;
 }
 
 public struct InvoiceEntry {
