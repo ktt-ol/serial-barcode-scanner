@@ -332,10 +332,10 @@ public class InvoiceImplementation {
 			string umsatzsteuertext;
 			string umsatzsteuertextfilename;
 			if(type == MessageType.HTML) {
-				umsatzsteuertextfilename = "umsatzsteuer.html"
+				umsatzsteuertextfilename = "umsatzsteuer.html";
 			}
 			else {
-				umsatzsteuertextfilename = "umsatzsteuer.txt"
+				umsatzsteuertextfilename = "umsatzsteuer.txt";
 			}
 
 			try {
@@ -357,8 +357,9 @@ public class InvoiceImplementation {
 		const int article_minsize = 7;
 
 		/* no articles bought */
-		if(entries.length == 0)
+		if(entries.length == 0){
 			return result;
+		}
 
 		/* get length of longest name + invoice sum */
 		int namelength = 0;
