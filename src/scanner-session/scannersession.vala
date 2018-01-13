@@ -118,6 +118,28 @@ public class ScannerSessionImplementation {
     }
   }
 
+  private ScannerResult buyShoppingCard() {
+    ScannerResult scannerResult = ScannerResult();
+    uint8 amountOfItems = 0;
+    double totalPrice = 0.0;
+    uint8 i = 0;
+    Product p = Product();
+    for(i = 0; i < userProductList.length; i++) {
+      p = userProductList.index(i);
+      db.buy(user, p.ean);
+      amountOfItems++;
+      Price price = p.memberprice;
+      if(user == 0){
+        price = p.guestprice;
+      }
+      totalPrice += price;
+    }
+    scannerResult.type = MessageType.INFO;
+    scannerResult.message = @"Purchase successful. $amountOfItems for $totalPrice € brought";
+    scannerResult.audioType = AudioType.INFO;
+    return scannerResult;
+  }
+
   private void handle_barcode(string scannerdata) {
     try {
       stdout.printf("scannerdata: %s\n", scannerdata);
