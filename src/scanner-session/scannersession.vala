@@ -118,6 +118,82 @@ public class ScannerSessionImplementation {
     }
   }
 
+  private ScannerResult handleReadyState(string scannerdata) throws DatabaseError, IOError{
+    ScannerSesseionCodeType codeType = getCodeType(scannerdata);
+    ScannerResult scannerResult = ScannerResult();
+    switch (codeType) {
+      case ScannerSesseionCodeType.USER:
+          int32 userid = int.parse(scannerdata.substring(5));
+          if(login(userid)) {
+            scannerResult.type = MessageType.INFO;
+            scannerResult.message = "Login: %s (%d)".printf(name, user);
+            scannerResult.audioType = AudioType.LOGIN;
+            userProductList = new Array<Product> ();
+            state = ScannerSessionState.USER;
+            return scannerResult;
+          } else {
+            scannerResult.type = MessageType.ERROR;
+            scannerResult.message = "Login failed (User ID = %d)".printf(userid);
+            scannerResult.audioType = AudioType.ERROR;
+            state = ScannerSessionState.READY;
+            return scannerResult;
+          }
+        break;
+      case ScannerSesseionCodeType.GUEST:
+        if(login(0)) {
+          scannerResult.type = MessageType.INFO;
+          scannerResult.message = "Login as GUEST";
+          scannerResult.audioType = AudioType.LOGIN;
+          userProductList = new Array<Product> ();
+          state = ScannerSessionState.USER;
+          return scannerResult;
+        } else {
+          scannerResult.type = MessageType.ERROR;
+          scannerResult.message = "Login failed as GUEST";
+          scannerResult.audioType = AudioType.ERROR;
+          state = ScannerSessionState.READY;
+          return scannerResult;
+        }
+        break;
+      case ScannerSesseionCodeType.EAN:
+        uint64 ean = 0;
+        scannerdata.scanf("%llu", out ean);
+        Product p = Product();
+        try {
+          p = db.get_product_for_ean(ean);
+        } catch(IOError e) {
+          scannerResult.type = MessageType.ERROR;
+          scannerResult.message = "Internal Error!";
+          scannerResult.audioType = AudioType.ERROR;
+          return scannerResult;
+        } catch(DatabaseError e) {
+          if(e is DatabaseError.PRODUCT_NOT_FOUND) {
+            scannerResult.type = MessageType.ERROR;
+            scannerResult.message = "Error: unknown product: %llu".printf(ean);
+            scannerResult.audioType = AudioType.ERROR;
+          } else {
+            scannerResult.type = MessageType.ERROR;
+            scannerResult.message = "Error: %s".printf(e.message);
+            scannerResult.audioType = AudioType.ERROR;
+          }
+          return scannerResult;
+        }
+
+        var mprice = p.memberprice;
+        var gprice = p.guestprice;
+        scannerResult.type = MessageType.INFO;
+        scannerResult.message = @"article info: $name (Member: $mprice €, Guest: $gprice €)";
+        scannerResult.audioType = AudioType.ERROR;
+        state = ScannerSessionState.READY;
+        return scannerResult;
+        break;
+      default:
+        state = ScannerSessionState.READY;
+        return scannerResult;
+        break;
+    }
+  }
+
   private ScannerResult buyShoppingCard() {
     ScannerResult scannerResult = ScannerResult();
     uint8 amountOfItems = 0;
