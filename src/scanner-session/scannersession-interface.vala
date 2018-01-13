@@ -24,3 +24,12 @@ public enum MessageType {
 	WARNING,
 	ERROR
 }
+
+public enum ScannerSessionCodeType {
+	USER,
+	GUEST,
+	UNDO,
+	LOGOUT,
+	EAN,
+	UNKNOWN
+}
