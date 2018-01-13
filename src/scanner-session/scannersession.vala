@@ -320,7 +320,7 @@ public class ScannerSessionImplementation {
 
   private ScannerResult logout() {
     ScannerResult scannerResult = ScannerResult();
-    scannerResult = buyShoppingCard()
+    scannerResult = buyShoppingCard();
     logged_in = false;
     state = ScannerSessionState.READY;
     return scannerResult;
