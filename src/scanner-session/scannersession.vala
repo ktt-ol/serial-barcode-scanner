@@ -80,6 +80,26 @@ public class ScannerSessionImplementation {
     return true;
   }
 
+  private void play_audio(AudioType audioType){
+    switch (audioType) {
+      case AudioType.ERROR:
+        audio.play_system("error.ogg");
+        break;
+      case AudioType.LOGIN:
+        audio.play_user(theme, "login");
+        break;
+    	case AudioType.LOGOUT:
+        audio.play_user(theme, "logout");
+        break;
+    	case AudioType.PURCHASE:
+        audio.play_user(theme, "purchase");
+        break;
+      case AudioType.INFO:
+        audio.play_user(theme, "login");
+        break;
+    }
+  }
+
   private void handle_barcode(string scannerdata) {
     try {
       stdout.printf("scannerdata: %s\n", scannerdata);
