@@ -24,3 +24,24 @@ public enum MessageType {
 	WARNING,
 	ERROR
 }
+
+public enum ScannerSessionState{
+	READY,
+	USER
+}
+
+public enum ScannerSesseionCodeType {
+	USER,
+	GUEST,
+	UNDO,
+	LOGOUT,
+	EAN,
+	UNKNOWN
+}
+
+public struct ScannerResult {
+	public MessageType type;
+	public string message;
+	public AudioType audioType;
+	public string nextScannerdata;
+}
