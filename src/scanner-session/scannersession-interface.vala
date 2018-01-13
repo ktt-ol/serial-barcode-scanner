@@ -38,3 +38,10 @@ public enum ScannerSesseionCodeType {
 	EAN,
 	UNKNOWN
 }
+
+public struct ScannerResult {
+	public MessageType type;
+	public string message;
+	public AudioType audioType;
+	public string nextScannerdata;
+}
