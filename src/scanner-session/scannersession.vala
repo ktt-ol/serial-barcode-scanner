@@ -27,7 +27,7 @@ public class ScannerSessionImplementation {
   private Cli cli;
 
   private ScannerSessionState state = ScannerSessionState.READY;
-  private Array<?> userProductList = new Array<Product> ();
+  private Array<?> userProductList = new Array<?> ();
 
   public signal void msg(MessageType type, string message);
   public signal void msg_overlay(string title, string message);
