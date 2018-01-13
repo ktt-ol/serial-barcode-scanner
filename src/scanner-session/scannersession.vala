@@ -26,6 +26,7 @@ public class ScannerSessionImplementation {
   private InputDevice dev;
   private Cli cli;
 
+  private ScannerSessionState state = ScannerSessionState.READY;
 
   public signal void msg(MessageType type, string message);
   public signal void msg_overlay(string title, string message);
