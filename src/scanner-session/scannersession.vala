@@ -53,10 +53,6 @@ public class ScannerSessionImplementation {
     msg(type, message);
   }
 
-  private void logout() {
-    logged_in = false;
-  }
-
   private bool login(int user) throws IOError {
     this.user      = user;
     try {
@@ -256,6 +252,14 @@ public class ScannerSessionImplementation {
         audio.play_user(theme, "error");
         send_message(MessageType.ERROR, "purchase failed!");
         return false;
+  private ScannerResult logout() {
+    ScannerResult scannerResult = ScannerResult();
+    scannerResult = buyShoppingCard()
+    logged_in = false;
+    state = ScannerSessionState.READY;
+    return scannerResult;
+  }
+
       }
     }
   }
