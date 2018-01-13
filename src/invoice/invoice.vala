@@ -32,6 +32,12 @@ public class InvoiceImplementation {
 	Database db;
 	PDFInvoice pdf;
 	string datadir;
+	string mailfromaddress;
+	string treasurermailaddress;
+	string shortname;
+	string spacename;
+	string umsatzsteuer;
+	string jvereinmitgliedsnummern;
 
 	public InvoiceImplementation() throws IOError, KeyFileError {
 		mailer = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Mail", "/io/mainframe/shopsystem/mailer");
@@ -39,6 +45,12 @@ public class InvoiceImplementation {
 		pdf = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.InvoicePDF", "/io/mainframe/shopsystem/invoicepdf");
 		Config cfg = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Config", "/io/mainframe/shopsystem/config");
 		datadir = cfg.get_string("INVOICE", "datadir");
+		mailfromaddress = cfg.get_string("MAIL", "mailfromaddress");
+		treasurermailaddress = cfg.get_string("MAIL", "treasurermailaddress");
+		shortname = cfg.get_string("GENERAL", "shortname");
+		spacename = cfg.get_string("GENERAL", "spacename");
+		umsatzsteuer = cfg.get_string("INVOICE", "umsatzsteuer");
+		jvereinmitgliedsnummern = cfg.get_string("JVEREIN", "mitgliedsnummern");
 	}
 
 	public void send_invoice(bool temporary, int64 timestamp, int user) throws IOError, InvoicePDFError, DatabaseError {
@@ -67,9 +79,9 @@ public class InvoiceImplementation {
 
 		string treasurer_path  = mailer.create_mail();
 		Mail treasurer_mail    = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Mail", treasurer_path);
-		treasurer_mail.from    = {"KtT Shopsystem", "shop@kreativitaet-trifft-technik.de"};
+		treasurer_mail.from    = {shortname + " Shopsystem", mailfromaddress};
 		treasurer_mail.subject = mailtitle;
-		treasurer_mail.add_recipient({"Schatzmeister", "shop-einzug@kreativitaet-trifft-technik.de"}, RecipientType.TO);
+		treasurer_mail.add_recipient({"Schatzmeister", treasurermailaddress}, RecipientType.TO);
 		var csvinvoicedata     = "";
 
 		foreach(var userid in users) {
@@ -82,7 +94,7 @@ public class InvoiceImplementation {
 				var invoicedata = generate_invoice(temporary, timestamp, userid, invoiceid);
 				string mail_path = mailer.create_mail();
 				Mail mail = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Mail", mail_path);
-				mail.from = {"KtT Shopsystem", "shop@kreativitaet-trifft-technik.de"};
+				mail.from = {shortname + " Shopsystem", mailfromaddress};
 				mail.subject = mailtitle;
 				mail.add_recipient({@"$(userdata.firstname) $(userdata.lastname)", userdata.email}, RecipientType.TO);
 
@@ -111,9 +123,13 @@ public class InvoiceImplementation {
 
 	public void send_invoices(bool temporary, int64 timestamp) throws IOError, InvoicePDFError, DatabaseError {
 		int64 prevtimestamp = timestamp - day_in_seconds;
+		string faelligkeitsdatumstring = "";
 
-		if(!temporary)
+		if(!temporary){
 			prevtimestamp = new DateTime.from_unix_local(timestamp).add_months(-1).to_unix();
+			var faelligkeitsdatum = new DateTime.from_unix_local(timestamp).add_days(10);
+			faelligkeitsdatumstring = faelligkeitsdatum.format("%d.%m.%Y");
+		}
 
 		Timespan ts = get_timespan(temporary, prevtimestamp);
 		Timespan tst = get_timespan(false, prevtimestamp);
@@ -135,10 +151,17 @@ public class InvoiceImplementation {
 
 		string treasurer_path  = mailer.create_mail();
 		Mail treasurer_mail    = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Mail", treasurer_path);
-		treasurer_mail.from    = {"KtT Shopsystem", "shop@kreativitaet-trifft-technik.de"};
+		treasurer_mail.from    = {shortname + " Shopsystem", mailfromaddress};
 		treasurer_mail.subject = mailtitle;
-		treasurer_mail.add_recipient({"Schatzmeister", "shop-einzug@kreativitaet-trifft-technik.de"}, RecipientType.TO);
+		treasurer_mail.add_recipient({"Schatzmeister", treasurermailaddress}, RecipientType.TO);
 		var csvinvoicedata     = "";
+		var csvjvereininvoicedata = "";
+		if(jvereinmitgliedsnummern == "extern"){
+			csvjvereininvoicedata = "Ext_Mitglieds_Nr;Betrag;Buchungstext;Fälligkeit;Intervall;Endedatum";
+		}
+		else {
+			csvjvereininvoicedata = "Mitglieds_Nr;Betrag;Buchungstext;Fälligkeit;Intervall;Endedatum";
+		}
 
 		foreach(var userid in users) {
 			number++;
@@ -149,7 +172,7 @@ public class InvoiceImplementation {
 
 			string mail_path = mailer.create_mail();
 			Mail mail = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Mail", mail_path);
-			mail.from = {"KtT Shopsystem", "shop@kreativitaet-trifft-technik.de"};
+			mail.from = {shortname + " Shopsystem", mailfromaddress};
 			mail.subject = mailtitle;
 			mail.add_recipient({@"$(userdata.firstname) $(userdata.lastname)", userdata.email}, RecipientType.TO);
 
@@ -165,12 +188,14 @@ public class InvoiceImplementation {
 			if(!temporary) {
 				treasurer_mail.add_attachment(invoicedata.pdffilename, "application/pdf", invoicedata.pdfdata);
 				csvinvoicedata += @"$(userdata.id),$(userdata.lastname),$(userdata.firstname),$invoiceid,$total_sum\n";
+				csvjvereininvoicedata += @"$(userdata.id);$total_sum;Shopsystem Rechnung Nummer $invoiceid;$faelligkeitsdatumstring;0;$faelligkeitsdatumstring\n";
 			}
 		}
 
 		if(!temporary) {
 			treasurer_mail.set_main_part(get_treasurer_text(), MessageType.PLAIN);
 			treasurer_mail.add_attachment("invoice.csv", "text/csv; charset=utf-8", csvinvoicedata.data);
+			treasurer_mail.add_attachment("jvereininvoice.csv", "text/csv; charset=utf-8", csvjvereininvoicedata.data);
 			mailer.send_mail(treasurer_path);
 		}
 	}
@@ -226,6 +251,8 @@ public class InvoiceImplementation {
 		} catch(GLib.FileError e) {
 			throw new IOError.FAILED("Could not open invoice template: %s", e.message);
 		}
+
+		text = text.replace("{{{SHORTNAME}}}", shortname);
 
 		return text;
 	}
@@ -294,8 +321,31 @@ public class InvoiceImplementation {
 
 		text = text.replace("{{{ADDRESS}}}", address);
 		text = text.replace("{{{LASTNAME}}}", name);
+		text = text.replace("{{{SPACENAME}}}", spacename);
 		text = text.replace("{{{INVOICE_TABLE}}}", table);
 		text = text.replace("{{{SUM_MONTH}}}", "%d,%02d".printf(total_sum / 100, total_sum % 100));
+
+		if(umsatzsteuer == "yes") {
+			text = text.replace("{{{UMSATZSTEUER}}}", "");
+		}
+		else {
+			string umsatzsteuertext;
+			string umsatzsteuertextfilename;
+			if(type == MessageType.HTML) {
+				umsatzsteuertextfilename = "umsatzsteuer.html"
+			}
+			else {
+				umsatzsteuertextfilename = "umsatzsteuer.txt"
+			}
+
+			try {
+				FileUtils.get_contents(datadir + "/" + umsatzsteuertextfilename, out umsatzsteuertext);
+			} catch(GLib.FileError e) {
+				throw new IOError.FAILED("Could not open umsatzsteuer template: %s", e.message);
+			}
+
+			text = text.replace("{{{UMSATZSTEUER}}}", umsatzsteuertext);
+		}
 
 		return text;
 	}

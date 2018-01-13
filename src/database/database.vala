@@ -273,6 +273,19 @@ public class DataBase : Object {
 	}
 #endif
 
+	public Product get_product_for_ean(uint64 ean) throws DatabaseError {
+		Product product = Product();
+		try {
+			product.ean = ean_alias_get(ean);
+			product.name = get_product_name(ean);
+			product.memberprice = get_product_price(1, ean);
+			product.guestprice = get_product_price(0, ean);
+			return product;
+		} catch(DatabaseError e){
+			throw e;
+		}
+	}
+
 	public StockEntry[] get_stock() {
 		StockEntry[] result = {};
 

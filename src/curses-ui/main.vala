@@ -53,12 +53,23 @@ public static int main(string[] args) {
 		error("IOError: %s\n", e.message);
 	}
 
-	ui = new CursesUI();
+  string binarylocation = File.new_for_path(args[0]).get_parent().get_path();
+
+	ui = new CursesUI(binarylocation);
 
 	Log.set_default_handler(log_handler);
 
 	scanner.msg.connect(msg_handler);
 	scanner.msg_overlay.connect(msg_overlay_handler);
+
+  /* get configuration */
+  Config config = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Config", "/io/mainframe/shopsystem/config");
+  var shopname = "--SHOPNAME--";
+	try {
+	   shopname = config.get_string("GENERAL", "longname");
+  } catch(KeyFileError e) {
+       shopname = "Missing in Config";
+  }
 
 	ui.log(MessageType.INFO, "KtT Shop System has been started");
 	play("startup.ogg");
