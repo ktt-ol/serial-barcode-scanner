@@ -53,7 +53,9 @@ public static int main(string[] args) {
 		error("IOError: %s\n", e.message);
 	}
 
-	ui = new CursesUI();
+  string binarylocation = File.new_for_path(args[0]).get_parent().get_path();
+
+	ui = new CursesUI(binarylocation);
 
 	Log.set_default_handler(log_handler);
 

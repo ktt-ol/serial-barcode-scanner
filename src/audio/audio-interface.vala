@@ -22,3 +22,11 @@ public interface AudioPlayer : Object {
 	public abstract string[] get_user_themes() throws IOError;
 	public abstract void play_user(string theme, string type) throws IOError;
 }
+
+public enum AudioType {
+	ERROR,
+	LOGIN,
+	LOGOUT,
+	PURCHASE,
+	INFO
+}

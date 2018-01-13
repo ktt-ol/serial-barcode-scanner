@@ -83,3 +83,8 @@ but you need to modify a few things.
  * Demo Data
  `sqlite3 shop.db "INSERT INTO categories (name) VALUES ('Getränke')";`
  `sqlite3 shop.db "INSERT INTO supplier (name,city,postal_code,street,phone,website) VALUES ('Demo Lieferant','Musterstadt','12345','Musterstraße 5','+49 1234 56789','https://www.ktt.de')";`
+
+== Customize Your Shop ==
+
+Edit the Logo in the logo.txt File.
+A helpful tool you will found here [http://patorjk.com/software/taag/](http://patorjk.com/software/taag/)
