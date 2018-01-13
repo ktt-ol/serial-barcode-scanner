@@ -80,6 +80,28 @@ public class ScannerSessionImplementation {
     return true;
   }
 
+  private ScannerSesseionCodeType getCodeType(string scannerdata){
+    if(scannerdata.has_prefix("USER ")){
+      return ScannerSesseionCodeType.USER;
+    } else if(scannerdata == "GUEST") {
+      return ScannerSesseionCodeType.GUEST;
+    } else if(scannerdata == "UNDO") {
+      return ScannerSesseionCodeType.UNDO;
+    } else if(scannerdata == "LOGOUT") {
+      return ScannerSesseionCodeType.LOGOUT;
+    } else {
+      //Handle EAN Code
+      uint64 id = 0;
+      scannerdata.scanf("%llu", out id);
+
+      /* check if scannerdata has valid format */
+      if(scannerdata != "%llu".printf(id) && scannerdata != "%08llu".printf(id) && scannerdata != "%013llu".printf(id)) {
+        return ScannerSesseionCodeType.UNKNOWN;
+      }
+      return ScannerSesseionCodeType.EAN;
+    }
+  }
+
   private void play_audio(AudioType audioType){
     switch (audioType) {
       case AudioType.ERROR:
