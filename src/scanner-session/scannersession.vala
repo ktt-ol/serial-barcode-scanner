@@ -216,6 +216,79 @@ public class ScannerSessionImplementation {
     return scannerResult;
   }
 
+  private ScannerResult handleUserState(string scannerdata) throws DatabaseError, IOError {
+    ScannerSesseionCodeType codeType = getCodeType(scannerdata);
+    ScannerResult scannerResult = ScannerResult();
+    switch (codeType) {
+      case ScannerSesseionCodeType.EAN:
+        uint64 ean = 0;
+        scannerdata.scanf("%llu", out ean);
+        Product p = {};
+        try {
+          p = db.get_product_for_ean(ean);
+          } catch(IOError e) {
+            scannerResult.type = MessageType.ERROR;
+            scannerResult.message = "Internal Error!";
+            scannerResult.audioType = AudioType.ERROR;
+            return scannerResult;
+          } catch(DatabaseError e) {
+            if(e is DatabaseError.PRODUCT_NOT_FOUND) {
+              scannerResult.type = MessageType.ERROR;
+              scannerResult.message = "Error: unknown product: %llu".printf(ean);
+              scannerResult.audioType = AudioType.ERROR;
+            } else {
+              scannerResult.type = MessageType.ERROR;
+              scannerResult.message = "Error: %s".printf(e.message);
+              scannerResult.audioType = AudioType.ERROR;
+            }
+            return scannerResult;
+          }
+
+        userProductList.append_val(p);
+
+        Price price = p.memberprice;
+
+        if(user == 0){
+          price = p.guestprice;
+        }
+
+        scannerResult.type = MessageType.INFO;
+        scannerResult.message = @"article added to shopping card: $(p.name) ($price €)";
+        scannerResult.audioType = AudioType.PURCHASE;
+        state = ScannerSessionState.USER;
+        return scannerResult;
+        break;
+      case ScannerSesseionCodeType.UNDO:
+        if(userProductList.length > 0){
+          userProductList.remove_index(userProductList.length-1);
+          scannerResult.type = MessageType.INFO;
+          scannerResult.message = @"removed last Item from Shopping Cart";
+          scannerResult.audioType = AudioType.INFO;
+          return scannerResult;
+        }
+        else {
+          scannerResult.type = MessageType.INFO;
+          scannerResult.message = @"No more Items on your Shopping Cart";
+          scannerResult.audioType = AudioType.ERROR;
+          return scannerResult;
+        }
+        break;
+      case ScannerSesseionCodeType.LOGOUT:
+        scannerResult = logout();
+        return scannerResult;
+        break;
+      case ScannerSesseionCodeType.USER:
+      case ScannerSesseionCodeType.GUEST:
+        //Logout alten User und akrtikel kaufen
+        scannerResult = logout();
+        scannerResult.nextScannerdata = scannerdata;
+        return scannerResult;
+        break;
+    }
+
+    return scannerResult;
+  }
+
   private void handle_barcode(string scannerdata) {
     try {
       stdout.printf("scannerdata: %s\n", scannerdata);
