@@ -258,12 +258,13 @@ public class ScannerSessionImplementation {
       case ScannerSesseionCodeType.UNDO:
         if(shoppingCard.length > 0){
           Product[] newShoppingCard = {};
+          Product removedProduct = shoppingCard[shoppingCard.length-1];
           for (int i = 0; i < shoppingCard.length-1;i++){
             newShoppingCard += shoppingCard[i];
           }
           shoppingCard = newShoppingCard;
           scannerResult.type = MessageType.INFO;
-          scannerResult.message = @"removed last Item from Shopping Cart";
+          scannerResult.message = "removed last Item from Shopping Cart: %s".printf(removedProduct.name);
           scannerResult.audioType = AudioType.INFO;
           return scannerResult;
         }
