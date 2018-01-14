@@ -71,7 +71,7 @@ public static int main(string[] args) {
        shopname = "Missing in Config";
   }
 
-	ui.log(MessageType.INFO, "KtT Shop System has been started");
+	ui.log(MessageType.INFO, @"$shopname Shop System has been started");
 	play("startup.ogg");
 
 	/* run mainloop */
