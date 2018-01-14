@@ -179,8 +179,10 @@ public class ScannerSessionImplementation {
 
         var mprice = p.memberprice;
         var gprice = p.guestprice;
+        var pname = p.name;
+
         scannerResult.type = MessageType.INFO;
-        scannerResult.message = @"article info: $name (Member: $mprice €, Guest: $gprice €)";
+        scannerResult.message = @"article info: $pname (Member: $mprice €, Guest: $gprice €)";
         scannerResult.audioType = AudioType.ERROR;
         state = ScannerSessionState.READY;
         return scannerResult;
