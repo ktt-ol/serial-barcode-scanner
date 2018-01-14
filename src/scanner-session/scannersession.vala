@@ -27,7 +27,7 @@ public class ScannerSessionImplementation {
   private Cli cli;
 
   private ScannerSessionState state = ScannerSessionState.READY;
-  private Array<?> userProductList = new Array<?> ();
+  private Product[] shoppingCard = {};
 
   public signal void msg(MessageType type, string message);
   public signal void msg_overlay(string title, string message);
@@ -128,7 +128,7 @@ public class ScannerSessionImplementation {
             scannerResult.type = MessageType.INFO;
             scannerResult.message = "Login: %s (%d)".printf(name, user);
             scannerResult.audioType = AudioType.LOGIN;
-            userProductList = new Array<Product> ();
+            shoppingCard = {};
             state = ScannerSessionState.USER;
             return scannerResult;
           } else {
@@ -144,7 +144,7 @@ public class ScannerSessionImplementation {
           scannerResult.type = MessageType.INFO;
           scannerResult.message = "Login as GUEST";
           scannerResult.audioType = AudioType.LOGIN;
-          userProductList = new Array<Product> ();
+          shoppingCard = {};
           state = ScannerSessionState.USER;
           return scannerResult;
         } else {
@@ -200,8 +200,8 @@ public class ScannerSessionImplementation {
     double totalPrice = 0.0;
     uint8 i = 0;
     Product p = Product();
-    for(i = 0; i < userProductList.length; i++) {
-      p = userProductList.index(i);
+    for(i = 0; i < shoppingCard.length; i++) {
+      p = shoppingCard[i];
       db.buy(user, p.ean);
       amountOfItems++;
       Price price = p.memberprice;
@@ -244,7 +244,7 @@ public class ScannerSessionImplementation {
             return scannerResult;
           }
 
-        userProductList.append_val(p);
+          shoppingCard += p;
 
         Price price = p.memberprice;
 
@@ -259,8 +259,12 @@ public class ScannerSessionImplementation {
         return scannerResult;
         break;
       case ScannerSesseionCodeType.UNDO:
-        if(userProductList.length > 0){
-          userProductList.remove_index(userProductList.length-1);
+        if(shoppingCard.length > 0){
+          Product[] newShoppingCard = {};
+          for (int i = 0; i < shoppingCard.length-1;i++){
+            newShoppingCard += shoppingCard[i];
+          }
+          shoppingCard = newShoppingCard;
           scannerResult.type = MessageType.INFO;
           scannerResult.message = @"removed last Item from Shopping Cart";
           scannerResult.audioType = AudioType.INFO;
