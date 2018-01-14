@@ -209,7 +209,7 @@ public class ScannerSessionImplementation {
       totalPrice += price/100.0;
     }
     scannerResult.type = MessageType.INFO;
-    scannerResult.message = "Purchase successful. %i Articels for %.2f € brought".printf(amountOfItems, totalPrice);
+    scannerResult.message = "Purchase successful for %s. %i Articels for %.2f € brought".printf(name, amountOfItems, totalPrice);
     scannerResult.audioType = AudioType.INFO;
     return scannerResult;
   }
