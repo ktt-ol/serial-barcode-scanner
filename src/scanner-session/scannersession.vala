@@ -204,10 +204,10 @@ public class ScannerSessionImplementation {
       if(user == 0){
         price = p.guestprice;
       }
-      totalPrice += price;
+      totalPrice += price/100;
     }
     scannerResult.type = MessageType.INFO;
-    scannerResult.message = @"Purchase successful. $amountOfItems for $totalPrice € brought";
+    scannerResult.message = @"Purchase successful. $amountOfItems Articels for $totalPrice € brought";
     scannerResult.audioType = AudioType.INFO;
     return scannerResult;
   }
