@@ -70,12 +70,14 @@ but you need to modify a few things.
 
 === Configuration ===
 
- * mv example.cfg ktt-shopsystem.cfg
- * edit ktt-shopsystem.cfg
+ * mv example.cfg config.cfg
+ * edit config.cfg
 
 === Database ===
 
  * Create user
+ `sqlite3 shop.db "INSERT INTO users (id, email, firstname, lastname) VALUES (-1, 'vorstand@diyww.de', 'Vorstand', 'DIYWW');"`
+  `sqlite3 shop.db "INSERT INTO users (id, email, firstname, lastname) VALUES (0, 'shop-gast@diyww.de', 'GAST', 'GAST');"`
   `sqlite3 shop.db "INSERT INTO users (id, email, firstname, lastname) VALUES (1, 'test@tester', 'Firstname', 'Lastname');"`
  * Setup user password
    `mdbus2 -s io.mainframe.shopsystem.Database /io/mainframe/shopsystem/database io.mainframe.shopsystem.Database.SetUserPassword 1 "password"`
