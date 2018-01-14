@@ -138,7 +138,6 @@ public class ScannerSessionImplementation {
             state = ScannerSessionState.READY;
             return scannerResult;
           }
-        break;
       case ScannerSesseionCodeType.GUEST:
         if(login(0)) {
           scannerResult.type = MessageType.INFO;
@@ -154,7 +153,6 @@ public class ScannerSessionImplementation {
           state = ScannerSessionState.READY;
           return scannerResult;
         }
-        break;
       case ScannerSesseionCodeType.EAN:
         uint64 ean = 0;
         scannerdata.scanf("%llu", out ean);
@@ -186,11 +184,9 @@ public class ScannerSessionImplementation {
         scannerResult.audioType = AudioType.ERROR;
         state = ScannerSessionState.READY;
         return scannerResult;
-        break;
       default:
         state = ScannerSessionState.READY;
         return scannerResult;
-        break;
     }
   }
 
@@ -257,7 +253,6 @@ public class ScannerSessionImplementation {
         scannerResult.audioType = AudioType.PURCHASE;
         state = ScannerSessionState.USER;
         return scannerResult;
-        break;
       case ScannerSesseionCodeType.UNDO:
         if(shoppingCard.length > 0){
           Product[] newShoppingCard = {};
@@ -276,18 +271,15 @@ public class ScannerSessionImplementation {
           scannerResult.audioType = AudioType.ERROR;
           return scannerResult;
         }
-        break;
       case ScannerSesseionCodeType.LOGOUT:
         scannerResult = logout();
         return scannerResult;
-        break;
       case ScannerSesseionCodeType.USER:
       case ScannerSesseionCodeType.GUEST:
         //Logout alten User und akrtikel kaufen
         scannerResult = logout();
         scannerResult.nextScannerdata = scannerdata;
         return scannerResult;
-        break;
     }
 
     return scannerResult;
