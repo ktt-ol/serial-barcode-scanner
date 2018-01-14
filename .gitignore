@@ -5,3 +5,5 @@ ktt-shopsystem.cfg
 config.mk
 config.h
 .DS_Store
+
+config\.cfg
