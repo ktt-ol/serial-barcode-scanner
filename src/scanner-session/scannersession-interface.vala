@@ -36,6 +36,7 @@ public enum ScannerSesseionCodeType {
 	UNDO,
 	LOGOUT,
 	EAN,
+	RFIDEM4100,
 	UNKNOWN
 }
 
