@@ -351,6 +351,7 @@ public class WebServer {
 			t.replace("PGPKEYID", userinfo.pgp);
 			t.replace("DISABLED", userinfo.disabled ? "true" : "false");
 			t.replace("HIDDEN", userinfo.hidden ? "true" : "false");
+			t.replace("RFID", string.joinv("<br>",userinfo.rfid));
 
 			var userauth = db.get_user_auth(id);
 			t.replace("ISSUPERUSER", userauth.superuser ? "true" : "false");

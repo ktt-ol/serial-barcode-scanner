@@ -13,12 +13,12 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-Device dev;
+Device scanner;
 
 public static int main(string[] args) {
 	try {
 		Config cfg = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Config", "/io/mainframe/shopsystem/config");
-		dev = new Device(cfg.get_string("INPUT", "device"), 9600, 8, 1);
+		scanner = new Device(cfg.get_string("INPUT", "barcodescanner"), 9600, 8, 1);
 	} catch(IOError e) {
 		error("IOError: %s\n", e.message);
 	} catch(KeyFileError e) {
@@ -40,7 +40,7 @@ public static int main(string[] args) {
 
 void on_bus_aquired(DBusConnection con) {
     try {
-        con.register_object("/io/mainframe/shopsystem/device", dev);
+        con.register_object("/io/mainframe/shopsystem/devicescanner", scanner);
     } catch(IOError e) {
         stderr.printf("Could not register service\n");
     }

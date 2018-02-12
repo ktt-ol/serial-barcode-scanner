@@ -138,6 +138,10 @@ public class DataBase : Object {
 		queries["alias_ean_add"]     = "INSERT OR IGNORE INTO ean_aliases (id, real_ean) VALUES (?, ?)";
 		queries["alias_ean_get"]     = "SELECT real_ean FROM ean_aliases WHERE id = ?";
 		queries["alias_ean_list"]    = "SELECT id, real_ean FROM ean_aliases ORDER BY id ASC";
+		queries["userid_rfid"]       = "SELECT user FROM rfid_users WHERE rfid = ?";
+		queries["rfid_userid"]       = "SELECT rfid FROM rfid_users WHERE user = ?";
+		queries["rfid_insert"]       = "INSERT OR REPLACE INTO rfid_users ('user','rfid') VALUES (?,?)";
+		queries["rfid_delete_user"]  = "DELETE FROM rfid_users WHERE user = ?";
 
 		/* compile queries into statements */
 		foreach(var entry in queries.entries) {
@@ -632,6 +636,17 @@ public class DataBase : Object {
 			throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
 		}
 
+		statements["rfid_userid"].reset();
+		statements["rfid_userid"].bind_int(1, user);
+		rc = statements["rfid_userid"].step();
+
+		string[] rfid = {};
+		while(rc == Sqlite.ROW) {
+						rfid += statements["rfid_userid"].column_text(0);
+						rc = statements["rfid_userid"].step();
+		}
+		result.rfid = rfid;
+
 		return result;
 	}
 
@@ -894,6 +909,21 @@ public class DataBase : Object {
 		int rc = statements["user_replace"].step();
 		if(rc != Sqlite.DONE)
 			throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
+
+		statements["rfid_delete_user"].reset();
+		statements["rfid_delete_user"].bind_int(1, u.id);
+		rc = statements["rfid_delete_user"].step();
+		if(rc != Sqlite.DONE)
+			throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
+
+		foreach (string rfid in u.rfid) {
+			statements["rfid_insert"].reset();
+			statements["rfid_insert"].bind_int(1, u.id);
+			statements["rfid_insert"].bind_text(2, rfid);
+			rc = statements["rfid_insert"].step();
+			if(rc != Sqlite.DONE)
+				throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
+		}
 	}
 
 	public bool user_is_disabled(int user) throws DatabaseError {
@@ -1163,5 +1193,21 @@ public class DataBase : Object {
 		bbdlist.sort(sortBestBeforeEntry);
 
 		return bbdlist.data;
+	}
+
+	public int get_userid_for_rfid(string rfid) throws IOError, DatabaseError {
+		statements["userid_rfid"].reset();
+		statements["userid_rfid"].bind_text(1, rfid);
+
+		int rc = statements["userid_rfid"].step();
+
+		switch(rc) {
+			case Sqlite.ROW:
+				return statements["userid_rfid"].column_int(0);
+			case Sqlite.DONE:
+				throw new DatabaseError.RFID_NOT_FOUND("unknown rfid: %s", rfid);
+			default:
+				throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
+		}
 	}
 }

@@ -65,6 +65,9 @@ public interface Database : Object {
 	public abstract uint64 ean_alias_get(uint64 ean) throws IOError;
 	public abstract EanAlias[] ean_alias_list() throws IOError;
 	public abstract BestBeforeEntry[] bestbeforelist() throws IOError;
+	public abstract int get_userid_for_rfid(string rfid) throws IOError, DatabaseError;
+	public abstract void addrfid(string rfid, int user) throws IOError, DatabaseError;
+	public abstract void delete_rfid_for_user(int user) throws IOError, DatabaseError;
 }
 
 public struct Category {
@@ -126,6 +129,7 @@ public struct UserInfo {
 	public bool disabled;
 	public bool hidden;
 	public string soundTheme;
+	public string[] rfid;
 
 	public bool equals(UserInfo x) {
 		if(id != x.id) return false;
@@ -140,6 +144,7 @@ public struct UserInfo {
 		if(joined_at != x.joined_at) return false;
 		if(disabled != x.disabled) return false;
 		if(hidden != x.hidden) return false;
+		if(rfid != x.rfid) return false;
 
 		return true;
 	}
@@ -197,4 +202,5 @@ public errordomain DatabaseError {
 	SESSION_NOT_FOUND,
 	USER_NOT_FOUND,
 	CONSTRAINT_FAILED,
+	RFID_NOT_FOUND,
 }
