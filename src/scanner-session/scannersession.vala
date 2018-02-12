@@ -85,6 +85,8 @@ public class ScannerSessionImplementation {
       return ScannerSesseionCodeType.UNDO;
     } else if(scannerdata == "LOGOUT") {
       return ScannerSesseionCodeType.LOGOUT;
+    } else if(scannerdata.length == 10) {
+      return ScannerSesseionCodeType.RFIDEM4100;
     } else {
       //Handle EAN Code
       uint64 id = 0;
