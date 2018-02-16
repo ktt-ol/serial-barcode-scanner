@@ -19,7 +19,7 @@ Device dev2;
 public static int main(string[] args) {
 	try {
 		Config cfg = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Config", "/io/mainframe/shopsystem/config");
-		dev = new Device(cfg.get_string("INPUT", "device"), 9600, 8, 1);
+		dev = new Device(cfg.get_string("INPUT", "barcodescanner"), 9600, 8, 1);
 		Config cfg = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Config", "/io/mainframe/shopsystem/config");
 		dev2 = new Device(cfg.get_string("INPUT", "rfidreader"), 9600, 8, 1);
 	} catch(IOError e) {
