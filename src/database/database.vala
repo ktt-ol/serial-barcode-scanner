@@ -138,6 +138,7 @@ public class DataBase : Object {
 		queries["alias_ean_add"]     = "INSERT OR IGNORE INTO ean_aliases (id, real_ean) VALUES (?, ?)";
 		queries["alias_ean_get"]     = "SELECT real_ean FROM ean_aliases WHERE id = ?";
 		queries["alias_ean_list"]    = "SELECT id, real_ean FROM ean_aliases ORDER BY id ASC";
+		queries["userid_rfid"]    	 = "SELECT user FROM rfid_users WHERE rfid = ?";
 
 		/* compile queries into statements */
 		foreach(var entry in queries.entries) {
@@ -1162,4 +1163,21 @@ public class DataBase : Object {
 
 		return bbdlist.data;
 	}
+
+	public int get_userid_for_rfid(string rfid) throws IOError, DatabaseError{
+		statements["userid_rfid"].reset();
+		statements["userid_rfid"].bind_text(1, rfid);
+
+		int rc = statements["userid_rfid"].step();
+
+		switch(rc) {
+			case Sqlite.ROW:
+				return statements["userid_rfid"].column_int(0);
+			case Sqlite.DONE:
+				throw new DatabaseError.RFID_NOT_FOUND("unknown rfid: %s", rfid);
+			default:
+				throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
+		}
+	}
+
 }
