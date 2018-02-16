@@ -22,6 +22,10 @@ public class Device {
 	public signal void received_barcode(string barcode);
 
 	public Device(string device) {
+		if (device == "ignore") {
+ 			stdout.printf("Ignoring InputDevice!\n");
+ 			return;
+ 		}
 		try {
 			io_read = new IOChannel.file(device, "r");
 			buffer = "";
