@@ -199,4 +199,5 @@ public errordomain DatabaseError {
 	SESSION_NOT_FOUND,
 	USER_NOT_FOUND,
 	CONSTRAINT_FAILED,
+	RFID_NOT_FOUND,
 }
