@@ -84,6 +84,10 @@ but you need to modify a few things.
   `sqlite3 shop.db "INSERT INTO categories (name) VALUES ('Getränke')";`
   `sqlite3 shop.db "INSERT INTO supplier (name,city,postal_code,street,phone,website) VALUES ('Demo Lieferant','Musterstadt','12345','Musterstraße 5','+49 1234 56789','https://www.ktt.de');"`
 
+=== Display on / off via MQTT ===
+
+You can control display power via MQTT by configuring the MQTT settings (i.e. BROKER, TOPIC) in the config file.
+
 == Customize Your Shop ==
 
 Edit the Logo in the logo.txt File.
