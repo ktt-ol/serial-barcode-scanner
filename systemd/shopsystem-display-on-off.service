@@ -1,0 +1,13 @@
+[Unit]
+Description=Display on-off via MQTT
+
+[Service]
+Type=simple
+ExecStart=/src/display-on-off/display-on-off.sh
+User=shop
+Group=shop
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
