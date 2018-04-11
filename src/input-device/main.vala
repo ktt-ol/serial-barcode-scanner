@@ -13,7 +13,8 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-Device dev;
+Device devBarcode;
+Device devRfid;
 
 public static int main(string[] args) {
 	try {
