@@ -18,7 +18,8 @@ Device dev;
 public static int main(string[] args) {
 	try {
 		Config cfg = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Config", "/io/mainframe/shopsystem/config");
-		dev = new Device(cfg.get_string("INPUT", "device"));
+		devBarcode = new Device(cfg.get_string("INPUT", "barcodescanner"));
+		devRfid = new Device(cfg.get_string("INPUT", "rfidreader"));
 	} catch(IOError e) {
 		error("IOError: %s\n", e.message);
 	} catch(KeyFileError e) {
