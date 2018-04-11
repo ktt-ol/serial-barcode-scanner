@@ -24,10 +24,13 @@ public class Logo {
 
 		win.addstr("\n");
 
-        var file = File.new_for_path (binarylocation + "/../../logo.txt");
+        var file = File.new_for_path (binarylocation + "/../../customlogo.txt");
 
         if (!file.query_exists ()) {
-            stderr.printf ("File '%s' doesn't exist.\n", file.get_path ());
+	    file = File.new_for_path (binarylocation + "/../../logo.txt");
+	    if (!file.query_exists ()) {
+            	stderr.printf ("File '%s' doesn't exist.\n", file.get_path ());
+	    }
         }
 
         try {
