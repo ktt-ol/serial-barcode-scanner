@@ -42,7 +42,12 @@ public static int main(string[] args) {
 
 void on_bus_aquired(DBusConnection con) {
     try {
-        con.register_object("/io/mainframe/shopsystem/device", dev);
+        con.register_object("/io/mainframe/shopsystem/device", devBarcode);
+    } catch(IOError e) {
+        stderr.printf("Could not register service\n");
+    }
+    try {
+        con.register_object("/io/mainframe/shopsystem/device", devRfid);
     } catch(IOError e) {
         stderr.printf("Could not register service\n");
     }
