@@ -33,13 +33,10 @@ The system consists of multiple daemons written in Vala, which communicate
 with each other using DBus.
 
 Build Dependencies:
- * apt install build-essential valac libesmtp-dev libgpgme11-dev libncursesw5-dev libncurses5-dev libgee-0.8-dev libgmime-2.6-dev libarchive-dev libgstreamer1.0-dev libgtk2.0-dev librsvg2-dev libsoup2.4-dev libsqlite3-dev libpango1.0-dev libssl-dev dbus-x11 mdbus2 policykit-1
+ * apt install build-essential valac libesmtp-dev libgpgme11-dev libncursesw5-dev libncurses5-dev libgee-0.8-dev libgmime-2.6-dev libarchive-dev libgstreamer1.0-dev libgtk2.0-dev librsvg2-dev libsoup2.4-dev libsqlite3-dev libpango1.0-dev libssl-dev dbus-x11 mdbus2 policykit-1 git fonts-lmodern sqlite3
 
 Additional runtime dependencies:
- * apt install fonts-lmodern gstreamer1.0-alsa gstreamer1.0-plugins-base vbetool mosquitto-clients
-
-Suggested runtime dependencies:
- * apt install sqlite3
+ * apt install gstreamer1.0-alsa gstreamer1.0-plugins-base vbetool mosquitto-clients
 
 == Installation ==
 
@@ -53,6 +50,7 @@ but you need to modify a few things.
 
 === Build the Software ===
 
+ * cd /home/shop/serial-barcode-scanner
  * ./configure
  * make shop.db
  * make
