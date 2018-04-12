@@ -18,6 +18,8 @@ using Curses;
 public class ClockWindow {
 	AsciiNumbers ascii;
 	Window win;
+	string dateformat;
+	Config cfg;
 
 	public ClockWindow() {
 		ascii = new AsciiNumbers();
@@ -26,6 +28,9 @@ public class ClockWindow {
 
 		win.clrtobot();
 		win.box(0, 0);
+		
+		cfg = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Config", "/io/mainframe/shopsystem/config");
+		dateformat = cfg.get_string("DATE-FORMAT", "format");
 
 		win.refresh();
 	}
@@ -63,7 +68,7 @@ public class ClockWindow {
 		win.clrtobot();
 		win.box(0, 0);
 
-		win.mvaddstr(5,4, now.format("%Y-%m-%d"));
+		win.mvaddstr(5,4, now.format(dateformat));
 
 		win.refresh();
 	}
