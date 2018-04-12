@@ -4,8 +4,6 @@ Description=Display on-off via MQTT
 [Service]
 Type=simple
 ExecStart=/home/shop/serial-barcode-scanner/src/display-on-off/display-on-off.sh
-User=shop
-Group=shop
 Restart=always
 RestartSec=10
 
