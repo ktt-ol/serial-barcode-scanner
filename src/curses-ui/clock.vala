@@ -21,8 +21,8 @@ public class ClockWindow {
 	string dateformat;
 	Config cfg;
 
-	public ClockWindow() {
-		ascii = new AsciiNumbers();
+	public ClockWindow(string binarylocation) {
+		ascii = new AsciiNumbers(binarylocation);
 		win   = new Window(6, 18, 1, COLS-2-18);
 		win.bkgdset(COLOR_PAIR(0) | Attribute.BOLD);
 

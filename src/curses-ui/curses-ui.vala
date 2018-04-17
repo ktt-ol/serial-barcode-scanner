@@ -41,7 +41,7 @@ public class CursesUI {
 		banner    = new Logo(binarylocation);
 		//statuswin = new StatusPanel();
 		messages  = new MessageBox();
-		clkwin    = new ClockWindow();
+		clkwin    = new ClockWindow(binarylocation);
 
 		clkwin.update();
 

@@ -15,96 +15,48 @@
 
 public class AsciiNumbers {
 
-	public string[] zero = {
-		" _ ",
-		"/ \\",
-		"\\_/"
-	};
+	string binarylocation;
 
-	public string[] one = {
-		"   ",
-		" /|",
-		"  |"
-	};
+	public AsciiNumbers(string binarylocation){
+		this.binarylocation = binarylocation;
+	}
 
-	public string[] two = {
-		"__ ",
-		" _)",
-		"(__"
-	};
+	private string[] readNumber(string fileName){
+		var file = File.new_for_path(binarylocation + "/numbers/" + fileName);
+		var dis = new DataInputStream(file.read());
+		string line;
+		string[] number;
+		while((line = dis.read_line(null)) != null){
+			number += line;
+		}
+		return number;
+	}
 
-	public string[] three = {
-		"__ ",
-		" _)",
-		"__)"
-	};
-
-	public string[] four = {
-		"   ",
-		"|_|",
-		"  |"
-	};
-
-	public string[] five = {
-		" __",
-		"|_ ",
-		"__)"
-	};
-
-	public string[] six = {
-		" _ ",
-		"/_ ",
-		"\\_)"
-	};
-
-	public string[] seven = {
-		"___",
-		"  /",
-		" / "
-	};
-
-	public string[] eight = {
-		" _ ",
-		"(_)",
-		"(_)"
-	};
-
-	public string[] nine = {
-		" _ ",
-		"(_\\",
-		" _/"
-	};
-
-	public string[] colon = {
-		"   ",
-		" o ",
-		" o "
-	};
 
 	public string[] get(char c) {
 		switch(c) {
 			case '0':
-				return zero;
+				return readNumber("0.txt");
 			case '1':
-				return one;
+				return readNumber("1.txt");
 			case '2':
-				return two;
+				return readNumber("2.txt");
 			case '3':
-				return three;
+				return readNumber("3.txt");
 			case '4':
-				return four;
+				return readNumber("4.txt");
 			case '5':
-				return five;
+				return readNumber("5.txt");
 			case '6':
-				return six;
+				return readNumber("6.txt");
 			case '7':
-				return seven;
+				return readNumber("7.txt");
 			case '8':
-				return eight;
+				return readNumber("8.txt");
 			case '9':
-				return nine;
+				return readNumber("9.txt");
 			case ':':
-				return colon;
+				return readNumber("colon.txt");
 			default:
 				return {};
 		}
