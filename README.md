@@ -1,4 +1,7 @@
-This is the Shop System of Oldenburg's Hackspace Mainframe.
+This is the Shop System is Based of the Shop System from Oldenburg's Hackspace Mainframe.
+After Several Years of using a small Team from the Do It Yourserlf Werkstatt Wilhelmshaven 
+and make it easier usable for Others. A lot of improvements has been done. Now there sould 
+be neraly no Hardcoded Stuff with Oldenburg Context. All Properties are set in a Config file.
 
 The software has been developed as a credit based system for members of the
 hackspace. The system depends on a cheap serial barcode scanner, which is used
@@ -38,40 +41,40 @@ Build Dependencies:
 Additional runtime dependencies:
  * apt install gstreamer1.0-alsa gstreamer1.0-plugins-base vbetool mosquitto-clients
 
-== Installation ==
+## Installation
 
 You can install to different location or use a different username,
 but you need to modify a few things.
 
-=== Git Setup ===
+### Git Setup
 
  * adduser "shop" with homedir in /home/shop
  * clone git repository into /home/shop/serial-barcode-scanner
 
-=== Build the Software ===
+### Build the Software
 
  * cd /home/shop/serial-barcode-scanner
  * ./configure
  * make shop.db
  * make
 
-=== DBus Configuration ===
+### DBus Configuration 
 
  * cd dbus
  * make
  * sudo make install
 
-=== Systemd ===
+### Systemd 
 
  * cd systemd
  * sudo make install
 
-=== Configuration ===
+### Configuration 
 
  * mv example.cfg config.cfg
  * edit config.cfg
 
-=== Database ===
+### Database
 
  * Create user
  `sqlite3 shop.db "INSERT INTO users (id, email, firstname, lastname) VALUES (-1, 'vorstand@diyww.de', 'Vorstand', 'DIYWW');"`
@@ -84,12 +87,12 @@ but you need to modify a few things.
  `sqlite3 shop.db "INSERT INTO categories (name) VALUES ('Getränke')";`
  `sqlite3 shop.db "INSERT INTO supplier (name,city,postal_code,street,phone,website) VALUES ('Demo Lieferant','Musterstadt','12345','Musterstraße 5','+49 1234 56789','https://www.ktt.de')";`
  
-=== Display on / off via MQTT ===
+### Display on / off via MQTT
 You can turn your Display on an off via MQTT
 configure the MQTT-Settings in your config-file
 Yout can define custom massages for display on an display off, set your BROKER and your TOPIC
 
-== Customize Your Shop ==
+## Customize Your Shop
 
 Edit the Logo in the logo.txt File.
 A helpful tool you will found here [http://patorjk.com/software/taag/](http://patorjk.com/software/taag/)
