@@ -211,7 +211,12 @@ public class ScannerSessionImplementation {
       totalPrice += price/100.0;
     }
     scannerResult.type = MessageType.INFO;
-    scannerResult.message = "Purchase successful for %s. %i Articels for %.2f € brought".printf(name, amountOfItems, totalPrice);
+    if(this.user == 0){ //GUEST
+        scannerResult.message = "Thank you four Your Purchase.\n  %i Articels for %.2f € brought\n Please put %.2f € into the cash register next to this screen.".printf(amountOfItems, totalPrice, totalPrice);
+    }
+    else { //All Others
+      scannerResult.message = "Thank you four Your Purchase %s.\n %i Articels for %.2f € brought and added to Your Account.".printf(name, amountOfItems, totalPrice);
+    }
     scannerResult.audioType = AudioType.INFO;
     return scannerResult;
   }
