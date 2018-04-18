@@ -1,4 +1,5 @@
 /* Copyright 2012, Sebastian Reichel <sre@ring0.de>
+ * Copyright 2017-2018, Johannes Rudolph <johannes.rudolph@gmx.com>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -13,8 +14,8 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-public class WebServer {
-	private Soup.Server srv;
+  public class WebServer {
+  private Soup.Server srv;
   private string logname;
   private string shortname;
 
