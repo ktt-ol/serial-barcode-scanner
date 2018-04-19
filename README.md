@@ -85,6 +85,7 @@ but you need to modify a few things.
  `sqlite3 shop.db "INSERT INTO supplier (name,city,postal_code,street,phone,website) VALUES ('Demo Lieferant','Musterstadt','12345','Musterstraße 5','+49 1234 56789','https://www.ktt.de')";`
  
 === Display on / off via MQTT ===
+
 You can turn your Display on an off via MQTT
 configure the MQTT-Settings in your config-file
 Yout can define custom massages for display on an display off, set your BROKER and your TOPIC
