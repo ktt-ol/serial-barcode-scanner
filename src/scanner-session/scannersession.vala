@@ -287,6 +287,7 @@ public class ScannerSessionImplementation {
         return scannerResult;
       case ScannerSesseionCodeType.USER:
       case ScannerSesseionCodeType.GUEST:
+      case ScannerSesseionCodeType.RFIDEM4100:
         //Logout alten User und akrtikel kaufen
         scannerResult = logout();
         scannerResult.nextScannerdata = scannerdata;
