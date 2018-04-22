@@ -14,13 +14,13 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-Device devBarcode;
+Device devScanner;
 Device devRfid;
 
 public static int main(string[] args) {
 	try {
 		Config cfg = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Config", "/io/mainframe/shopsystem/config");
-		devBarcode = new Device(cfg.get_string("INPUT", "barcodescanner"));
+		devScanner = new Device(cfg.get_string("INPUT", "barcodescanner"));
 		devRfid = new Device(cfg.get_string("INPUT", "rfidreader"));
 	} catch(IOError e) {
 		error("IOError: %s\n", e.message);
@@ -43,12 +43,12 @@ public static int main(string[] args) {
 
 void on_bus_aquired(DBusConnection con) {
     try {
-        con.register_object("/io/mainframe/shopsystem/device", devBarcode);
+        con.register_object("/io/mainframe/shopsystem/device/scanner", devScanner);
     } catch(IOError e) {
         stderr.printf("Could not register service\n");
     }
     try {
-        con.register_object("/io/mainframe/shopsystem/device", devRfid);
+        con.register_object("/io/mainframe/shopsystem/device/rfid", devRfid);
     } catch(IOError e) {
         stderr.printf("Could not register service\n");
     }

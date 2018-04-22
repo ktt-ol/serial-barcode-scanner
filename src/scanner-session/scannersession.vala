@@ -24,7 +24,8 @@ public class ScannerSessionImplementation {
 
   private Database db;
   private AudioPlayer audio;
-  private InputDevice dev;
+  private InputDevice devScanner;
+  private InputDevice devRfid;
   private Cli cli;
 
   private ScannerSessionState state = ScannerSessionState.READY;
@@ -36,11 +37,13 @@ public class ScannerSessionImplementation {
   public ScannerSessionImplementation() {
     try {
       db       = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Database", "/io/mainframe/shopsystem/database");
-      dev      = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.InputDevice", "/io/mainframe/shopsystem/device");
+      devScanner = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.InputDevice", "/io/mainframe/shopsystem/device/scanner");
+      devRfid = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.InputDevice", "/io/mainframe/shopsystem/device/rfid");
       cli      = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Cli", "/io/mainframe/shopsystem/cli");
       audio    = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.AudioPlayer", "/io/mainframe/shopsystem/audio");
 
-      dev.received_barcode.connect(handle_barcode);
+      devScanner.received_barcode.connect(handle_barcode);
+      devRfid.received_barcode.connect(handle_barcode);
       cli.received_barcode.connect(handle_barcode);
     } catch(IOError e) {
       error("IOError: %s\n", e.message);
@@ -189,6 +192,10 @@ public class ScannerSessionImplementation {
         scannerResult.audioType = AudioType.ERROR;
         state = ScannerSessionState.READY;
         return scannerResult;
+      case ScannerSesseionCodeType.RFIDEM4100:
+          int user = db.get_userid_for_rfid(scannerdata);
+          scannerResult.nextScannerdata =@"USER $user";
+          return scannerResult;
       default:
         state = ScannerSessionState.READY;
         return scannerResult;
@@ -301,7 +308,7 @@ public class ScannerSessionImplementation {
     try {
       stdout.printf("scannerdata: %s\n", scannerdata);
       if(interpret(scannerdata))
-        dev.blink(1000);
+        scanner.blink(1000);
     } catch(IOError e) {
       send_message(MessageType.ERROR, "IOError: %s", e.message);
     } catch(DatabaseError e) {

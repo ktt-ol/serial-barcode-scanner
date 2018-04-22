@@ -139,7 +139,10 @@ public class DataBase : Object {
 		queries["alias_ean_add"]     = "INSERT OR IGNORE INTO ean_aliases (id, real_ean) VALUES (?, ?)";
 		queries["alias_ean_get"]     = "SELECT real_ean FROM ean_aliases WHERE id = ?";
 		queries["alias_ean_list"]    = "SELECT id, real_ean FROM ean_aliases ORDER BY id ASC";
-		queries["userid_rfid"]    	 = "SELECT user FROM rfid_users WHERE rfid = ?";
+		queries["userid_rfid"]       = "SELECT user FROM rfid_users WHERE rfid = ?";
+		queries["rfid_userid"]       = "SELECT rfid FROM rfid_users WHERE user = ?";
+    queries["rfid_insert"]       = "INSERT OR REPLACE INTO rfid_users ('user','rfid') VALUES (?,?)";
+    queries["rfid_delete_user"]  = "DELETE FROM rfid_users WHERE user = ? ";
 
 		/* compile queries into statements */
 		foreach(var entry in queries.entries) {
@@ -631,6 +634,21 @@ public class DataBase : Object {
 		} else {
 			throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
 		}
+		
+		statements["rfid_userid"].reset();
+                statements["rfid_userid"].bind_int(1, user);
+                rc = statements["rfid_userid"].step();
+ 
+                string[] rfid = {};
+ 
+                while(rc == Sqlite.ROW) {
+                                //string rfidcode = statements["rfid_userid"].column_text(0);
+                                rfid += statements["rfid_userid"].column_text(0);
+ 
+                                rc = statements["rfid_userid"].step();
+                }
+ 
+                result.rfid = rfid;
 
 		return result;
 	}
@@ -894,6 +912,20 @@ public class DataBase : Object {
 		int rc = statements["user_replace"].step();
 		if(rc != Sqlite.DONE)
 			throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
+			
+		statements["rfid_delete_user"].reset();
+	  	rc = statements["rfid_delete_user"].step();
+		if(rc != Sqlite.DONE)
+			throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
+
+		foreach (string rfid in u.rfid) {
+			statements["rfid_insert"].reset();
+			statements["rfid_insert"].bind_int(1, u.id);
+			statements["rfid_insert"].bind_text(2, rfid);
+			rc = statements["rfid_insert"].step();
+			if(rc != Sqlite.DONE)
+				throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
+		}
 	}
 
 	public bool user_is_disabled(int user) throws DatabaseError {
