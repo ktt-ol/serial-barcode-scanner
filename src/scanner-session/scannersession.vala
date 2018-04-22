@@ -308,7 +308,7 @@ public class ScannerSessionImplementation {
     try {
       stdout.printf("scannerdata: %s\n", scannerdata);
       if(interpret(scannerdata))
-        scanner.blink(1000);
+        devScanner.blink(1000);
     } catch(IOError e) {
       send_message(MessageType.ERROR, "IOError: %s", e.message);
     } catch(DatabaseError e) {
