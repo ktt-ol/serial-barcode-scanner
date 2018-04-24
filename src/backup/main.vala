@@ -29,9 +29,9 @@ public static int main(string[] args) {
 
 		mail.from = {cfg.get_string("GENERAL", "shortname")+" Shopsystem", cfg.get_string("MAIL", "mailfromaddress")};
 		mail.add_recipient({cfg.get_string("MAIL", "backupaddress")}, RecipientType.TO);
-		mail.subject = "Backup " cfg.get_string("GENERAL", "shortname")+" Shopsystem" +" "+now;
+		mail.subject = "Backup "+ cfg.get_string("GENERAL", "shortname")+" Shopsystem" +" "+now;
 		mail.set_main_part("You can find a backup of 'shop.db' attached to this mail.", MessageType.PLAIN);
-		mail.add_attachment("shop.db", "application/x-sqlite3", dbdata);
+		mail.add_attachment(cfg.get_string("DATABASE", "file"), "application/x-sqlite3", dbdata);
 
 		mailer.send_mail(mailpath);
 	} catch(Error e) {
