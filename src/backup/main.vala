@@ -25,7 +25,7 @@ public static int main(string[] args) {
 		uint8[] dbdata;
 		FileUtils.get_data(dbfile, out dbdata);
 
-		var now = new DateTime.now_local().format(cfg.get_string("DATE-TIME", "formatDateTime"));
+		var now = new DateTime.now_local().format(cfg.get_string("DATE-FORMAT", "formatDateTime"));
 
 		mail.from = {cfg.get_string("GENERAL", "shortname")+" Shopsystem", cfg.get_string("MAIL", "mailfromaddress")};
 		mail.add_recipient({cfg.get_string("MAIL", "backupaddress")}, RecipientType.TO);
