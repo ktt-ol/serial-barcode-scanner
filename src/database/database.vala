@@ -914,6 +914,7 @@ public class DataBase : Object {
 			throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
 			
 		statements["rfid_delete_user"].reset();
+		statements["rfid_delete_user"].bind_int(1, u.id);
 	  	rc = statements["rfid_delete_user"].step();
 		if(rc != Sqlite.DONE)
 			throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
