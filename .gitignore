@@ -7,3 +7,6 @@ config.h
 .DS_Store
 
 config\.cfg
+mylogo.svg
+myfooter-line.svg
+customlogo.txt
