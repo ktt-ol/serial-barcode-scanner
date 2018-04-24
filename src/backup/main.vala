@@ -25,11 +25,11 @@ public static int main(string[] args) {
 		uint8[] dbdata;
 		FileUtils.get_data(dbfile, out dbdata);
 
-		var now = new DateTime.now_local().format("%Y-%m-%d %H:%M");
+		var now = new DateTime.now_local().format(cfg.get_string("DATE-TIME", "formatDateTime"));
 
-		mail.from = {"KtT Shopsystem", "shop@kreativitaet-trifft-technik.de"};
-		mail.add_recipient({"KtT Shopsystem Backups", "shop-backup@kreativitaet-trifft-technik.de"}, RecipientType.TO);
-		mail.subject = "Backup KtT-Shopsystem "+now;
+		mail.from = {cfg.get_string("GENERAL", "shortname")+" Shopsystem", "cfg.get_string("MAIL", "mailfromaddress")"};
+		mail.add_recipient({cfg.get_string("MAIL", "backupaddress")}, RecipientType.TO);
+		mail.subject = "Backup " cfg.get_string("GENERAL", "shortname")+" Shopsystem" +" "+now;
 		mail.set_main_part("You can find a backup of 'shop.db' attached to this mail.", MessageType.PLAIN);
 		mail.add_attachment("shop.db", "application/x-sqlite3", dbdata);
 
