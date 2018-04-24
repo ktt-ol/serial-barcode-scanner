@@ -1,4 +1,6 @@
 /* Copyright 2013, Sebastian Reichel <sre@ring0.de>
+ * Copyright 2018, Johannes Rudolph <johannes.rudolph@gmx.com>
+ * Copyright 2018, Malte Modler <malte@malte-modler.de>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -38,6 +40,11 @@ public class InvoiceImplementation {
 	string spacename;
 	string umsatzsteuer;
 	string jvereinmitgliedsnummern;
+	string umsatzsteuerNoText;
+        string umsatzsteuerNoHtml;
+        string dateFormat;
+        string dateTimeFormat;
+        string timeFormat;
 
 	public InvoiceImplementation() throws IOError, KeyFileError {
 		mailer = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Mail", "/io/mainframe/shopsystem/mailer");
@@ -51,6 +58,11 @@ public class InvoiceImplementation {
 		spacename = cfg.get_string("GENERAL", "spacename");
 		umsatzsteuer = cfg.get_string("INVOICE", "umsatzsteuer");
 		jvereinmitgliedsnummern = cfg.get_string("JVEREIN", "mitgliedsnummern");
+		umsatzsteuerNoText = cfg.get_string("INVOICE", "umsatzsteuerNoText");
+                umsatzsteuerNoHtml = cfg.get_string("INVOICE", "umsatzsteuerNoHtml");
+                dateFormat = cfg.get_string("DATE-FORMAT", "format");
+                dateTimeFormat = cfg.get_string("DATE-FORMAT", "formatDateTime");
+                timeFormat = cfg.get_string("DATE-FORMAT", "formatTime");
 	}
 
 	public void send_invoice(bool temporary, int64 timestamp, int user) throws IOError, InvoicePDFError, DatabaseError {
@@ -66,8 +78,8 @@ public class InvoiceImplementation {
 
 		var start = new DateTime.from_unix_local(ts.from);
 		var stop  = new DateTime.from_unix_local(ts.to);
-		var startstring = start.format("%d.%m.%Y %H:%M:%S");
-		var stopstring  = stop.format("%d.%m.%Y %H:%M:%S");
+		var startstring = start.format(dateTimeFormat);
+                var stopstring  = stop.format(dateTimeFormat);
 
 		/* title */
 		string mailtitle = temporary ? "Getränkezwischenstand" : "Getränkerechnung";
@@ -128,7 +140,7 @@ public class InvoiceImplementation {
 		if(!temporary){
 			prevtimestamp = new DateTime.from_unix_local(timestamp).add_months(-1).to_unix();
 			var faelligkeitsdatum = new DateTime.from_unix_local(timestamp).add_days(10);
-			faelligkeitsdatumstring = faelligkeitsdatum.format("%d.%m.%Y");
+			faelligkeitsdatumstring = faelligkeitsdatum.format(dateFormat);
 		}
 
 		Timespan ts = get_timespan(temporary, prevtimestamp);
@@ -330,18 +342,11 @@ public class InvoiceImplementation {
 		}
 		else {
 			string umsatzsteuertext;
-			string umsatzsteuertextfilename;
 			if(type == MessageType.HTML) {
-				umsatzsteuertextfilename = "umsatzsteuer.html";
+				umsatzsteuertext = umsatzsteuerNoHtml;
 			}
 			else {
-				umsatzsteuertextfilename = "umsatzsteuer.txt";
-			}
-
-			try {
-				FileUtils.get_contents(datadir + "/" + umsatzsteuertextfilename, out umsatzsteuertext);
-			} catch(GLib.FileError e) {
-				throw new IOError.FAILED("Could not open umsatzsteuer template: %s", e.message);
+				umsatzsteuertext = umsatzsteuerNoText;
 			}
 
 			text = text.replace("{{{UMSATZSTEUER}}}", umsatzsteuertext);
@@ -383,9 +388,9 @@ public class InvoiceImplementation {
 		string lastdate = "";
 		foreach(var entry in entries) {
 			var dt = new DateTime.from_unix_local(entry.timestamp);
-			string newdate = dt.format("%Y-%m-%d");
+			string newdate = dt.format(dateFormat);
 			string date = (lastdate == newdate) ? "          " : newdate;
-			result += " | %s | %s | %s%s | %3d,%02d € |\n".printf(date, dt.format("%H:%M:%S"), entry.product.name, string.nfill(namelength-entry.product.name.char_count(), ' '), entry.price / 100, entry.price % 100);
+			result += " | %s | %s | %s%s | %3d,%02d € |\n".printf(date, dt.format(timeFormat), entry.product.name, string.nfill(namelength-entry.product.name.char_count(), ' '), entry.price / 100, entry.price % 100);
 			lastdate = newdate;
 		}
 
@@ -407,8 +412,8 @@ public class InvoiceImplementation {
 		int total = 0;
 		foreach(var entry in entries) {
 			var dt = new DateTime.from_unix_local(entry.timestamp);
-			string newdate = dt.format("%Y-%m-%d");
-			string time = dt.format("%H:%M:%S");
+			string newdate = dt.format(dateFormat);
+			string time = dt.format(timeFormat);
 			string date = (lastdate == newdate) ? "" : newdate;
 			total += entry.price;
 

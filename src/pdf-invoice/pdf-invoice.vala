@@ -1,5 +1,6 @@
 /* Copyright 2013, Sebastian Reichel <sre@ring0.de>
  * Copyright 2017-2018, Johannes Rudolph <johannes.rudolph@gmx.com>
+ * Copyright 2018, Malte Modler <malte@malte-modler.de>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -66,12 +67,20 @@ public class InvoicePDF {
 
 	string longname;
 	string umsatzsteuer;
+	string umsatzsteuerNoText;
+        string dateFormat;
+        string dateTimeFormat;
+        string timeFormat;
 
 	public InvoicePDF(string datadir) {
 		this.datadir = datadir;
 		cfg = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Config", "/io/mainframe/shopsystem/config");
 		longname = cfg.get_string("GENERAL", "longname");
 		umsatzsteuer = cfg.get_string("INVOICE", "umsatzsteuer");
+		umsatzsteuerNoText = cfg.get_string("INVOICE", "umsatzsteuerNoText");
+                dateFormat = cfg.get_string("DATE-FORMAT", "format");
+                dateTimeFormat = cfg.get_string("DATE-FORMAT", "formatDateTime");
+                timeFormat = cfg.get_string("DATE-FORMAT", "formatTime");
 	}
 
 	private void render_svg(Cairo.Context ctx, string file) {
@@ -82,19 +91,38 @@ public class InvoicePDF {
 			error("Could not load SVG: %s\n", e.message);
 		}
 	}
+	
+	private bool svg_file_exists(string file) {
+                try {
+                        new Rsvg.Handle.from_file(file);
+                        return true;
+                } catch(Error e) {
+                        return false;           
+                }
+        }
 
 	private void draw_footer(Cairo.Context ctx) {
 		ctx.save();
 		ctx.translate(-20, 818);
 		ctx.scale(1.42, 1.42);
-		render_svg(ctx, datadir + "/footer-line.svg");
+		if(svg_file_exists(datadir + "/../myfooter-line.svg")){
+               		render_svg(ctx, datadir + "/../myfooter-line.svg");
+                }       
+                else {
+                	render_svg(ctx, datadir + "/footer-line.svg");
+		}
 		ctx.restore();
 	}
 
 	private void draw_logo(Cairo.Context ctx) {
 		ctx.save();
 		ctx.translate(366,25);
-		render_svg(ctx, datadir + "/logo.svg");
+		if(svg_file_exists(datadir + "/../mylogo.svg")){
+               		render_svg(ctx, datadir + "/../mylogo.svg");
+                }       
+                else {
+                	render_svg(ctx, datadir + "/logo.svg");
+		}
 		ctx.restore();
 	}
 
@@ -373,17 +401,8 @@ public class InvoicePDF {
 				text = text.replace("{{{UMSATZSTEUER}}}", "");
 			}
 			else {
-				string umsatzsteuertext;
-
-				try {
-					FileUtils.get_contents(datadir + "/" + "umsatzsteuer.txt", out umsatzsteuertext);
-				} catch(GLib.FileError e) {
-					throw new IOError.FAILED("Could not open umsatzsteuer template: %s", e.message);
-				}
-
-				text = text.replace("{{{UMSATZSTEUER}}}", umsatzsteuertext);
+				text = text.replace("{{{UMSATZSTEUER}}}", umsatzsteuerNoText);
 			}
-
 
 			layout.set_markup(text, text.length);
 		} catch(GLib.FileError e) {
@@ -465,8 +484,8 @@ public class InvoicePDF {
 
 		/* generate strings for InvoiceEntry */
 		var tm = new DateTime.from_unix_local(e.timestamp);
-		var date = tm.format("%Y-%m-%d");
-		var time = tm.format("%H:%M:%S");
+		var date = tm.format(dateFormat);
+                var time = tm.format(timeFormat);
 		var article = e.product.name;
 		var price = @"$(e.price)€".replace(".", ",");
 

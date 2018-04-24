@@ -1,5 +1,6 @@
 /* Copyright 2012-2013, Sebastian Reichel <sre@ring0.de>
  * Copyright 2017-2018, Johannes Rudolph <johannes.rudolph@gmx.com>
+ * Copyright 2017-2018, Malte Modler <malte@malte-modler.de>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -119,7 +120,7 @@ public class ScannerSessionImplementation {
         audio.play_user(theme, "purchase");
         break;
       case AudioType.INFO:
-        audio.play_user(theme, "login");
+        audio.play_user(theme, "info");
         break;
     }
   }
@@ -189,7 +190,7 @@ public class ScannerSessionImplementation {
 
         scannerResult.type = MessageType.INFO;
         scannerResult.message = @"article info: $pname (Member: $mprice €, Guest: $gprice €)";
-        scannerResult.audioType = AudioType.ERROR;
+        scannerResult.audioType = AudioType.INFO;
         state = ScannerSessionState.READY;
         return scannerResult;
       case ScannerSesseionCodeType.RFIDEM4100:
@@ -220,12 +221,12 @@ public class ScannerSessionImplementation {
     }
     scannerResult.type = MessageType.INFO;
     if(this.user == 0){ //GUEST
-        scannerResult.message = "Thank you for Your Purchase.\n  %i Articels for %.2f € brought\n Please put %.2f € into the cash register next to this screen.".printf(amountOfItems, totalPrice, totalPrice);
+        scannerResult.message = "Thank you for Your Purchase.\n  %i Articels for %.2f € brought\n Please put %.2f € into the cash register next to this screen.\nLogout completed successfully".printf(amountOfItems, totalPrice, totalPrice);
     }
     else { //All Others
-      scannerResult.message = "Thank you for Your Purchase %s.\n %i Articels for %.2f € brought and added to Your Account.".printf(name, amountOfItems, totalPrice);
+      scannerResult.message = "Thank you for Your Purchase %s.\n %i Articels for %.2f € brought and added to Your Account.\nLogout completed successfully".printf(name, amountOfItems, totalPrice);
     }
-    scannerResult.audioType = AudioType.INFO;
+    scannerResult.audioType = AudioType.LOGOUT;
     return scannerResult;
   }
 
