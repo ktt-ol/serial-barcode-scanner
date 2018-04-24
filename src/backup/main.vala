@@ -27,7 +27,7 @@ public static int main(string[] args) {
 
 		var now = new DateTime.now_local().format(cfg.get_string("DATE-TIME", "formatDateTime"));
 
-		mail.from = {cfg.get_string("GENERAL", "shortname")+" Shopsystem", "cfg.get_string("MAIL", "mailfromaddress")"};
+		mail.from = {cfg.get_string("GENERAL", "shortname")+" Shopsystem", cfg.get_string("MAIL", "mailfromaddress")};
 		mail.add_recipient({cfg.get_string("MAIL", "backupaddress")}, RecipientType.TO);
 		mail.subject = "Backup " cfg.get_string("GENERAL", "shortname")+" Shopsystem" +" "+now;
 		mail.set_main_part("You can find a backup of 'shop.db' attached to this mail.", MessageType.PLAIN);
