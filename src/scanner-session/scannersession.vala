@@ -22,12 +22,16 @@ public class ScannerSessionImplementation {
   private bool logged_in = false;
   private bool disabled = false;
   private string theme = "beep";
+  private string systemlanguage;
+  private string userlanguage;
 
   private Database db;
   private AudioPlayer audio;
   private InputDevice devScanner;
   private InputDevice devRfid;
   private Cli cli;
+  private I18n i18n;
+  private Config cfg;
 
   private ScannerSessionState state = ScannerSessionState.READY;
   private Product[] shoppingCard = {};
@@ -37,15 +41,20 @@ public class ScannerSessionImplementation {
 
   public ScannerSessionImplementation() {
     try {
-      db       = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Database", "/io/mainframe/shopsystem/database");
-      devScanner = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.InputDevice", "/io/mainframe/shopsystem/device/scanner");
-      devRfid = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.InputDevice", "/io/mainframe/shopsystem/device/rfid");
-      cli      = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Cli", "/io/mainframe/shopsystem/cli");
-      audio    = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.AudioPlayer", "/io/mainframe/shopsystem/audio");
+      db          = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Database", "/io/mainframe/shopsystem/database");
+      devScanner  = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.InputDevice", "/io/mainframe/shopsystem/device/scanner");
+      devRfid     = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.InputDevice", "/io/mainframe/shopsystem/device/rfid");
+      cli         = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Cli", "/io/mainframe/shopsystem/cli");
+      audio       = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.AudioPlayer", "/io/mainframe/shopsystem/audio");
+      i18n        = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.I18n", "/io/mainframe/shopsystem/i18n");
+      cfg         = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Config", "/io/mainframe/shopsystem/config");
 
       devScanner.received_barcode.connect(handle_barcode);
       devRfid.received_barcode.connect(handle_barcode);
       cli.received_barcode.connect(handle_barcode);
+
+      systemlanguage = cfg.get_string("GENERAL", "language");
+      userlanguage = systemlanguage;
     } catch(IOError e) {
       error("IOError: %s\n", e.message);
     }
@@ -64,7 +73,7 @@ public class ScannerSessionImplementation {
       this.name      = db.get_username(user);
       this.disabled  = db.user_is_disabled(user);
     } catch(DatabaseError e) {
-      send_message(MessageType.ERROR, "Error (user=%d): %s", user, e.message);
+      send_message(MessageType.ERROR, i18n.get_string("loginerror",userlanguage).printf(user, e.message));
       return false;
     }
     this.logged_in = true;
@@ -77,7 +86,8 @@ public class ScannerSessionImplementation {
     } catch(DatabaseError e) {
       this.theme = "beep";
     }
-
+    // Here the Displayed Language can be modiyfied later for each user after login
+    this.userlanguage = this.systemlanguage;
     return true;
   }
 
@@ -133,14 +143,14 @@ public class ScannerSessionImplementation {
           int32 userid = int.parse(scannerdata.substring(5));
           if(login(userid)) {
             scannerResult.type = MessageType.INFO;
-            scannerResult.message = "Login: %s (%d)".printf(name, user);
+            scannerResult.message = i18n.get_string("login",userlanguage).printf(name, user);
             scannerResult.audioType = AudioType.LOGIN;
             shoppingCard = {};
             state = ScannerSessionState.USER;
             return scannerResult;
           } else {
             scannerResult.type = MessageType.ERROR;
-            scannerResult.message = "Login failed (User ID = %d)".printf(userid);
+            scannerResult.message = i18n.get_string("loginfailed",userlanguage).printf(userid);
             scannerResult.audioType = AudioType.ERROR;
             state = ScannerSessionState.READY;
             return scannerResult;
@@ -148,14 +158,14 @@ public class ScannerSessionImplementation {
       case ScannerSesseionCodeType.GUEST:
         if(login(0)) {
           scannerResult.type = MessageType.INFO;
-          scannerResult.message = "Login as GUEST";
+          scannerResult.message = i18n.get_string("loginguest",userlanguage);
           scannerResult.audioType = AudioType.LOGIN;
           shoppingCard = {};
           state = ScannerSessionState.USER;
           return scannerResult;
         } else {
           scannerResult.type = MessageType.ERROR;
-          scannerResult.message = "Login failed as GUEST";
+          scannerResult.message = i18n.get_string("loginguestfailed",userlanguage);
           scannerResult.audioType = AudioType.ERROR;
           state = ScannerSessionState.READY;
           return scannerResult;
@@ -168,17 +178,17 @@ public class ScannerSessionImplementation {
           p = db.get_product_for_ean(ean);
         } catch(IOError e) {
           scannerResult.type = MessageType.ERROR;
-          scannerResult.message = "Internal Error!";
+          scannerResult.message = i18n.get_string("internalerror",userlanguage);
           scannerResult.audioType = AudioType.ERROR;
           return scannerResult;
         } catch(DatabaseError e) {
           if(e is DatabaseError.PRODUCT_NOT_FOUND) {
             scannerResult.type = MessageType.ERROR;
-            scannerResult.message = "Error: unknown product: %llu".printf(ean);
+            scannerResult.message = i18n.get_string("unkonwnproduct",userlanguage).printf(ean);
             scannerResult.audioType = AudioType.ERROR;
           } else {
             scannerResult.type = MessageType.ERROR;
-            scannerResult.message = "Error: %s".printf(e.message);
+            scannerResult.message = i18n.get_string("error",userlanguage).printf(e.message);
             scannerResult.audioType = AudioType.ERROR;
           }
           return scannerResult;
@@ -189,7 +199,7 @@ public class ScannerSessionImplementation {
         var pname = p.name;
 
         scannerResult.type = MessageType.INFO;
-        scannerResult.message = @"article info: $pname (Member: $mprice €, Guest: $gprice €)";
+        scannerResult.message = i18n.get_string("articleinfo",userlanguage).printf(pname,mprice,gprice);
         scannerResult.audioType = AudioType.INFO;
         state = ScannerSessionState.READY;
         return scannerResult;
@@ -221,10 +231,10 @@ public class ScannerSessionImplementation {
     }
     scannerResult.type = MessageType.INFO;
     if(this.user == 0){ //GUEST
-        scannerResult.message = "Thank you for Your Purchase.\n  %i Articels for %.2f € brought\n Please put %.2f € into the cash register next to this screen.\nLogout completed successfully".printf(amountOfItems, totalPrice, totalPrice);
+        scannerResult.message = i18n.get_string("purchaseguest",userlanguage).printf(amountOfItems, totalPrice, totalPrice);
     }
     else { //All Others
-      scannerResult.message = "Thank you for Your Purchase %s.\n %i Articels for %.2f € brought and added to Your Account.\nLogout completed successfully".printf(name, amountOfItems, totalPrice);
+      scannerResult.message = i18n.get_string("purchasemember",userlanguage).printf(name, amountOfItems, totalPrice);
     }
     scannerResult.audioType = AudioType.LOGOUT;
     return scannerResult;
@@ -242,17 +252,17 @@ public class ScannerSessionImplementation {
           p = db.get_product_for_ean(ean);
           } catch(IOError e) {
             scannerResult.type = MessageType.ERROR;
-            scannerResult.message = "Internal Error!";
+            scannerResult.message = i18n.get_string("internalerror",userlanguage);
             scannerResult.audioType = AudioType.ERROR;
             return scannerResult;
           } catch(DatabaseError e) {
             if(e is DatabaseError.PRODUCT_NOT_FOUND) {
               scannerResult.type = MessageType.ERROR;
-              scannerResult.message = "Error: unknown product: %llu".printf(ean);
+              scannerResult.message = i18n.get_string("unkonwnproduct",userlanguage).printf(ean);
               scannerResult.audioType = AudioType.ERROR;
             } else {
               scannerResult.type = MessageType.ERROR;
-              scannerResult.message = "Error: %s".printf(e.message);
+              scannerResult.message = i18n.get_string("error",userlanguage).printf(e.message);
               scannerResult.audioType = AudioType.ERROR;
             }
             return scannerResult;
@@ -267,7 +277,7 @@ public class ScannerSessionImplementation {
         }
 
         scannerResult.type = MessageType.INFO;
-        scannerResult.message = @"article added to shopping card: $(p.name) ($price €)";
+        scannerResult.message = i18n.get_string("articleadd",userlanguage).printf(p.name,price);
         scannerResult.audioType = AudioType.PURCHASE;
         state = ScannerSessionState.USER;
         return scannerResult;
@@ -280,13 +290,13 @@ public class ScannerSessionImplementation {
           }
           shoppingCard = newShoppingCard;
           scannerResult.type = MessageType.INFO;
-          scannerResult.message = "removed last Item from Shopping Cart: %s".printf(removedProduct.name);
+          scannerResult.message = i18n.get_string("articleremove",userlanguage).printf(removedProduct.name);
           scannerResult.audioType = AudioType.INFO;
           return scannerResult;
         }
         else {
           scannerResult.type = MessageType.INFO;
-          scannerResult.message = @"No more Items on your Shopping Cart";
+          scannerResult.message = i18n.get_string("nomorearticle",userlanguage);
           scannerResult.audioType = AudioType.ERROR;
           return scannerResult;
         }
@@ -311,9 +321,9 @@ public class ScannerSessionImplementation {
       if(interpret(scannerdata))
         devScanner.blink(1000);
     } catch(IOError e) {
-      send_message(MessageType.ERROR, "IOError: %s", e.message);
+      send_message(MessageType.ERROR, i18n.get_string("ioerror",userlanguage).printf(e.message));
     } catch(DatabaseError e) {
-      send_message(MessageType.ERROR, "DatabaseError: %s", e.message);
+      send_message(MessageType.ERROR, i18n.get_string("databaseerror",userlanguage).printf(e.message));
     }
   }
 
@@ -338,6 +348,8 @@ public class ScannerSessionImplementation {
 
   private ScannerResult logout() {
     ScannerResult scannerResult = ScannerResult();
+    //Back to Default Language
+    this.userlanguage = this.systemlanguage;
     scannerResult = buyShoppingCard();
     logged_in = false;
     state = ScannerSessionState.READY;
