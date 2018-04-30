@@ -199,7 +199,7 @@ public class ScannerSessionImplementation {
         var pname = p.name;
 
         scannerResult.type = MessageType.INFO;
-        scannerResult.message = i18n.get_string("articleinfo",userlanguage).printf(pname,mprice,gprice);
+        scannerResult.message = i18n.get_string("articleinfo",userlanguage).printf(pname,mprice.to_string(),gprice.to_string());
         scannerResult.audioType = AudioType.INFO;
         state = ScannerSessionState.READY;
         return scannerResult;
@@ -231,10 +231,10 @@ public class ScannerSessionImplementation {
     }
     scannerResult.type = MessageType.INFO;
     if(this.user == 0){ //GUEST
-        scannerResult.message = i18n.get_string("purchaseguest",userlanguage).printf(amountOfItems, totalPrice, totalPrice);
+        scannerResult.message = i18n.get_string("purchaseguest",userlanguage).printf(amountOfItems, totalPrice.to_string(), totalPrice.to_string());
     }
     else { //All Others
-      scannerResult.message = i18n.get_string("purchasemember",userlanguage).printf(name, amountOfItems, totalPrice);
+      scannerResult.message = i18n.get_string("purchasemember",userlanguage).printf(name, amountOfItems, totalPrice.to_string());
     }
     scannerResult.audioType = AudioType.LOGOUT;
     return scannerResult;
