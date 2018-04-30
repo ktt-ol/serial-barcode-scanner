@@ -340,7 +340,7 @@ public class ScannerSessionImplementation {
 
     play_audio(scannerResult.audioType);
     send_message(scannerResult.type, scannerResult.message);
-    if(scannerResult.nextScannerdata != ""){
+    if(scannerResult.nextScannerdata != null){
       interpret(scannerResult.nextScannerdata);
     }
     return true;
