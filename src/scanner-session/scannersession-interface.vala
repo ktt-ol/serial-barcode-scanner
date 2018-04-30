@@ -39,10 +39,3 @@ public enum ScannerSesseionCodeType {
 	RFIDEM4100,
 	UNKNOWN
 }
-
-public struct ScannerResult {
-	public MessageType type;
-	public string message;
-	public AudioType audioType;
-	public string nextScannerdata;
-}
