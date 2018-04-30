@@ -277,7 +277,7 @@ public class ScannerSessionImplementation {
         }
 
         scannerResult.type = MessageType.INFO;
-        scannerResult.message = i18n.get_string("articleadd",userlanguage).printf(p.name,price);
+        scannerResult.message = i18n.get_string("articleadd",userlanguage).printf(p.name,price.to_string());
         scannerResult.audioType = AudioType.PURCHASE;
         state = ScannerSessionState.USER;
         return scannerResult;
