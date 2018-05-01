@@ -15,7 +15,7 @@
 
 public class UserSession {
 
-  private string theme;
+  private string theme ="";
 	private string language;
 	private string name;
 	private int userid;
@@ -133,5 +133,9 @@ public class UserSession {
       return false;
     }
     return true;
+  }
+
+  public string getTheme(){
+    return this.theme;
   }
 }
