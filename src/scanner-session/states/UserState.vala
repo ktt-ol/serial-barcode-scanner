@@ -112,10 +112,10 @@ public class UserState {
     ShoppingCardResult shoppingCardResult = usersession.logout();
     scannerResult.type = MessageType.INFO;
     if(usersession.isGuest()){ //GUEST
-      scannerResult.message = i18n.get_string("purchaseguest",usersession.getLanguage()).printf(shoppingCardResult.amountOfItems, shoppingCardResult.totalPrice.to_string(), shoppingCardResult.totalPrice.to_string());
+      scannerResult.message = i18n.get_string("purchaseguest",usersession.getLanguage()).printf(shoppingCardResult.amountOfItems, shoppingCardResult.totalPrice, shoppingCardResult.totalPrice);
     }
     else { //All Others
-      scannerResult.message = i18n.get_string("purchasemember",usersession.getLanguage()).printf(usersession.getName(), shoppingCardResult.amountOfItems, shoppingCardResult.totalPrice.to_string());
+      scannerResult.message = i18n.get_string("purchasemember",usersession.getLanguage()).printf(usersession.getName(), shoppingCardResult.amountOfItems, shoppingCardResult.totalPrice);
     }
     scannerResult.audioType = AudioType.LOGOUT;
     scannerResult.nextstate = ScannerSessionState.READY;
