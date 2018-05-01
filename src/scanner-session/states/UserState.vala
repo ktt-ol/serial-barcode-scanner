@@ -43,6 +43,8 @@ public class UserState {
         //Logout alten User und akrtikel kaufen
         ScannerResult scannerResult = ScannerResult();
         scannerResult.nextScannerdata = {"LOGOUT",scannerdata};
+        scannerResult.nextstate = ScannerSessionState.USER;
+        scannerResult.usersession = usersession;
         return scannerResult;
     }
 
