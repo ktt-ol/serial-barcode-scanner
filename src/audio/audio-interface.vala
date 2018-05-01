@@ -24,6 +24,7 @@ public interface AudioPlayer : Object {
 }
 
 public enum AudioType {
+	MUTE,
 	ERROR,
 	LOGIN,
 	LOGOUT,
