@@ -28,8 +28,8 @@ public struct ScannerResult {
 
 [DBus (name = "io.mainframe.shopsystem.ScannerSession")]
 public class ScannerSessionImplementation {
-  private string theme = "beep";
   private string systemlanguage;
+	private string systemtheme = "beep";
 
   private Database db;
   private AudioPlayer audio;
@@ -102,7 +102,7 @@ public class ScannerSessionImplementation {
     }
   }
 
-  private void play_audio(AudioType audioType){
+  private void play_audio(AudioType audioType, string theme){
     switch (audioType) {
       case AudioType.ERROR:
         audio.play_system("error.ogg");
@@ -145,10 +145,18 @@ public class ScannerSessionImplementation {
         break;
     }
 
-    play_audio(scannerResult.audioType);
     send_message(scannerResult.type, scannerResult.message);
     this.state = scannerResult.nextstate;
-    this.usersession = scannerResult.usersession;
+		string theme;
+		if(this.usersession != null){
+    	theme = this.usersession.getTheme();
+		} else if(scannerResult.usersession != null){
+			theme = scannerResult.usersession.getTheme();
+		} else {
+			theme = this.systemtheme;
+		}
+		play_audio(scannerResult.audioType,theme);
+		this.usersession = scannerResult.usersession;
     if(scannerResult.nextScannerdata != null){
       int i;
       for(i = 0; i < scannerResult.nextScannerdata.length ; i++){
