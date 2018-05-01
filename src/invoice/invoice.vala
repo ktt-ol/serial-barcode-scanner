@@ -83,7 +83,12 @@ public class InvoiceImplementation {
 
 		/* title */
 		string mailtitle = temporary ? "Getränkezwischenstand" : "Getränkerechnung";
-		mailtitle += @" $startstring - $stopstring";
+		if(temporary){
+			mailtitle += @" $startstring - $stopstring";
+		}
+		else {
+			mailtitle += " " + start.format("%B %Y");
+		}
 
 		stdout.printf(mailtitle + "\n\n");
 
@@ -155,7 +160,12 @@ public class InvoiceImplementation {
 
 		/* title */
 		string mailtitle = temporary ? "Getränkezwischenstand" : "Getränkerechnung";
-		mailtitle += @" $startstring - $stopstring";
+		if(temporary){
+			mailtitle += @" $startstring - $stopstring";
+		}
+		else {
+			mailtitle += " " + start.format("%B %Y");
+		}
 
 		stdout.printf(mailtitle + "\n\n");
 
