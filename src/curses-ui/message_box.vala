@@ -20,6 +20,8 @@ public class MessageBox {
 	Window subwin;
 	DateTime last;
 
+	private Config cfg;
+
 	public const short INFO_COLOR = 5;
 	public const short WARN_COLOR = 6;
 	public const short ERROR_COLOR = 7;
@@ -41,20 +43,22 @@ public class MessageBox {
 
 		init_pair (INFO_COLOR, Color.WHITE, Color.BLACK);
 		init_pair (WARN_COLOR, Color.YELLOW, Color.BLACK);
-		init_pair (ERROR_COLOR, Color.RED, Color.BLACK);		
+		init_pair (ERROR_COLOR, Color.RED, Color.BLACK);
+
+		cfg  = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Config", "/io/mainframe/shopsystem/config");
 	}
 
 	public void add(string msg, short color_pair = MessageBox.INFO_COLOR) {
 		var now = new DateTime.now_local();
 
 		if(now.get_day_of_year() != last.get_day_of_year() || now.get_year() != last.get_year()) {
-			string curtime = now.format("%Y-%m-%d");
+			string curtime = now.format(cfg.get_string("DATE-FORMAT", "format"));
 			subwin.addstr("\nDate Changed: " + curtime);
 		}
 
 		last = now;
 
-		string curtime = now.format("%H:%M:%S");
+		string curtime = now.format(cfg.get_string("DATE-FORMAT", "formatCursesUi"));
 		subwin.bkgdset(COLOR_PAIR(color_pair));
 		subwin.addstr("\n[" + curtime + "] " + msg);
 		subwin.refresh();
