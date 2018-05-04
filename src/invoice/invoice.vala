@@ -43,6 +43,7 @@ public class InvoiceImplementation {
 	string umsatzsteuerNoText;
         string umsatzsteuerNoHtml;
         string dateFormat;
+	string dateFormatMailSubjectMonthly;
         string dateTimeFormat;
         string timeFormat;
 
@@ -61,6 +62,7 @@ public class InvoiceImplementation {
 		umsatzsteuerNoText = cfg.get_string("INVOICE", "umsatzsteuerNoText");
                 umsatzsteuerNoHtml = cfg.get_string("INVOICE", "umsatzsteuerNoHtml");
                 dateFormat = cfg.get_string("DATE-FORMAT", "format");
+		dateFormatMailSubjectMonthly = cfg.get_string("DATE-FORMAT", "formatMailSubjectMonthly");
                 dateTimeFormat = cfg.get_string("DATE-FORMAT", "formatDateTime");
                 timeFormat = cfg.get_string("DATE-FORMAT", "formatTime");
 	}
@@ -87,7 +89,7 @@ public class InvoiceImplementation {
 			mailtitle += @" $startstring - $stopstring";
 		}
 		else {
-			mailtitle += " " + start.format("%B %Y");
+			mailtitle += " " + start.format(dateFormatMailSubjectMonthly);
 		}
 
 		stdout.printf(mailtitle + "\n\n");
@@ -155,8 +157,8 @@ public class InvoiceImplementation {
 
 		var start = new DateTime.from_unix_local(ts.from);
 		var stop  = new DateTime.from_unix_local(ts.to);
-		var startstring = start.format("%d.%m.%Y %H:%M:%S");
-		var stopstring  = stop.format("%d.%m.%Y %H:%M:%S");
+		var startstring = start.format(dateTimeFormat);
+		var stopstring  = stop.format(dateTimeFormat);
 
 		/* title */
 		string mailtitle = temporary ? "Getränkezwischenstand" : "Getränkerechnung";
@@ -164,7 +166,7 @@ public class InvoiceImplementation {
 			mailtitle += @" $startstring - $stopstring";
 		}
 		else {
-			mailtitle += " " + start.format("%B %Y");
+			mailtitle += " " + start.format(dateFormatMailSubjectMonthly);
 		}
 
 		stdout.printf(mailtitle + "\n\n");
