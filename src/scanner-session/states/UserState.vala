@@ -14,8 +14,8 @@
  */
 
  public struct ShoppingCardResult {
- 	public uint8 amountOfItems;
-  public double totalPrice;
+   public uint8 amountOfItems;
+   public double totalPrice;
  }
 
 public class UserState {
@@ -110,13 +110,18 @@ public class UserState {
   private ScannerResult logout(UserSession usersession){
     ScannerResult scannerResult = ScannerResult();
     ShoppingCardResult shoppingCardResult = usersession.logout();
+    if(shoppingCardResult.amountOfItems >= 1) {    
+      if(usersession.isGuest()){ 
+        scannerResult.message = i18n.get_string("purchaseguest",usersession.getLanguage()).printf(shoppingCardResult.amountOfItems, shoppingCardResult.totalPrice, shoppingCardResult.totalPrice);
+      }
+      else {
+        scannerResult.message = i18n.get_string("purchasemember",usersession.getLanguage()).printf(usersession.getName(), shoppingCardResult.amountOfItems, shoppingCardResult.totalPrice);
+      }
+    }
+    else {
+      scannerResult.message = i18n.get_string("logoutnopurchase");
+    }
     scannerResult.type = MessageType.INFO;
-    if(usersession.isGuest()){ //GUEST
-      scannerResult.message = i18n.get_string("purchaseguest",usersession.getLanguage()).printf(shoppingCardResult.amountOfItems, shoppingCardResult.totalPrice, shoppingCardResult.totalPrice);
-    }
-    else { //All Others
-      scannerResult.message = i18n.get_string("purchasemember",usersession.getLanguage()).printf(usersession.getName(), shoppingCardResult.amountOfItems, shoppingCardResult.totalPrice);
-    }
     scannerResult.audioType = AudioType.LOGOUT;
     scannerResult.nextstate = ScannerSessionState.READY;
     scannerResult.usersession = null;
