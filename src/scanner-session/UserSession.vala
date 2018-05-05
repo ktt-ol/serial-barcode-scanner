@@ -16,10 +16,11 @@
 public class UserSession {
 
   private string theme ="";
-	private string language;
-	private string name;
-	private int userid;
-	private DateTime logintime;
+  private string language;
+  private string name;
+  private int userid;
+  private DateTime logintime;
+  private DateTime lastActionTime;
   private bool disabled;
   private bool loginSuccesfull;
   private Product[] shoppingCard = {};
@@ -59,7 +60,8 @@ public class UserSession {
     // Here the Displayed Language can be modiyfied later for each user after login
     this.language = this.cfg.get_string("GENERAL", "language");
 
-    this.logintime = new DateTime.now_local();
+    this.logintime = new DateTime.now_utc();
+    this.lastActionTime = new DateTime.now_utc();
     return true;
   }
 
@@ -91,6 +93,7 @@ public class UserSession {
   }
 
   public Price addItemToShoppingCard(Product product){
+    this.lastActionTime = new DateTime.now_utc();
     this.shoppingCard += product;
 
     if(this.isGuest()){
@@ -100,6 +103,7 @@ public class UserSession {
   }
 
   public Product removeLastItemFromShoppingCard(){
+    this.lastActionTime = new DateTime.now_utc();
     Product[] newShoppingCard = {};
     Product removedProduct = this.shoppingCard[this.shoppingCard.length-1];
     for (int i = 0; i < this.shoppingCard.length-1;i++){
@@ -137,5 +141,9 @@ public class UserSession {
 
   public string getTheme(){
     return this.theme;
+  }
+
+  public DateTime getLastActionTime() {
+    return this.lastActionTime;
   }
 }

@@ -15,8 +15,6 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-
-
 public struct ScannerResult {
 	public MessageType type;
 	public string message;
@@ -29,7 +27,8 @@ public struct ScannerResult {
 [DBus (name = "io.mainframe.shopsystem.ScannerSession")]
 public class ScannerSessionImplementation {
   private string systemlanguage;
-	private string systemtheme = "beep";
+  private string systemtheme = "beep";
+  private int64 timeAutomaticLogout;
 
   private Database db;
   private AudioPlayer audio;
@@ -63,13 +62,26 @@ public class ScannerSessionImplementation {
       cli.received_barcode.connect(handle_barcode);
 
       systemlanguage = cfg.get_string("GENERAL", "language");
+      this.timeAutomaticLogout = cfg.get_int64("GENERAL", "autologouttime");
 
       readyState = new ReadyState();
       userState = new UserState();
+
+			Timeout.add_seconds(1, () => this.check_userssession());
     } catch(IOError e) {
       error("IOError: %s\n", e.message);
     }
   }
+
+	private bool check_userssession(){
+		if(this.usersession != null){
+			int64 timediff = (new DateTime.now_utc().to_unix()) - (this.usersession.getLastActionTime().to_unix());
+			if(timediff >= this.timeAutomaticLogout){
+				this.handle_barcode("LOGOUT");
+			}
+		}
+		return true;
+	}
 
   private void send_message(MessageType type, string format, ...) {
     var arguments = va_list();
