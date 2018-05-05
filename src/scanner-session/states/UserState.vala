@@ -119,7 +119,7 @@ public class UserState {
       }
     }
     else {
-      scannerResult.message = i18n.get_string("logoutnopurchase");
+      scannerResult.message = i18n.get_string("logoutnopurchase",usersession.getLanguage());
     }
     scannerResult.type = MessageType.INFO;
     scannerResult.audioType = AudioType.LOGOUT;
