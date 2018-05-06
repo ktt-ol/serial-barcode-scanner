@@ -411,10 +411,10 @@
 			}
 			t.replace("SOUND_THEMES", soundThemes);
 
-      var languages = "";
+      			var languages = "";
 			foreach(var language in languageList) {
 				var selected = userinfo.language == language ? "selected" : "";
-			  languages += @"<option $selected>$theme</option>";
+			  	languages += @"<option $selected>$language</option>";
 			}
 			t.replace("LANGUAGES", languages);
 
