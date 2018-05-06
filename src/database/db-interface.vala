@@ -34,12 +34,14 @@ public interface Database : Object {
 	public abstract void set_user_password(int32 user, string password) throws IOError, DatabaseError;
 	public abstract void set_sessionid(int user, string sessionid) throws IOError, DatabaseError;
 	public abstract void set_userTheme(int user, string userTheme) throws IOError, DatabaseError;
+	public abstract void set_userLanguage(int user, string language) throws IOError, DatabaseError;
 	public abstract int get_user_by_sessionid(string sessionid) throws IOError, DatabaseError;
 	public abstract UserInfo get_user_info(int user) throws IOError, DatabaseError;
 	public abstract UserAuth get_user_auth(int user) throws IOError, DatabaseError;
 	public abstract void set_user_auth(UserAuth auth) throws IOError, DatabaseError;
 	public abstract string get_username(int user) throws IOError, DatabaseError;
 	public abstract string get_user_theme(int user, string fallback) throws IOError, DatabaseError;
+	public abstract string get_user_language(int user, string fallback) throws IOError, DatabaseError;
 	public abstract InvoiceEntry[] get_invoice(int user, int64 from=0, int64 to=-1) throws IOError, DatabaseError;
 	public abstract int64 get_first_purchase(int user) throws IOError;
 	public abstract int64 get_last_purchase(int user) throws IOError;
@@ -68,7 +70,7 @@ public interface Database : Object {
 	public abstract Product get_product_for_ean(uint64 ean) throws IOError, DatabaseError;
 	public abstract int get_userid_for_rfid(string rfid) throws IOError, DatabaseError;
 	public abstract void addrfid(string rfid, int user) throws IOError, DatabaseError;
-        public abstract void delete_rfid_for_user(int user) throws IOError, DatabaseError;
+	public abstract void delete_rfid_for_user(int user) throws IOError, DatabaseError;
 }
 
 public struct Category {
@@ -131,6 +133,7 @@ public struct UserInfo {
 	public bool hidden;
 	public string soundTheme;
 	public string[] rfid;
+	public string language;
 
 	public bool equals(UserInfo x) {
 		if(id != x.id) return false;
@@ -146,7 +149,7 @@ public struct UserInfo {
 		if(disabled != x.disabled) return false;
 		if(hidden != x.hidden) return false;
 		if(rfid != x.rfid) return false;
-		
+
 		return true;
 	}
 }

@@ -336,7 +336,7 @@
 			}
 			var t = new WebTemplate("users/entry.html", session);
 			t.replace("TITLE", shortname + " Shop System: User Info %llu".printf(id));
-            t.replace("SHORTNAME", shortname);
+      t.replace("SHORTNAME", shortname);
 			t.menu_set_active("users");
 
 			var userinfo = db.get_user_info(id);
@@ -371,6 +371,7 @@
 			}
 
 			var userThemeList = audio.get_user_themes();
+      var languageList = i18n.get_languages();
 			var message = "";
 			var postdata = Soup.Form.decode_multipart(msg, null, null, null, null);
 			if(postdata != null && postdata.contains("password1") && postdata.contains("password2")) {
@@ -391,6 +392,15 @@
 					db.set_userTheme(id, "");
 				}
 				message = "<div class=\"alert alert-success\">Sound theme changed.</div>";
+			 }else if(postdata != null && postdata.contains("language")) {
+				if (postdata["language"] in languageList) {
+					userinfo.language = postdata["language"];
+					db.set_userLanguage(id, postdata["language"]);
+				} else {
+					userinfo.soundTheme = null;
+					db.set_userLanguage(id, "");
+				}
+				message = "<div class=\"alert alert-success\">Languge changed.</div>";
 			}
 			t.replace("MESSAGE", message);
 
@@ -400,6 +410,13 @@
 			  soundThemes += @"<option $selected>$theme</option>";
 			}
 			t.replace("SOUND_THEMES", soundThemes);
+
+      var languages = "";
+			foreach(var language in languageList) {
+				var selected = userinfo.language == language ? "selected" : "";
+			  languages += @"<option $selected>$theme</option>";
+			}
+			t.replace("LANGUAGES", languages);
 
 			msg.set_response("text/html", Soup.MemoryUse.COPY, t.data);
 			msg.set_status(200);

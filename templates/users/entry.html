@@ -37,6 +37,17 @@
 			<a href="https://github.com/ktt-ol/serial-barcode-scanner/tree/master/sounds/user" target="_blank">See Preview</a>
 		</td>
 		</tr>
+		<tr><th>Language</th>
+		<td>
+			<form method="POST" enctype="multipart/form-data" action="#">
+			<select class="form-control" name="language">
+				<option value="##system">SYSTEM</option>
+				{{{LANGUAGES}}}
+			</select>
+			<input type="submit" class="btn btn-default" value="Update">
+			</form>
+		</td>
+		</tr>
 	</table>
 </form>
 <form method="POST" enctype="multipart/form-data" action="#">

@@ -107,9 +107,11 @@ public class DataBase : Object {
 		queries["username"]          = "SELECT firstname, lastname FROM users WHERE id = ?";
 		queries["user_theme_get"]    = "SELECT CASE WHEN sound_theme IS NULL THEN ? ELSE sound_theme END FROM users WHERE id = ?";
 		queries["user_theme_set"]    = "UPDATE users SET sound_theme=? WHERE id = ?";
+		queries["user_language_get"]    = "SELECT CASE WHEN language IS NULL THEN ? ELSE language END FROM users WHERE id = ?";
+		queries["user_language_set"]    = "UPDATE users SET language=? WHERE id = ?";
 		queries["password_get"]      = "SELECT password FROM authentication WHERE user = ?";
 		queries["password_set"]      = "UPDATE authentication SET password=? WHERE user = ?";
-		queries["userinfo"]          = "SELECT firstname, lastname, email, gender, street, plz, city, pgp, hidden, disabled, sound_theme, joined_at FROM users WHERE id = ?";
+		queries["userinfo"]          = "SELECT firstname, lastname, email, gender, street, plz, city, pgp, hidden, disabled, sound_theme, joined_at, language FROM users WHERE id = ?";
 		queries["userauth"]          = "SELECT superuser, auth_users, auth_products, auth_cashbox FROM authentication WHERE user = ?";
 		queries["userauth_set"]      = "UPDATE authentication SET auth_users = ?, auth_products = ?, auth_cashbox = ? WHERE user = ?";
 		queries["profit_by_product"] = "SELECT name, SUM(memberprice - (SELECT price FROM purchaseprices WHERE product = purch.product)) AS price FROM sales purch, prices, products WHERE purch.product = products.id AND purch.product = prices.product AND purch.user > 0 AND purch.timestamp > ? AND purch.timestamp < ? AND prices.valid_from = (SELECT valid_from FROM prices WHERE product = purch.product AND valid_from < purch.timestamp ORDER BY valid_from DESC LIMIT 1) GROUP BY name ORDER BY price;";
@@ -629,26 +631,27 @@ public class DataBase : Object {
 			result.disabled	   = statements["userinfo"].column_int(9) == 1;
 			result.soundTheme  = statements["userinfo"].column_text(10);
 			result.joined_at   = statements["userinfo"].column_int64(11);
+			result.language    = statements["userinfo"].column_text(12);
 		} else if(rc == Sqlite.DONE) {
 			throw new DatabaseError.USER_NOT_FOUND("user not found");
 		} else {
 			throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
 		}
-		
+
 		statements["rfid_userid"].reset();
-                statements["rfid_userid"].bind_int(1, user);
-                rc = statements["rfid_userid"].step();
- 
-                string[] rfid = {};
- 
-                while(rc == Sqlite.ROW) {
-                                //string rfidcode = statements["rfid_userid"].column_text(0);
-                                rfid += statements["rfid_userid"].column_text(0);
- 
-                                rc = statements["rfid_userid"].step();
-                }
- 
-                result.rfid = rfid;
+    statements["rfid_userid"].bind_int(1, user);
+    rc = statements["rfid_userid"].step();
+
+    string[] rfid = {};
+
+    while(rc == Sqlite.ROW) {
+    	//string rfidcode = statements["rfid_userid"].column_text(0);
+      rfid += statements["rfid_userid"].column_text(0);
+
+      rc = statements["rfid_userid"].step();
+    }
+
+    result.rfid = rfid;
 
 		return result;
 	}
@@ -724,6 +727,18 @@ public class DataBase : Object {
 		}
 	}
 
+	public string get_user_language(int user, string fallback) throws DatabaseError {
+		statements["user_language_get"].reset();
+		statements["user_language_get"].bind_text(1, fallback);
+		statements["user_language_get"].bind_int(2, user);
+
+		if(statements["user_language_get"].step() == Sqlite.ROW) {
+			return statements["user_language_get"].column_text(0);
+		} else {
+			throw new DatabaseError.USER_NOT_FOUND("No such user available in database!");
+		}
+	}
+
 	public void set_userTheme(int user, string userTheme) throws DatabaseError {
 		statements["user_theme_set"].reset();
 		if (userTheme == "") {
@@ -734,6 +749,20 @@ public class DataBase : Object {
 		statements["user_theme_set"].bind_int(2, user);
 
 		int rc = statements["user_theme_set"].step();
+		if(rc != Sqlite.DONE)
+			throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
+	}
+
+	public void set_userLanguage(int user, string language) throws DatabaseError {
+		statements["user_language_set"].reset();
+		if (language == "") {
+			statements["user_language_set"].bind_null(1);
+		} else {
+			statements["user_language_set"].bind_text(1, language);
+		}
+		statements["user_language_set"].bind_int(2, user);
+
+		int rc = statements["user_language_set"].step();
 		if(rc != Sqlite.DONE)
 			throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
 	}
@@ -912,7 +941,7 @@ public class DataBase : Object {
 		int rc = statements["user_replace"].step();
 		if(rc != Sqlite.DONE)
 			throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
-			
+
 		statements["rfid_delete_user"].reset();
 		statements["rfid_delete_user"].bind_int(1, u.id);
 	  	rc = statements["rfid_delete_user"].step();

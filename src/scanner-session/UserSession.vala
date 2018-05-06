@@ -49,16 +49,17 @@ public class UserSession {
       return false;
     }
 
-    try {
-      this.theme = this.db.get_user_theme(this.userid, "");
-      if (this.theme == "") {
-        this.theme = this.audio.get_random_user_theme();
-      }
+   try {
+      this.theme = this.db.get_user_theme(this.userid, this.audio.get_random_user_theme());
     } catch(DatabaseError e) {
       this.theme = "beep";
     }
-    // Here the Displayed Language can be modiyfied later for each user after login
-    this.language = this.cfg.get_string("GENERAL", "language");
+    
+    try {
+      this.language = this.db.get_user_language(this.userid, this.cfg.get_string("GENERAL", "language"));
+    } catch(DatabaseError e) {
+      this.language = this.cfg.get_string("GENERAL", "language");
+    }
 
     this.logintime = new DateTime.now_utc();
     this.lastActionTime = new DateTime.now_utc();
