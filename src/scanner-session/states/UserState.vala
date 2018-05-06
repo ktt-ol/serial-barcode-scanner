@@ -13,42 +13,49 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
- public struct ShoppingCardResult {
+public struct ShoppingCardResult {
    public uint8 amountOfItems;
    public double totalPrice;
- }
+}
 
 public class UserState {
 
   private Database db;
   private I18n i18n;
+  private Config cfg;
 
   public UserState(){
     this.db          = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Database", "/io/mainframe/shopsystem/database");
     this.i18n        = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.I18n", "/io/mainframe/shopsystem/i18n");
+    this.cfg         = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Config", "/io/mainframe/shopsystem/config");
   }
 
   public ScannerResult handleScannerData(string scannerdata, UserSession usersession) throws DatabaseError, IOError {
-    ScannerSesseionCodeType codeType = ScannerSessionImplementation.getCodeType(scannerdata);
+    ScannerCodeType codeType = CodeType.getType(scannerdata);
     switch (codeType) {
-      case ScannerSesseionCodeType.EAN:
+      case ScannerCodeType.EAN:
         return this.ean(scannerdata,usersession);
-      case ScannerSesseionCodeType.UNDO:
+      case ScannerCodeType.UNDO:
         return this.undo(scannerdata,usersession);
-      case ScannerSesseionCodeType.LOGOUT:
+      case ScannerCodeType.USERINFO:
+        return this.userinfo(usersession);
+      case ScannerCodeType.LOGOUT:
         return this.logout(usersession);
-      case ScannerSesseionCodeType.USER:
-      case ScannerSesseionCodeType.GUEST:
-      case ScannerSesseionCodeType.RFIDEM4100:
-        //Logout alten User und akrtikel kaufen
-        ScannerResult scannerResult = ScannerResult();
-        scannerResult.nextScannerdata = {"LOGOUT",scannerdata};
-        scannerResult.nextstate = ScannerSessionState.USER;
-        scannerResult.usersession = usersession;
-        return scannerResult;
+      case ScannerCodeType.USER:
+      case ScannerCodeType.GUEST:
+      case ScannerCodeType.RFIDEM4100:
+        return this.relogin(scannerdata,usersession);
     }
 
     return ScannerResult();
+  }
+
+  private ScannerResult relogin(string scannerdata, UserSession usersession){
+    ScannerResult scannerResult = ScannerResult();
+    scannerResult.nextScannerdata = {"LOGOUT",scannerdata};
+    scannerResult.nextstate = ScannerSessionState.USER;
+    scannerResult.usersession = usersession;
+    return scannerResult;
   }
 
   private ScannerResult ean(string scannerdata, UserSession usersession){
@@ -107,11 +114,27 @@ public class UserState {
     }
   }
 
+  private ScannerResult userinfo(UserSession usersession){
+    //stdout.printf("userinfo\n");
+    ScannerResult scannerResult = ScannerResult();
+    scannerResult.usersession = usersession;
+    if(usersession.isGuest()){
+      return scannerResult;
+    }
+    Price currentAmmount = usersession.getInvoiceForCurrentMonth();
+    string currentMonth = new DateTime.now_utc().format(this.cfg.get_string("DATE-FORMAT", "formatMailSubjectMonthly"));
+    scannerResult.type = MessageType.INFO;
+    scannerResult.message = i18n.get_string("userinfo",usersession.getLanguage()).printf(currentMonth,currentAmmount.to_string());//i18n.get_string("userinfo",usersession.getLanguage()).printf(removedProduct.name);
+    scannerResult.audioType = AudioType.INFO;
+    scannerResult.nextstate = ScannerSessionState.USER;
+    return scannerResult;
+  }
+
   private ScannerResult logout(UserSession usersession){
     ScannerResult scannerResult = ScannerResult();
     ShoppingCardResult shoppingCardResult = usersession.logout();
-    if(shoppingCardResult.amountOfItems >= 1) {    
-      if(usersession.isGuest()){ 
+    if(shoppingCardResult.amountOfItems >= 1) {
+      if(usersession.isGuest()){
         scannerResult.message = i18n.get_string("purchaseguest",usersession.getLanguage()).printf(shoppingCardResult.amountOfItems, shoppingCardResult.totalPrice, shoppingCardResult.totalPrice);
       }
       else {

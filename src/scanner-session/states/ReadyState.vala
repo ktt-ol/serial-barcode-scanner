@@ -30,17 +30,17 @@ public class ReadyState {
   }
 
   public ScannerResult handleScannerData(string scannerdata) throws DatabaseError, IOError{
-    ScannerSesseionCodeType codeType = ScannerSessionImplementation.getCodeType(scannerdata);
+    ScannerCodeType codeType = CodeType.getType(scannerdata);
     ScannerResult scannerResult = ScannerResult();
     switch (codeType) {
-      case ScannerSesseionCodeType.USER:
+      case ScannerCodeType.USER:
         return this.user(scannerdata);
-      case ScannerSesseionCodeType.GUEST:
+      case ScannerCodeType.GUEST:
         scannerResult.nextScannerdata ={@"USER 0"};
         return scannerResult;
-      case ScannerSesseionCodeType.EAN:
+      case ScannerCodeType.EAN:
         return this.ean(scannerdata);
-      case ScannerSesseionCodeType.RFIDEM4100:
+      case ScannerCodeType.RFIDEM4100:
           int user = db.get_userid_for_rfid(scannerdata);
           scannerResult.nextScannerdata = {@"USER $user"};
           return scannerResult;

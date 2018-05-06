@@ -90,30 +90,6 @@ public class ScannerSessionImplementation {
     msg(type, message);
   }
 
-  public static ScannerSesseionCodeType getCodeType(string scannerdata){
-    if(scannerdata.has_prefix("USER ")){
-      return ScannerSesseionCodeType.USER;
-    } else if(scannerdata == "GUEST") {
-      return ScannerSesseionCodeType.GUEST;
-    } else if(scannerdata == "UNDO") {
-      return ScannerSesseionCodeType.UNDO;
-    } else if(scannerdata == "LOGOUT") {
-      return ScannerSesseionCodeType.LOGOUT;
-    } else if(scannerdata.length == 10) {
-      return ScannerSesseionCodeType.RFIDEM4100;
-    } else {
-      //Handle EAN Code
-      uint64 id = 0;
-      scannerdata.scanf("%llu", out id);
-
-      /* check if scannerdata has valid format */
-      if(scannerdata != "%llu".printf(id) && scannerdata != "%08llu".printf(id) && scannerdata != "%013llu".printf(id)) {
-        return ScannerSesseionCodeType.UNKNOWN;
-      }
-      return ScannerSesseionCodeType.EAN;
-    }
-  }
-
   private void play_audio(AudioType audioType, string theme){
     switch (audioType) {
       case AudioType.ERROR:

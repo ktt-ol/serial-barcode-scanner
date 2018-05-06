@@ -15,7 +15,7 @@
 
 public class UserSession {
 
-  private string theme ="";
+  private string theme = "";
   private string language;
   private string name;
   private int userid;
@@ -54,7 +54,7 @@ public class UserSession {
     } catch(DatabaseError e) {
       this.theme = "beep";
     }
-    
+
     try {
       this.language = this.db.get_user_language(this.userid, this.cfg.get_string("GENERAL", "language"));
     } catch(DatabaseError e) {
@@ -147,4 +147,12 @@ public class UserSession {
   public DateTime getLastActionTime() {
     return this.lastActionTime;
   }
+
+  public Price getInvoiceForCurrentMonth(){
+    DateTime now = new DateTime.now_utc();
+    int64 timestampNow = now.to_unix();
+    int64 timestapFirstOfMonth = new DateTime.utc(now.get_year(),now.get_month(),1,0,0,0).to_unix();
+    return db.get_user_invoice_sum(this.userid, timestapFirstOfMonth, timestampNow);
+  }
+
 }
