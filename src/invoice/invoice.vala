@@ -84,7 +84,7 @@ public class InvoiceImplementation {
                 var stopstring  = stop.format(dateTimeFormat);
 
 		/* title */
-		string mailtitle = temporary ? "Getränkezwischenstand" : "Getränkerechnung";
+		string mailtitle = temporary ? "Shopsytem Zwischenstand" : "Shopsystem Monatsaberechnung";
 		if(temporary){
 			mailtitle += @" $startstring - $stopstring";
 		}
@@ -161,7 +161,7 @@ public class InvoiceImplementation {
 		var stopstring  = stop.format(dateTimeFormat);
 
 		/* title */
-		string mailtitle = temporary ? "Getränkezwischenstand" : "Getränkerechnung";
+		string mailtitle = temporary ? "Shopsytem Zwischenstand" : "Shopsystem Monatsaberechnung";
 		if(temporary){
 			mailtitle += @" $startstring - $stopstring";
 		}
