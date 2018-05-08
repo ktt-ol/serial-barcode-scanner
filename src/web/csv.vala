@@ -69,14 +69,15 @@ public class CSVMemberFile {
 				m.disabled = int.parse(csv_value(linedata[11])) != 0;
 				string[] rfid = {};
                                 if(csv_value(linedata[12]) != "")
-                                        rfid += csv_value(linedata[12]);
-                                if(csv_value(linedata[13]) != "")
-                                        rfid += csv_value(linedata[13]);
-                                if(csv_value(linedata[14]) != "")
-                                        rfid += csv_value(linedata[14]);
-                                m.rfid = rfid;
-
-				m.soundTheme = "";
+                                       rfid += csv_value(linedata[12]);
+             			if(csv_value(linedata[13]) != "")
+                                       rfid += csv_value(linedata[13]);
+        			if(csv_value(linedata[14]) != "")
+                                       rfid += csv_value(linedata[14]);
+        			m.rfid = rfid;
+ 
+                                m.soundTheme = "";
+                                m.language = "";
 				if(csv_value(linedata[0]) != "EXTERNEMITGLIEDSNUMMER")
 					members += m;
 			}
