@@ -107,8 +107,8 @@ public class DataBase : Object {
 		queries["username"]          = "SELECT firstname, lastname FROM users WHERE id = ?";
 		queries["user_theme_get"]    = "SELECT CASE WHEN sound_theme IS NULL THEN ? ELSE sound_theme END FROM users WHERE id = ?";
 		queries["user_theme_set"]    = "UPDATE users SET sound_theme=? WHERE id = ?";
-		queries["user_language_get"]    = "SELECT CASE WHEN language IS NULL THEN ? ELSE language END FROM users WHERE id = ?";
-		queries["user_language_set"]    = "UPDATE users SET language=? WHERE id = ?";
+		queries["user_language_get"] = "SELECT CASE WHEN language IS NULL THEN ? ELSE language END FROM users WHERE id = ?";
+		queries["user_language_set"] = "UPDATE users SET language=? WHERE id = ?";
 		queries["password_get"]      = "SELECT password FROM authentication WHERE user = ?";
 		queries["password_set"]      = "UPDATE authentication SET password=? WHERE user = ?";
 		queries["userinfo"]          = "SELECT firstname, lastname, email, gender, street, plz, city, pgp, hidden, disabled, sound_theme, joined_at, language FROM users WHERE id = ?";
@@ -124,7 +124,7 @@ public class DataBase : Object {
 		queries["total_sales"]       = "SELECT SUM(price) FROM invoice WHERE user >= 0 AND timestamp >= ?";
 		queries["total_profit"]      = "SELECT SUM(price - (SELECT price FROM purchaseprices WHERE product = productid)) FROM invoice WHERE user >= 0 AND timestamp >= ?";
 		queries["user_get_ids"]      = "SELECT id FROM users WHERE id > 0";
-		queries["user_replace"]      = "INSERT OR REPLACE INTO users ('id', 'email', 'firstname', 'lastname', 'gender', 'street', 'plz', 'city', 'pgp', 'hidden', 'disabled', 'joined_at', 'sound_theme') VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, (select sound_theme from users where id = ?))";
+		queries["user_replace"]      = "INSERT OR REPLACE INTO users ('id', 'email', 'firstname', 'lastname', 'gender', 'street', 'plz', 'city', 'pgp', 'hidden', 'disabled', 'joined_at', 'sound_theme','language') VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, (select sound_theme from users where id = ?))";
 		queries["user_auth_create"]  = "INSERT OR IGNORE INTO authentication (user) VALUES (?)";
 		queries["user_disable"]      = "UPDATE users SET disabled = ? WHERE id = ?";
 		queries["last_timestamp"]    = "SELECT timestamp FROM sales ORDER BY timestamp DESC LIMIT 1";
@@ -937,6 +937,7 @@ public class DataBase : Object {
 		statements["user_replace"].bind_int(11, u.disabled ? 1 : 0);
 		statements["user_replace"].bind_int64(12, u.joined_at);
 		statements["user_replace"].bind_int(13, u.id);
+		statements["user_replace"].bind_text(14, u.language);
 
 		int rc = statements["user_replace"].step();
 		if(rc != Sqlite.DONE)
