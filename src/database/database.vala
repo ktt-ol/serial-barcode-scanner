@@ -971,7 +971,7 @@ public class DataBase : Object {
 		statements["user_replace"].bind_int(10, u.hidden ? 1 : 0);
 		statements["user_replace"].bind_int(11, u.disabled ? 1 : 0);
 		statements["user_replace"].bind_int64(12, u.joined_at);
-		statements["user_replace"].bind_int(13, u.id);
+		statements["user_replace"].bind_text(13, u.soundTheme);
 		statements["user_replace"].bind_text(14, u.language);
 
 		int rc = statements["user_replace"].step();
