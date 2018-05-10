@@ -116,6 +116,7 @@ public class DataBase : Object {
 		queries["userauth_set"]      = "UPDATE authentication SET auth_users = ?, auth_products = ?, auth_cashbox = ? WHERE user = ?";
 		queries["profit_by_product"] = "SELECT name, SUM(memberprice - (SELECT price FROM purchaseprices WHERE product = purch.product)) AS price FROM sales purch, prices, products WHERE purch.product = products.id AND purch.product = prices.product AND purch.user > 0 AND purch.timestamp > ? AND purch.timestamp < ? AND prices.valid_from = (SELECT valid_from FROM prices WHERE product = purch.product AND valid_from < purch.timestamp ORDER BY valid_from DESC LIMIT 1) GROUP BY name ORDER BY price;";
 		queries["invoice"]           = "SELECT timestamp, id AS productid, name AS productname, CASE WHEN user < 0 THEN (SELECT SUM(price * amount) / SUM(amount) FROM restock WHERE restock.product = id AND restock.timestamp <= sales.timestamp) else (SELECT CASE WHEN user=0 THEN guestprice else memberprice END FROM prices WHERE product = id AND valid_from <= timestamp ORDER BY valid_from DESC LIMIT 1) END AS price FROM sales INNER JOIN products ON sales.product = products.id WHERE user = ? AND timestamp >= ? AND timestamp <= ? ORDER BY timestamp";
+		queries["sales"]           	 = "SELECT * from salesView Where timestamp >= ? AND timestamp <= ?";
 		queries["purchase_first"]    = "SELECT timestamp FROM sales WHERE user = ? ORDER BY timestamp ASC  LIMIT 1";
 		queries["purchase_last"]     = "SELECT timestamp FROM sales WHERE user = ? ORDER BY timestamp DESC LIMIT 1";
 		queries["count_articles"]    = "SELECT COUNT(*) FROM products";
@@ -789,6 +790,40 @@ public class DataBase : Object {
 			result += entry;
 
 			rc = statements["invoice"].step();
+		}
+
+		if(rc != Sqlite.DONE) {
+			throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
+		}
+
+		return result;
+	}
+
+	public Sale[] get_sales(int64 from=0, int64 to=-1) throws DatabaseError {
+		Sale[] result = {};
+
+		if(to == -1) {
+			to = time_t();
+		}
+
+		statements["sales"].reset();
+		statements["sales"].bind_int64(1, from);
+		statements["sales"].bind_int64(2, to);
+		int rc = statements["sales"].step();
+
+		while(rc == Sqlite.ROW) {
+			Sale entry = {};
+			entry.timestamp 			= statements["sales"].column_int64(0);
+			entry.ean							= statements["sales"].column_int64(1);
+			entry.productname			= statements["sales"].column_text(2);
+			entry.userId					= statements["sales"].column_int(3);
+			entry.userFirstname		= statements["sales"].column_text(4);
+			entry.userLastname		= statements["sales"].column_text(5);
+			entry.price						= statements["sales"].column_int(6);
+
+			result += entry;
+
+			rc = statements["sales"].step();
 		}
 
 		if(rc != Sqlite.DONE) {

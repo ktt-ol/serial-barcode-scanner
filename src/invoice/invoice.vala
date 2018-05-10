@@ -52,19 +52,20 @@ public class InvoiceImplementation {
 		db = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Database", "/io/mainframe/shopsystem/database");
 		pdf = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.InvoicePDF", "/io/mainframe/shopsystem/invoicepdf");
 		Config cfg = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Config", "/io/mainframe/shopsystem/config");
-		datadir = cfg.get_string("INVOICE", "datadir");
-		mailfromaddress = cfg.get_string("MAIL", "mailfromaddress");
-		treasurermailaddress = cfg.get_string("MAIL", "treasurermailaddress");
-		shortname = cfg.get_string("GENERAL", "shortname");
-		spacename = cfg.get_string("GENERAL", "spacename");
-		umsatzsteuer = cfg.get_string("INVOICE", "umsatzsteuer");
-		jvereinmitgliedsnummern = cfg.get_string("JVEREIN", "mitgliedsnummern");
-		umsatzsteuerNoText = cfg.get_string("INVOICE", "umsatzsteuerNoText");
-                umsatzsteuerNoHtml = cfg.get_string("INVOICE", "umsatzsteuerNoHtml");
-                dateFormat = cfg.get_string("DATE-FORMAT", "format");
-		dateFormatMailSubjectMonthly = cfg.get_string("DATE-FORMAT", "formatMailSubjectMonthly");
-                dateTimeFormat = cfg.get_string("DATE-FORMAT", "formatDateTime");
-                timeFormat = cfg.get_string("DATE-FORMAT", "formatTime");
+
+		datadir                         = cfg.get_string("INVOICE", "datadir");
+		mailfromaddress                 = cfg.get_string("MAIL", "mailfromaddress");
+		treasurermailaddress            = cfg.get_string("MAIL", "treasurermailaddress");
+		shortname                       = cfg.get_string("GENERAL", "shortname");
+		spacename                       = cfg.get_string("GENERAL", "spacename");
+		umsatzsteuer                    = cfg.get_string("INVOICE", "umsatzsteuer");
+		jvereinmitgliedsnummern         = cfg.get_string("JVEREIN", "mitgliedsnummern");
+		umsatzsteuerNoText              = cfg.get_string("INVOICE", "umsatzsteuerNoText");
+    		umsatzsteuerNoHtml              = cfg.get_string("INVOICE", "umsatzsteuerNoHtml");
+    		dateFormat                      = cfg.get_string("DATE-FORMAT", "format");
+		dateFormatMailSubjectMonthly 	= cfg.get_string("DATE-FORMAT", "formatMailSubjectMonthly");
+    		dateTimeFormat 			= cfg.get_string("DATE-FORMAT", "formatDateTime");
+    		timeFormat                      = cfg.get_string("DATE-FORMAT", "formatTime");
 	}
 
 	public void send_invoice(bool temporary, int64 timestamp, int user) throws IOError, InvoicePDFError, DatabaseError {

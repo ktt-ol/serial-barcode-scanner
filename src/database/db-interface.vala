@@ -43,6 +43,7 @@ public interface Database : Object {
 	public abstract string get_user_theme(int user, string fallback) throws IOError, DatabaseError;
 	public abstract string get_user_language(int user, string fallback) throws IOError, DatabaseError;
 	public abstract InvoiceEntry[] get_invoice(int user, int64 from=0, int64 to=-1) throws IOError, DatabaseError;
+	public abstract Sale[] get_sales(int64 from=0, int64 to=-1) throws IOError, DatabaseError;
 	public abstract int64 get_first_purchase(int user) throws IOError;
 	public abstract int64 get_last_purchase(int user) throws IOError;
 	public abstract StatsInfo get_stats_info() throws IOError;
@@ -173,6 +174,16 @@ public struct InvoiceEntry {
 	public int64 timestamp;
 	Product product;
 	Price price;
+}
+
+public struct Sale {
+	public int64 timestamp;
+	public uint64 ean;
+	public string productname;
+	public int userId;
+	public string userFirstname;
+	public string userLastname;
+	public Price price;
 }
 
 public struct CashboxDiff {

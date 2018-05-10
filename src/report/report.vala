@@ -1,0 +1,117 @@
+/* Copyright 2018, Johannes Rudolph <johannes.rudolph@gmx.com>
+ *
+ * Permission to use, copy, modify, and/or distribute this software for any
+ * purpose with or without fee is hereby granted, provided that the above
+ * copyright notice and this permission notice appear in all copies.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+ * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+ * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+ * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+ * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+ * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ */
+
+ public const int DAYINSECONDS = 60*60*24;
+
+ public class ReportImplementation {
+
+   private Database db;
+   private Config cfg;
+   private Mailer mailer;
+   private DateTime dateNow;
+   private DateTime startTime;
+   private DateTime stopTime;
+
+   private string[] reportParts = {};
+
+   private string dateTimeFormat;
+   private string timeFormat;
+   private string startstring;
+   private string stopstring;
+
+   public ReportImplementation () {
+      this.mailer           = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Mail", "/io/mainframe/shopsystem/mailer");
+ 		  this.cfg              = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Config", "/io/mainframe/shopsystem/config");
+ 		  this.db               = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Database", "/io/mainframe/shopsystem/database");
+      this.dateNow          = new DateTime.now_local();
+      this.dateTimeFormat   = cfg.get_string("DATE-FORMAT", "formatDateTime");
+      this.timeFormat       = cfg.get_string("DATE-FORMAT", "formatTime");
+
+      this.startTime        = new DateTime.from_unix_local(this.dateNow.to_unix() - DAYINSECONDS);
+  		this.stopTime         = this.dateNow;
+
+      this.startstring      = startTime.format(this.dateTimeFormat);
+      this.stopstring       = stopTime.format(this.dateTimeFormat);
+   }
+
+   public void collectReportData(){
+     reportParts += this.collectCashData();
+     reportParts += this.collectStockData();
+     reportParts += this.collectSellData();
+   }
+
+   public void sendReport(){
+
+
+ 		 /* title */
+ 		 string mailtitle = "Report "+ cfg.get_string("GENERAL", "shortname")+" Shopsystem " + @" $startstring - $stopstring";
+
+     var now = new DateTime.now_local().format(cfg.get_string("DATE-FORMAT", "formatDateTime"));
+     string mailpath = this.mailer.create_mail();
+     Mail mail = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Mail", mailpath);
+     mail.from = {cfg.get_string("GENERAL", "shortname")+" Shopsystem", cfg.get_string("MAIL", "mailfromaddress")};
+     mail.add_recipient({cfg.get_string("GENERAL", "shortname") + " Shop Report",cfg.get_string("MAIL", "reportaddress")}, RecipientType.TO);
+     mail.subject = mailtitle;
+
+     string mailcontent = "Here Is Your Daily " + cfg.get_string("GENERAL", "shortname") + " Shop Report\n\n";
+
+     foreach(string part in this.reportParts){
+       mailcontent += part;
+     }
+
+     mail.set_main_part(mailcontent, MessageType.PLAIN);
+     mailer.send_mail(mailpath);
+   }
+
+   public void cliOutput(){
+     stdout.printf("Daily Report\n\nFrom: %s\nTo: %s\n\n",this.startstring,this.stopstring);
+     foreach(string part in this.reportParts){
+       stdout.printf("%s",part);
+     }
+   }
+
+   private string collectStockData() {
+     string data = "###### STOCK Data\n\n";
+
+     StockEntry[] stockData = db.get_stock();
+
+     foreach (StockEntry entry in stockData) {
+       data += "%i\t| %s\n".printf(entry.amount,entry.name);
+     }
+
+     data += "\n";
+     return data;
+   }
+
+   private string collectCashData() {
+     string data = "###### CASH Data\n\n";
+     Price currentCash = db.cashbox_status();
+     data += "The Current Amount in the Cashregister is/should be %s €\n\n".printf(currentCash.to_string());
+     return data;
+   }
+
+   private string collectSellData() {
+     string data = "###### SELL Data\n\n";
+
+     Sale[] sales = db.get_sales(this.startTime.to_unix(),this.stopTime.to_unix());
+
+     foreach (Sale entry in sales) {
+       DateTime dt = new DateTime.from_unix_local(entry.timestamp);
+ 			 string newdate = dt.format(this.timeFormat);
+       data += "%s\t| %s\t| %s %s\n".printf(newdate,entry.productname,entry.userFirstname,entry.userLastname);
+     }
+     return data;
+   }
+ }
