@@ -72,6 +72,18 @@ public interface Database : Object {
 	public abstract int get_userid_for_rfid(string rfid) throws IOError, DatabaseError;
 	public abstract void addrfid(string rfid, int user) throws IOError, DatabaseError;
 	public abstract void delete_rfid_for_user(int user) throws IOError, DatabaseError;
+	public abstract StatisticProductsPerDay[] get_statistic_products_per_day() throws DatabaseError;
+	public abstract StatisticProductsPerDay[] get_statistic_products_per_day_withDate(string date) throws DatabaseError;
+	public abstract StatisticProductsPerMonth[] get_statistic_products_per_month() throws DatabaseError;
+	public abstract StatisticProductsPerMonth[] get_statistic_products_per_month_withMonthYear(string month, string year) throws DatabaseError;
+	public abstract StatisticProductsPerYear[] get_statistic_products_per_year() throws DatabaseError;
+	public abstract StatisticProductsPerYear[] get_statistic_products_per_year_withYear(string year) throws DatabaseError;
+	public abstract StatisticSalesPerDay[] get_statistic_sales_per_day() throws DatabaseError;
+	public abstract StatisticSalesPerDay[] get_statistic_sales_per_day_withDate(string date) throws DatabaseError;
+	public abstract StatisticSalesPerMonth[] get_statistic_sales_per_month() throws DatabaseError;
+	public abstract StatisticSalesPerMonth[] get_statistic_sales_per_month_withMonthYear(string month, string year) throws DatabaseError;
+	public abstract StatisticSalesPerYear[] get_statistic_sales_per_year() throws DatabaseError;
+	public abstract StatisticSalesPerYear[] get_statistic_sales_per_year_withYear(string year) throws DatabaseError;
 }
 
 public struct Category {
@@ -211,6 +223,50 @@ public struct StatsInfo {
 	public Price profit_per_day;
 	public Price sales_per_month;
 	public Price profit_per_month;
+}
+
+public struct StatisticProductsPerDay {
+	public string day;
+	public int64 numOfProducts;
+	public Price total;
+	public string product;
+	public uint64 productId;
+}
+
+public struct StatisticProductsPerMonth {
+	public string month;
+	public string year;
+	public int64 numOfProducts;
+	public Price total;
+	public string product;
+	public uint64 productId;
+}
+
+public struct StatisticProductsPerYear {
+	public string year;
+	public int64 numOfProducts;
+	public Price total;
+	public string product;
+	public uint64 productId;
+}
+
+public struct StatisticSalesPerDay {
+	public string day;
+	public int64 numOfProducts;
+	public Price total;
+}
+
+public struct StatisticSalesPerMonth {
+	public string month;
+	public string year;
+	public int64 numOfProducts;
+	public Price total;
+}
+
+public struct StatisticSalesPerYear {
+	public string year;
+	public int64 numOfProducts;
+	public Price total;
 }
 
 public errordomain DatabaseError {

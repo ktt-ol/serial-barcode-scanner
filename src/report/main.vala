@@ -15,13 +15,30 @@
 
 public static int main(string[] args) {
 
-  ReportImplementation report = new ReportImplementation();
+  bool mail = false;
+  bool today = false;
+  DateTime now = new DateTime.now_local();
+  DateTime yesterday = now.add_days(-1);;
+
+  foreach (string arg in args) {
+    switch (arg) {
+      case "mail": mail = true;
+        break;
+      case "today": today = true;
+        break;
+    }
+  }
+
+  if(today){
+    yesterday = now;
+  }
+  DateTime start = new DateTime.local(yesterday.get_year(),yesterday.get_month(),yesterday.get_day_of_month(),0,0,0);
+
+  ReportImplementation report = new ReportImplementation(start);
   report.collectReportData();
   report.cliOutput();
-  foreach (string arg in args) {
-    if(arg == "mail"){
-      report.sendReport();
-    }
+  if(mail){
+    report.sendReport();
   }
 
 	return 0;

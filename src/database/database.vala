@@ -146,6 +146,18 @@ public class DataBase : Object {
 		queries["rfid_userid"]       = "SELECT rfid FROM rfid_users WHERE user = ?";
     queries["rfid_insert"]       = "INSERT OR REPLACE INTO rfid_users ('user','rfid') VALUES (?,?)";
     queries["rfid_delete_user"]  = "DELETE FROM rfid_users WHERE user = ? ";
+		queries["statistic_products_day"]  								= "SELECT * FROM statistic_productsperday";
+		queries["statistic_products_month"]  							= "SELECT * FROM statistic_productspermonth";
+		queries["statistic_products_year"]  							= "SELECT * FROM statistic_productsperyear";
+		queries["statistic_sales_day"]  									= "SELECT * FROM statistic_salesperday";
+		queries["statistic_sales_month"]  								= "SELECT * FROM statistic_salespermonth";
+		queries["statistic_sales_year"]  									= "SELECT * FROM statistic_salesperyear";
+		queries["statistic_products_day_withDate"]  			= "SELECT * FROM statistic_productsperday where day = ?";
+		queries["statistic_products_month_withMonthYear"] = "SELECT * FROM statistic_productspermonth where month = ? and year = ?";
+		queries["statistic_products_year_withYear"]  			= "SELECT * FROM statistic_productsperyear where year = ?";
+		queries["statistic_sales_day_withDate"]  					= "SELECT * FROM statistic_salesperday where day = ?";
+		queries["statistic_sales_month_withMonthYear"]  	= "SELECT * FROM statistic_salespermonth where month = ? and year = ?";
+		queries["statistic_sales_year_withYear"]  				= "SELECT * FROM statistic_salesperyear where year = ?";
 
 		/* compile queries into statements */
 		foreach(var entry in queries.entries) {
@@ -1277,6 +1289,246 @@ public class DataBase : Object {
 			default:
 				throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
 		}
+	}
+
+	public StatisticProductsPerDay[] get_statistic_products_per_day() throws DatabaseError {
+		StatisticProductsPerDay[] result = {};
+
+		statements["statistic_products_day"].reset();
+
+		while(statements["statistic_products_day"].step() == Sqlite.ROW) {
+			StatisticProductsPerDay entry = {
+				statements["statistic_products_day"].column_text(0),
+				statements["statistic_products_day"].column_int64(1),
+				statements["statistic_products_day"].column_int(2),
+				statements["statistic_products_day"].column_text(3),
+				statements["statistic_products_day"].column_int64(4)
+			};
+
+			result += entry;
+		}
+
+		return result;
+	}
+
+	public StatisticProductsPerDay[] get_statistic_products_per_day_withDate(string date) throws DatabaseError {
+		StatisticProductsPerDay[] result = {};
+
+		statements["statistic_products_day_withDate"].reset();
+		statements["statistic_products_day_withDate"].bind_text(1, date);
+
+		while(statements["statistic_products_day_withDate"].step() == Sqlite.ROW) {
+			StatisticProductsPerDay entry = {
+				statements["statistic_products_day_withDate"].column_text(0),
+				statements["statistic_products_day_withDate"].column_int64(1),
+				statements["statistic_products_day_withDate"].column_int(2),
+				statements["statistic_products_day_withDate"].column_text(3),
+				statements["statistic_products_day_withDate"].column_int64(4)
+			};
+
+			result += entry;
+		}
+
+		return result;
+	}
+
+	public StatisticProductsPerMonth[] get_statistic_products_per_month() throws DatabaseError {
+		StatisticProductsPerMonth[] result = {};
+
+		statements["statistic_products_month"].reset();
+
+		while(statements["statistic_products_month"].step() == Sqlite.ROW) {
+			StatisticProductsPerMonth entry = {
+				statements["statistic_products_month"].column_text(0),
+				statements["statistic_products_month"].column_text(1),
+				statements["statistic_products_month"].column_int64(2),
+				statements["statistic_products_month"].column_int(3),
+				statements["statistic_products_month"].column_text(4),
+				statements["statistic_products_month"].column_int64(5)
+			};
+
+			result += entry;
+		}
+
+		return result;
+	}
+
+	public StatisticProductsPerMonth[] get_statistic_products_per_month_withMonthYear(string month, string year) throws DatabaseError {
+		StatisticProductsPerMonth[] result = {};
+
+		statements["statistic_products_month_withMonthYear"].reset();
+		statements["statistic_products_month_withMonthYear"].bind_text(1, month);
+		statements["statistic_products_month_withMonthYear"].bind_text(2, year);
+
+		while(statements["statistic_products_month_withMonthYear"].step() == Sqlite.ROW) {
+			StatisticProductsPerMonth entry = {
+				statements["statistic_products_month_withMonthYear"].column_text(0),
+				statements["statistic_products_month_withMonthYear"].column_text(1),
+				statements["statistic_products_month_withMonthYear"].column_int64(2),
+				statements["statistic_products_month_withMonthYear"].column_int(3),
+				statements["statistic_products_month_withMonthYear"].column_text(4),
+				statements["statistic_products_month_withMonthYear"].column_int64(5)
+			};
+
+			result += entry;
+		}
+
+	 return result;
+  }
+
+	public StatisticProductsPerYear[] get_statistic_products_per_year() throws DatabaseError {
+		StatisticProductsPerYear[] result = {};
+
+		statements["statistic_products_year"].reset();
+
+		while(statements["statistic_products_year"].step() == Sqlite.ROW) {
+			StatisticProductsPerYear entry = {
+				statements["statistic_products_year"].column_text(0),
+				statements["statistic_products_year"].column_int64(1),
+				statements["statistic_products_year"].column_int(2),
+				statements["statistic_products_year"].column_text(3),
+				statements["statistic_products_year"].column_int64(4)
+			};
+
+			result += entry;
+		}
+
+		return result;
+	}
+
+	public StatisticProductsPerYear[] get_statistic_products_per_year_withYear(string year) throws DatabaseError {
+		StatisticProductsPerYear[] result = {};
+
+		statements["statistic_products_year_withYear"].reset();
+		statements["statistic_products_year_withYear"].bind_text(1, year);
+
+		while(statements["statistic_products_year_withYear"].step() == Sqlite.ROW) {
+			StatisticProductsPerYear entry = {
+				statements["statistic_products_year_withYear"].column_text(0),
+				statements["statistic_products_year_withYear"].column_int64(1),
+				statements["statistic_products_year_withYear"].column_int(2),
+				statements["statistic_products_year_withYear"].column_text(3),
+				statements["statistic_products_year_withYear"].column_int64(4)
+			};
+
+			result += entry;
+		}
+
+		return result;
+	}
+
+	public StatisticSalesPerDay[] get_statistic_sales_per_day() throws DatabaseError {
+		StatisticSalesPerDay[] result = {};
+
+		statements["statistic_sales_day"].reset();
+
+		while(statements["statistic_sales_day"].step() == Sqlite.ROW) {
+			StatisticSalesPerDay entry = {
+				statements["statistic_sales_day"].column_text(0),
+				statements["statistic_sales_day"].column_int64(1),
+				statements["statistic_sales_day"].column_int(2)
+			};
+
+			result += entry;
+		}
+
+		return result;
+	}
+
+	public StatisticSalesPerDay[] get_statistic_sales_per_day_withDate(string date) throws DatabaseError {
+		StatisticSalesPerDay[] result = {};
+
+		statements["statistic_sales_day_withDate"].reset();
+		statements["statistic_sales_day_withDate"].bind_text(1, date);
+
+		while(statements["statistic_sales_day_withDate"].step() == Sqlite.ROW) {
+			StatisticSalesPerDay entry = {
+				statements["statistic_sales_day_withDate"].column_text(0),
+				statements["statistic_sales_day_withDate"].column_int64(1),
+				statements["statistic_sales_day_withDate"].column_int(2)
+			};
+
+			result += entry;
+		}
+
+		return result;
+	}
+
+	public StatisticSalesPerMonth[] get_statistic_sales_per_month() throws DatabaseError {
+		StatisticSalesPerMonth[] result = {};
+
+		statements["statistic_sales_month"].reset();
+
+		while(statements["statistic_sales_month"].step() == Sqlite.ROW) {
+			StatisticSalesPerMonth entry = {
+				statements["statistic_sales_month"].column_text(0),
+				statements["statistic_sales_month"].column_text(1),
+				statements["statistic_sales_month"].column_int64(2),
+				statements["statistic_sales_month"].column_int(3)
+			};
+
+			result += entry;
+		}
+
+		return result;
+	}
+
+	public StatisticSalesPerMonth[] get_statistic_sales_per_month_withMonthYear(string month, string year) throws DatabaseError {
+		StatisticSalesPerMonth[] result = {};
+
+		statements["statistic_sales_month_withMonthYear"].reset();
+		statements["statistic_sales_month_withMonthYear"].bind_text(1, month);
+		statements["statistic_sales_month_withMonthYear"].bind_text(2, year);
+
+		while(statements["statistic_sales_month_withMonthYear"].step() == Sqlite.ROW) {
+			StatisticSalesPerMonth entry = {
+				statements["statistic_sales_month_withMonthYear"].column_text(0),
+				statements["statistic_sales_month_withMonthYear"].column_text(1),
+				statements["statistic_sales_month_withMonthYear"].column_int64(2),
+				statements["statistic_sales_month_withMonthYear"].column_int(3)
+			};
+
+			result += entry;
+		}
+
+		return result;
+	}
+
+	public StatisticSalesPerYear[] get_statistic_sales_per_year() throws DatabaseError {
+		StatisticSalesPerYear[] result = {};
+
+		statements["statistic_sales_year"].reset();
+
+		while(statements["statistic_sales_year"].step() == Sqlite.ROW) {
+			StatisticSalesPerYear entry = {
+				statements["statistic_sales_year"].column_text(0),
+				statements["statistic_sales_year"].column_int64(1),
+				statements["statistic_sales_year"].column_int(2)
+			};
+
+			result += entry;
+		}
+
+		return result;
+	}
+
+	public StatisticSalesPerYear[] get_statistic_sales_per_year_withYear(string year) throws DatabaseError {
+		StatisticSalesPerYear[] result = {};
+
+		statements["statistic_sales_year_withYear"].reset();
+		statements["statistic_sales_year_withYear"].bind_text(1, year);
+
+		while(statements["statistic_sales_year_withYear"].step() == Sqlite.ROW) {
+			StatisticSalesPerYear entry = {
+				statements["statistic_sales_year_withYear"].column_text(0),
+				statements["statistic_sales_year_withYear"].column_int64(1),
+				statements["statistic_sales_year_withYear"].column_int(2)
+			};
+
+			result += entry;
+		}
+
+		return result;
 	}
 
 }

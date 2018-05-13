@@ -20,7 +20,6 @@
    private Database db;
    private Config cfg;
    private Mailer mailer;
-   private DateTime dateNow;
    private DateTime startTime;
    private DateTime stopTime;
 
@@ -31,16 +30,15 @@
    private string startstring;
    private string stopstring;
 
-   public ReportImplementation () {
+   public ReportImplementation (DateTime startTime) {
       this.mailer           = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Mail", "/io/mainframe/shopsystem/mailer");
  		  this.cfg              = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Config", "/io/mainframe/shopsystem/config");
  		  this.db               = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Database", "/io/mainframe/shopsystem/database");
-      this.dateNow          = new DateTime.now_local();
       this.dateTimeFormat   = cfg.get_string("DATE-FORMAT", "formatDateTime");
       this.timeFormat       = cfg.get_string("DATE-FORMAT", "formatTime");
 
-      this.startTime        = new DateTime.from_unix_local(this.dateNow.to_unix() - DAYINSECONDS);
-  		this.stopTime         = this.dateNow;
+      this.startTime        = startTime;
+  		this.stopTime         = new DateTime.from_unix_local(this.startTime.to_unix() + DAYINSECONDS - 1);
 
       this.startstring      = startTime.format(this.dateTimeFormat);
       this.stopstring       = stopTime.format(this.dateTimeFormat);
@@ -50,6 +48,8 @@
      reportParts += this.collectCashData();
      reportParts += this.collectStockData();
      reportParts += this.collectSellData();
+     reportParts += this.collectProductStatisticData();
+     reportParts += this.collectMoneyStatisticData();
    }
 
    public void sendReport(){
@@ -58,7 +58,6 @@
  		 /* title */
  		 string mailtitle = "Report "+ cfg.get_string("GENERAL", "shortname")+" Shopsystem " + @" $startstring - $stopstring";
 
-     var now = new DateTime.now_local().format(cfg.get_string("DATE-FORMAT", "formatDateTime"));
      string mailpath = this.mailer.create_mail();
      Mail mail = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Mail", mailpath);
      mail.from = {cfg.get_string("GENERAL", "shortname")+" Shopsystem", cfg.get_string("MAIL", "mailfromaddress")};
@@ -112,6 +111,60 @@
  			 string newdate = dt.format(this.timeFormat);
        data += "%s\t| %s\t| %s %s\n".printf(newdate,entry.productname,entry.userFirstname,entry.userLastname);
      }
+
+     data += "\n";
+     return data;
+   }
+
+   private string collectProductStatisticData() {
+     string data = "###### Product Statistic Data\n\n";
+
+     StatisticProductsPerDay[] productsDataDay = db.get_statistic_products_per_day_withDate(this.startTime.format("%Y-%m-%d"));
+     data += "For Day: " + this.startTime.format("%Y-%m-%d") + "\n";
+     foreach (StatisticProductsPerDay productData in productsDataDay) {
+       data += "%ld\t| %s\n".printf((long)productData.numOfProducts,productData.product);
+     }
+     data += "\n";
+
+     StatisticProductsPerMonth[] productsDataMonth = db.get_statistic_products_per_month_withMonthYear(this.startTime.format("%m"),this.startTime.format("%Y"));
+     data += "For Month: " + this.startTime.format("%m %Y") + "\n";
+     foreach (StatisticProductsPerMonth productData in productsDataMonth) {
+       data += "%ld\t| %s\n".printf((long)productData.numOfProducts,productData.product);
+     }
+     data += "\n";
+
+     StatisticProductsPerYear[] productsDataYear = db.get_statistic_products_per_year_withYear(this.startTime.format("%Y"));
+     data += "For Year: " + this.startTime.format("%Y") + "\n";
+     foreach (StatisticProductsPerYear productData in productsDataYear) {
+       data += "%ld\t| %s\n".printf((long)productData.numOfProducts,productData.product);
+     }
+     data += "\n";
+     return data;
+   }
+
+   private string collectMoneyStatisticData() {
+     string data = "###### Money Statistic Data\n\n";
+
+     StatisticSalesPerDay[] productsDataDay = db.get_statistic_sales_per_day_withDate(this.startTime.format("%Y-%m-%d"));
+     data += "For Day: " + this.startTime.format("%Y-%m-%d") + "\n";
+     foreach (StatisticSalesPerDay productData in productsDataDay) {
+       data += "%s €\n".printf(productData.total.to_string());
+     }
+     data += "\n";
+
+     StatisticSalesPerMonth[] productsDataMonth = db.get_statistic_sales_per_month_withMonthYear(this.startTime.format("%m"),this.startTime.format("%Y"));
+     data += "For Month: " + this.startTime.format("%m %Y") + "\n";
+     foreach (StatisticSalesPerMonth productData in productsDataMonth) {
+       data += "%s €\n".printf(productData.total.to_string());
+     }
+     data += "\n";
+
+     StatisticSalesPerYear[] productsDataYear = db.get_statistic_sales_per_year_withYear(this.startTime.format("%Y"));
+     data += "For Year: " + this.startTime.format("%Y") + "\n";
+     foreach (StatisticSalesPerYear productData in productsDataYear) {
+       data += "%s €\n".printf(productData.total.to_string());
+     }
+     data += "\n";
      return data;
    }
  }
