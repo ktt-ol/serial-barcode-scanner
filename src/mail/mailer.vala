@@ -59,7 +59,7 @@ public class MailerImplementation {
 	public MailerImplementation() throws IOError {
 		int result;
 
-		GMime.init(0);
+		GMime.init();
 
 		Smtp.auth_client_init();
 		session = Smtp.Session();

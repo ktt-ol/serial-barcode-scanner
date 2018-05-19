@@ -18,7 +18,7 @@ check_dependencies() {
 	check_pkg_version  gdk-2.0			2.24					"force"
 	check_pkg_version  gee-0.8			0.6						"force"
 	check_pkg_version  gio-2.0			2.36					"force"
-	check_pkg_version  gmime-2.6		2.6.10					"force"
+	check_pkg_version  gmime-3.0		3.0						"force"
 	check_prg_version  gpgme			1.2		$GPGME_VERSION	"force"
 	check_pkg_version  gstreamer-1.0	1.0						"force"
 	check_pkg_version  libarchive		3.0						"force"

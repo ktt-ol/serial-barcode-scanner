@@ -51,7 +51,7 @@ public struct MailContact {
 
 public struct MailDate {
 	uint64 date;
-	int tz_offset;
+	string timezone;
 }
 
 public enum MessageType {

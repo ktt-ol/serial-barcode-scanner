@@ -20,15 +20,16 @@ public class MailImplementation {
 	private GMime.Part? main_html = null;
 	private GMime.Part[] attachments;
 
-	private GMime.FilterCRLF filter;
+	private GMime.FilterUnix2Dos filter_unix2dos;
+	private GMime.FilterSmtpData filter_smtp;
 
 	private string[] recipients;
 	private string? reversepath;
 
 	public MailContact from { set {
-		string sender = value.name + " " + "<" + value.email + ">";
 		reversepath = value.email;
-		m.set_sender(sender);
+		m.add_mailbox(GMime.AddressType.SENDER, value.name, value.email);
+		m.add_mailbox(GMime.AddressType.FROM, value.name, value.email);
 	}}
 
 	public string subject {
@@ -37,7 +38,7 @@ public class MailImplementation {
 			return (result == null) ? "" : result;
 		}
 		set {
-			m.set_subject(value);
+			m.set_subject(value, "utf-8");
 		}
 	}
 
@@ -53,30 +54,35 @@ public class MailImplementation {
 
 	public string reply_to {
 		owned get {
-			var result = m.get_reply_to();
+			var result = m.get_reply_to().to_string(new GMime.FormatOptions(), true);
 			return (result == null) ? "" : result;
 		}
 		set {
-			m.set_reply_to(value);
+			m.add_mailbox(GMime.AddressType.REPLY_TO, "", value);
 		}
 	}
 
 	public MailDate date {
 		owned get {
 			MailDate result = {};
-			m.get_date(out result.date, out result.tz_offset);
+			var tmp = m.get_date();
+			result.timezone = tmp.get_timezone_abbreviation();
+			result.date = tmp.to_unix();
 			return result;
 		}
 		set {
-			m.set_date((ulong) value.date, value.tz_offset);
+			var timezone = new TimeZone(value.timezone);
+			var date = new DateTime.from_unix_utc((int64) value.date).to_timezone(timezone);
+			m.set_date(date);
 		}
 	}
 
 	public MailImplementation() {
 		m = new GMime.Message(true);
-		m.set_header("X-Mailer", "KtT Shopsystem");
+		m.set_header("X-Mailer", "KtT Shopsystem", "utf-8");
 		attachments = new GMime.Part[0];
-		filter = new GMime.FilterCRLF(true, true);
+		filter_smtp = new GMime.FilterSmtpData();
+		filter_unix2dos = new GMime.FilterUnix2Dos(true);
 		recipients = new string[0];
 	}
 
@@ -95,8 +101,8 @@ public class MailImplementation {
 	}
 #endif
 
-	public void add_recipient(MailContact contact, GMime.RecipientType type) {
-		m.add_recipient(type, contact.name, contact.email);
+	public void add_recipient(MailContact contact, GMime.AddressType type) {
+		m.add_mailbox(type, contact.name, contact.email);
 		recipients += contact.email;
 	}
 
@@ -106,17 +112,17 @@ public class MailImplementation {
 			GMime.ContentEncoding.DEFAULT);
 
 		GMime.Part? part = new GMime.Part();
-		part.set_content_object(content);
+		part.set_content(content);
 
 		switch(type) {
 			case MessageType.HTML:
-				part.set_content_type(new GMime.ContentType.from_string("text/html; charset=utf-8"));
+				part.set_content_type(GMime.ContentType.parse(new GMime.ParserOptions(), "text/html; charset=utf-8"));
 				part.set_content_encoding(part.get_best_content_encoding(GMime.EncodingConstraint.7BIT));
 				main_html = part;
 				break;
 			case MessageType.PLAIN:
 			default:
-				part.set_content_type(new GMime.ContentType.from_string("text/plain; charset=utf-8; format=flowed"));
+				part.set_content_type(GMime.ContentType.parse(new GMime.ParserOptions(), "text/plain; charset=utf-8; format=flowed"));
 				part.set_content_encoding(part.get_best_content_encoding(GMime.EncodingConstraint.7BIT));
 				main_text = part;
 				break;
@@ -133,8 +139,8 @@ public class MailImplementation {
 		/* configure part */
 		part.set_disposition("attachment");
 		part.set_filename(filename);
-		part.set_content_type(new GMime.ContentType.from_string(content_type));
-		part.set_content_object(content);
+		part.set_content_type(GMime.ContentType.parse(new GMime.ParserOptions(), content_type));
+		part.set_content(content);
 		part.set_content_encoding(part.get_best_content_encoding(GMime.EncodingConstraint.7BIT));
 
 		attachments += part;
@@ -190,11 +196,13 @@ public class MailImplementation {
 	[DBus (visible = false)]
 	public string generate() {
 		update_mime_part();
-		string result = m.to_string();
+		string result = m.to_string(new GMime.FormatOptions());
 		uint8[] crlfdata;
+		uint8[] smtpdata;
 		size_t prespace;
-		filter.filter(result.data, 0, out crlfdata, out prespace);
-		return (string) crlfdata;
+		filter_unix2dos.filter(result.data, 0, out crlfdata, out prespace);
+		filter_smtp.filter(crlfdata, 0, out smtpdata, out prespace);
+		return (string) smtpdata;
 	}
 
 	[DBus (visible = false)]
