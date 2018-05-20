@@ -84,6 +84,7 @@ public interface Database : Object {
 	public abstract StatisticSalesPerMonth[] get_statistic_sales_per_month_withMonthYear(string month, string year) throws DatabaseError;
 	public abstract StatisticSalesPerYear[] get_statistic_sales_per_year() throws DatabaseError;
 	public abstract StatisticSalesPerYear[] get_statistic_sales_per_year_withYear(string year) throws DatabaseError;
+	public abstract void publish_mqtt_stock_info();
 }
 
 public struct Category {

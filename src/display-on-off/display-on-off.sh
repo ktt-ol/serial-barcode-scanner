@@ -1,12 +1,12 @@
 #!/bin/bash
 
-function getMqttConfig 
+function getMqttConfig
 {
 	echo `mdbus2 -s io.mainframe.shopsystem.Config /io/mainframe/shopsystem/config io.mainframe.shopsystem.Config.GetString MQTT $1 | cut -d"'" -f 2`
 }
 
 BROKER=$(getMqttConfig broker)
-TOPIC=$(getMqttConfig topic)
+TOPIC=$(getMqttConfig displayOnOffTopic)
 ON=$(getMqttConfig displayOn)
 OFF=$(getMqttConfig displayOff)
 

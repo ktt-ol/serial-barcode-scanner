@@ -102,6 +102,7 @@ public class UserSession {
     }
     shoppingCardResult.amountOfItems = amountOfItems;
     shoppingCardResult.totalPrice = totalPrice;
+    this.db.publish_mqtt_stock_info();
     return shoppingCardResult;
   }
 

@@ -67,6 +67,9 @@ public class DataBase : Object {
 		}
 	}
 
+	private Mqtt mqtt;
+	private Config cfg;
+
 	private Sqlite.Database db;
 	private static Gee.HashMap<string,string> queries = new Gee.HashMap<string,string>();
 	private static Gee.HashMap<string,Statement> statements = new Gee.HashMap<string,Statement>();
@@ -76,6 +79,12 @@ public class DataBase : Object {
 	public DataBase(string file) {
 		int rc;
 
+		try {
+		this.mqtt = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Mqtt", "/io/mainframe/shopsystem/mqtt");
+		this.cfg = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Config", "/io/mainframe/shopsystem/config");
+		} catch (Error e) {
+			error("Error: %s\n",e.message);
+		}
 		rc = Sqlite.Database.open(file, out db);
 		if(rc != Sqlite.OK) {
 			error("could not open database!");
@@ -537,6 +546,8 @@ public class DataBase : Object {
 
 		if(rc != Sqlite.DONE)
 			throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
+
+		this.publish_mqtt_stock_info();
 	}
 
 	public void new_product(uint64 id, string name, int category, int memberprice, int guestprice) throws DatabaseError {
@@ -554,6 +565,8 @@ public class DataBase : Object {
 		}
 
 		new_price(id, 0, memberprice, guestprice);
+
+		this.publish_mqtt_stock_info();
 	}
 
 	public void new_price(uint64 product, int64 timestamp, int memberprice, int guestprice) throws DatabaseError {
@@ -1529,6 +1542,21 @@ public class DataBase : Object {
 		}
 
 		return result;
+	}
+
+	public void publish_mqtt_stock_info() {
+		StockEntry[] stockData = this.get_stock();
+
+		string[] articles = {};
+		foreach (StockEntry e in stockData) {
+			articles += "{\"ean\":\"%s\",\"name\":\"%s\",\"category\":\"%s\",\"amount\":\"%i\",\"memberprice\":\"%s\",\"guestprice\":\"%s\"}".printf(e.id,e.name,e.category,e.amount,e.memberprice.to_string(),e.guestprice.to_string());
+		}
+		string message = "["+ string.joinv(",",articles) +"]";
+		try {
+			mqtt.push_message(message,this.cfg.get_string("MQTT", "stockInfoTopic"));
+		} catch (Error e) {
+			error("Error: %s\n",e.message);
+		}
 	}
 
 }

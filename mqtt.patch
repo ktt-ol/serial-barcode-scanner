@@ -1,0 +1,319 @@
+From f3c123facd117be88bcb25d0da8561d0d0cad068 Mon Sep 17 00:00:00 2001
+From: Johannes Rudolph <johannes.rudolph@gmx.com>
+Date: Sun, 20 May 2018 20:40:26 +0200
+Subject: [PATCH 1/1] Add MQTT publish stockinfo
+
+Signed-off-by: Johannes Rudolph <johannes.rudolph@gmx.com>
+---
+ dbus/config/io.mainframe.shopsystem.Mqtt.conf |  17 ++++++++++
+ dbus/io.mainframe.shopsystem.Mqtt.service.in  |   4 +++
+ example.cfg                                   |   3 +-
+ src/Makefile                                  |   2 +-
+ src/database/Makefile                         |   2 +-
+ src/database/database.vala                    |  28 ++++++++++++++++
+ src/database/db-interface.vala                |   1 +
+ src/display-on-off/display-on-off.sh          |   4 +--
+ src/mqtt/Makefile                             |  10 ++++++
+ src/mqtt/main.vala                            |  45 ++++++++++++++++++++++++++
+ src/mqtt/mqtt-interface.vala                  |  19 +++++++++++
+ src/mqtt/mqtt.vala                            |  29 +++++++++++++++++
+ src/scanner-session/UserSession.vala          |   1 +
+ 14 files changed, 160 insertions(+), 5 deletions(-)
+ create mode 100644 dbus/config/io.mainframe.shopsystem.Mqtt.conf
+ create mode 100644 dbus/io.mainframe.shopsystem.Mqtt.service.in
+ create mode 100644 src/mqtt/Makefile
+ create mode 100644 src/mqtt/main.vala
+ create mode 100644 src/mqtt/mqtt-interface.vala
+ create mode 100644 src/mqtt/mqtt.vala
+
+diff --git a/dbus/config/io.mainframe.shopsystem.Mqtt.conf b/dbus/config/io.mainframe.shopsystem.Mqtt.conf
+new file mode 100644
+index 0000000..bec40cd
+--- /dev/null
++++ b/dbus/config/io.mainframe.shopsystem.Mqtt.conf
+@@ -0,0 +1,17 @@
++<!DOCTYPE busconfig PUBLIC "-//freedesktop//DTD D-BUS Bus Configuration 1.0//EN"
++ "http://www.freedesktop.org/standards/dbus/1.0/busconfig.dtd">
++<busconfig>
++
++	<!-- ../system.conf have denied everything, so we just punch some holes -->
++
++	<policy user="root">
++		<allow own="io.mainframe.shopsystem.Mqtt"/>
++		<allow send_destination="io.mainframe.shopsystem.Mqtt"/>
++	</policy>
++
++	<policy user="shop">
++		<allow own="io.mainframe.shopsystem.Mqtt"/>
++		<allow send_destination="io.mainframe.shopsystem.Mqtt"/>
++	</policy>
++
++</busconfig>
+diff --git a/dbus/io.mainframe.shopsystem.Mqtt.service.in b/dbus/io.mainframe.shopsystem.Mqtt.service.in
+new file mode 100644
+index 0000000..34a347f
+--- /dev/null
++++ b/dbus/io.mainframe.shopsystem.Mqtt.service.in
+@@ -0,0 +1,4 @@
++[D-BUS Service]
++Name=io.mainframe.shopsystem.Mqtt
++Exec=${PATH}/mqtt/mqtt
++User=shop
+diff --git a/example.cfg b/example.cfg
+index 3363c89..a1aa5cb 100644
+--- a/example.cfg
++++ b/example.cfg
+@@ -41,9 +41,10 @@ footer3 = <b>Mail:</b> vorstand@kreativitaet-trifft-technik.de\n<b>Web:</b> www.
+ mitgliedsnummern = intern
+ [MQTT]
+ broker = mqtt.server.exaple.com
+-topic = /exaple/topic
++displayOnOffTopic = /exaple/topic
+ displayOn = open
+ displayOff = close
++stockInfoTopic = exaple/topic/stockinfo
+ [DATE-FORMAT]
+ format = %d.%m.%Y
+ formatMailSubjectMonthly = %B %Y
+diff --git a/src/Makefile b/src/Makefile
+index 133f775..b61c373 100644
+--- a/src/Makefile
++++ b/src/Makefile
+@@ -1,4 +1,4 @@
+-DAEMONS=audio backup cli config curses-ui database i18n input-device invoice mail pdf-invoice pdf-stock pgp report scanner-session serial-device input-device web
++DAEMONS=audio backup cli config curses-ui database i18n input-device invoice mail mqtt pdf-invoice pdf-stock pgp report scanner-session serial-device input-device web
+
+ all:
+ 	@$(foreach dir,$(DAEMONS),cd $(dir) && echo "Building $(dir)..." && make --no-print-directory all ; cd ..;)
+diff --git a/src/database/Makefile b/src/database/Makefile
+index fac0f08..a48024f 100644
+--- a/src/database/Makefile
++++ b/src/database/Makefile
+@@ -1,7 +1,7 @@
+ all: database
+ 	@echo > /dev/null
+
+-database: main.vala database.vala db-interface.vala ../config/config-interface.vala ../price.vapi
++database: main.vala database.vala db-interface.vala ../config/config-interface.vala ../price.vapi ../mqtt/mqtt-interface.vala
+ 	valac -X -w -o $@ --pkg sqlite3 --pkg gee-0.8 --pkg gio-2.0 $^
+
+ clean:
+diff --git a/src/database/database.vala b/src/database/database.vala
+index 4105e4b..72d01f0 100644
+--- a/src/database/database.vala
++++ b/src/database/database.vala
+@@ -67,6 +67,9 @@ public class DataBase : Object {
+ 		}
+ 	}
+
++	private Mqtt mqtt;
++	private Config cfg;
++
+ 	private Sqlite.Database db;
+ 	private static Gee.HashMap<string,string> queries = new Gee.HashMap<string,string>();
+ 	private static Gee.HashMap<string,Statement> statements = new Gee.HashMap<string,Statement>();
+@@ -76,6 +79,12 @@ public class DataBase : Object {
+ 	public DataBase(string file) {
+ 		int rc;
+
++		try {
++		this.mqtt = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Mqtt", "/io/mainframe/shopsystem/mqtt");
++		this.cfg = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Config", "/io/mainframe/shopsystem/config");
++		} catch (Error e) {
++			error("Error: %s\n",e.message);
++		}
+ 		rc = Sqlite.Database.open(file, out db);
+ 		if(rc != Sqlite.OK) {
+ 			error("could not open database!");
+@@ -537,6 +546,8 @@ public class DataBase : Object {
+
+ 		if(rc != Sqlite.DONE)
+ 			throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
++
++		this.publish_mqtt_stock_info();
+ 	}
+
+ 	public void new_product(uint64 id, string name, int category, int memberprice, int guestprice) throws DatabaseError {
+@@ -554,6 +565,8 @@ public class DataBase : Object {
+ 		}
+
+ 		new_price(id, 0, memberprice, guestprice);
++
++		this.publish_mqtt_stock_info();
+ 	}
+
+ 	public void new_price(uint64 product, int64 timestamp, int memberprice, int guestprice) throws DatabaseError {
+@@ -1531,4 +1544,19 @@ public class DataBase : Object {
+ 		return result;
+ 	}
+
++	public void publish_mqtt_stock_info() {
++		StockEntry[] stockData = this.get_stock();
++
++		string[] articles = {};
++		foreach (StockEntry e in stockData) {
++			articles += "{\"ean\":\"%s\",\"name\":\"%s\",\"category\":\"%s\",\"amount\":\"%i\",\"memberprice\":\"%s\",\"guestprice\":\"%s\"}".printf(e.id,e.name,e.category,e.amount,e.memberprice.to_string(),e.guestprice.to_string());
++		}
++		string message = "["+ string.joinv(",",articles) +"]";
++		try {
++			mqtt.push_message(message,this.cfg.get_string("MQTT", "stockInfoTopic"));
++		} catch (Error e) {
++			error("Error: %s\n",e.message);
++		}
++	}
++
+ }
+diff --git a/src/database/db-interface.vala b/src/database/db-interface.vala
+index 8d865f1..efd9414 100644
+--- a/src/database/db-interface.vala
++++ b/src/database/db-interface.vala
+@@ -84,6 +84,7 @@ public interface Database : Object {
+ 	public abstract StatisticSalesPerMonth[] get_statistic_sales_per_month_withMonthYear(string month, string year) throws DatabaseError;
+ 	public abstract StatisticSalesPerYear[] get_statistic_sales_per_year() throws DatabaseError;
+ 	public abstract StatisticSalesPerYear[] get_statistic_sales_per_year_withYear(string year) throws DatabaseError;
++	public abstract void publish_mqtt_stock_info();
+ }
+
+ public struct Category {
+
+diff --git a/src/mqtt/Makefile b/src/mqtt/Makefile
+new file mode 100644
+index 0000000..53b5359
+--- /dev/null
++++ b/src/mqtt/Makefile
+@@ -0,0 +1,10 @@
++all: mqtt
++	@echo > /dev/null
++
++mqtt: *.vala ../config/config-interface.vala
++	valac -X -w -o $@ --pkg gio-2.0 --pkg posix $^
++
++clean:
++	rm -f report
++
++.PHONY: all clean
+diff --git a/src/mqtt/main.vala b/src/mqtt/main.vala
+new file mode 100644
+index 0000000..8534fbf
+--- /dev/null
++++ b/src/mqtt/main.vala
+@@ -0,0 +1,45 @@
++/* Copyright 2018, Johannes Rudolph <johannes.rudolph@gmx.com>
++ *
++ * Permission to use, copy, modify, and/or distribute this software for any
++ * purpose with or without fee is hereby granted, provided that the above
++ * copyright notice and this permission notice appear in all copies.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
++ * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
++ * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
++ * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
++ * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
++ * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
++ * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
++ */
++
++MQTTImplementation mqtt;
++
++public static int main(string[] args) {
++	try {
++		Config cfg = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Config", "/io/mainframe/shopsystem/config");
++   mqtt = new MQTTImplementation(cfg.get_string("MQTT", "broker"));
++	} catch(Error e) {
++		error("Error: %s\n",e.message);
++	}
++
++	Bus.own_name(
++		BusType.SYSTEM,
++		"io.mainframe.shopsystem.Mqtt",
++		BusNameOwnerFlags.NONE,
++		on_bus_aquired,
++		() => {},
++		() => stderr.printf("Could not aquire name\n"));
++
++	new MainLoop().run();
++
++	return 0;
++}
++
++void on_bus_aquired(DBusConnection con) {
++    try {
++        con.register_object("/io/mainframe/shopsystem/mqtt", mqtt);
++    } catch(IOError e) {
++        stderr.printf("Could not register service\n");
++    }
++}
+diff --git a/src/mqtt/mqtt-interface.vala b/src/mqtt/mqtt-interface.vala
+new file mode 100644
+index 0000000..07826b6
+--- /dev/null
++++ b/src/mqtt/mqtt-interface.vala
+@@ -0,0 +1,19 @@
++/* Copyright 2018, Johannes Rudolph <johannes.rudolph@gmx.com>
++ *
++ * Permission to use, copy, modify, and/or distribute this software for any
++ * purpose with or without fee is hereby granted, provided that the above
++ * copyright notice and this permission notice appear in all copies.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
++ * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
++ * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
++ * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
++ * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
++ * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
++ * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
++ */
++
++[DBus (name = "io.mainframe.shopsystem.Mqtt")]
++public interface Mqtt : Object {
++	public abstract void push_message(string message, string topic);
++}
+diff --git a/src/mqtt/mqtt.vala b/src/mqtt/mqtt.vala
+new file mode 100644
+index 0000000..a1f3a6c
+--- /dev/null
++++ b/src/mqtt/mqtt.vala
+@@ -0,0 +1,29 @@
++/* Copyright 2018, Johannes Rudolph <johannes.rudolph@gmx.com>
++ *
++ * Permission to use, copy, modify, and/or distribute this software for any
++ * purpose with or without fee is hereby granted, provided that the above
++ * copyright notice and this permission notice appear in all copies.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
++ * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
++ * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
++ * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
++ * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
++ * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
++ * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
++ */
++using Posix;
++
++[DBus (name = "io.mainframe.shopsystem.Mqtt")]
++public class MQTTImplementation {
++
++	private string mqttBroker;
++
++	public MQTTImplementation(string broker) {
++    this.mqttBroker = broker;
++	}
++
++  public void push_message(string message, string topic) {
++		Posix.system("mosquitto_pub -h " + this.mqttBroker + " -t "+ topic +" -r -m '" + message +"'");
++  }
++}
+diff --git a/src/scanner-session/UserSession.vala b/src/scanner-session/UserSession.vala
+index 74476eb..734bdbd 100644
+--- a/src/scanner-session/UserSession.vala
++++ b/src/scanner-session/UserSession.vala
+@@ -102,6 +102,7 @@ public class UserSession {
+     }
+     shoppingCardResult.amountOfItems = amountOfItems;
+     shoppingCardResult.totalPrice = totalPrice;
++    this.db.publish_mqtt_stock_info();
+     return shoppingCardResult;
+   }
+
+--
+2.11.0
