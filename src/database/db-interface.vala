@@ -161,7 +161,34 @@ public struct UserInfo {
 		if(joined_at != x.joined_at) return false;
 		if(disabled != x.disabled) return false;
 		if(hidden != x.hidden) return false;
-		if(rfid != x.rfid) return false;
+		if(rfid.length != x.rfid.length) return false;
+
+		bool foundinequals = false;
+		foreach (string rowSource in rfid) {
+			foundinequals = false;
+			foreach (string rowEquals in x.rfid){
+				if(rowSource == rowEquals){
+					foundinequals = true;
+					break;
+				}
+			}
+			if(!foundinequals){
+				return false;
+			}
+		}
+
+		foreach (string rowEquals in x.rfid){
+			foundinequals = false;
+		  foreach (string rowSource in rfid) {
+				if(rowSource == rowEquals){
+					foundinequals = true;
+					break;
+				}
+			}
+			if(!foundinequals){
+				return false;
+			}
+		}
 
 		return true;
 	}

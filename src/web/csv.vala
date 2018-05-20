@@ -39,10 +39,6 @@ public class CSVMemberFile {
 		return result;
 	}
 
-	private string[] csv_split(string line) {
-		return /;(?=(?:[^\"]*\"[^\"]*\")*(?![^\"]*\"))/.split(line);
-	}
-
 	private string csv_value(string value) {
 		if(value[0] == '"' && value[value.length-1] == '"')
 			return value.substring(1,value.length-2);
@@ -68,23 +64,27 @@ public class CSVMemberFile {
 				m.hidden = int.parse(csv_value(linedata[10])) != 0;
 				m.disabled = int.parse(csv_value(linedata[11])) != 0;
 				string[] rfid = {};
-                                if(csv_value(linedata[12]) != "")
-                                       rfid += csv_value(linedata[12]);
-             			if(csv_value(linedata[13]) != "")
-                                       rfid += csv_value(linedata[13]);
-        			if(csv_value(linedata[14]) != "")
-                                       rfid += csv_value(linedata[14]);
-        			m.rfid = rfid;
- 
-                                m.soundTheme = "";
-                                m.language = "";
-				if(csv_value(linedata[0]) != "EXTERNEMITGLIEDSNUMMER")
-					members += m;
-			}
+        if(csv_value(linedata[12]) != "")
+          rfid += csv_value(linedata[12]);
+        if(csv_value(linedata[13]) != "")
+          rfid += csv_value(linedata[13]);
+        if(csv_value(linedata[14]) != "")
+          rfid += csv_value(linedata[14]);
+      	m.rfid = rfid;
+
+        m.soundTheme = "";
+        m.language = "";
+        if(csv_value(linedata[0]) != "EXTERNEMITGLIEDSNUMMER")
+          members += m;
+        }
 		}
 	}
 
 	public UserInfo[] get_members() {
 		return members;
+	}
+
+	private string[] csv_split(string line) {
+		return /;(?=(?:[^\"]*\"[^\"]*\")*(?![^\"]*\"))/.split(line);
 	}
 }
