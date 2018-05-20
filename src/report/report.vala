@@ -31,11 +31,15 @@
    private string stopstring;
 
    public ReportImplementation (DateTime startTime) {
+     try {
       this.mailer           = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Mail", "/io/mainframe/shopsystem/mailer");
  		  this.cfg              = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Config", "/io/mainframe/shopsystem/config");
  		  this.db               = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Database", "/io/mainframe/shopsystem/database");
       this.dateTimeFormat   = cfg.get_string("DATE-FORMAT", "formatDateTime");
       this.timeFormat       = cfg.get_string("DATE-FORMAT", "formatTime");
+     } catch (Error e){
+        error("Error: %s\n", e.message);
+     }
 
       this.startTime        = startTime;
   		this.stopTime         = new DateTime.from_unix_local(this.startTime.to_unix() + DAYINSECONDS - 1);
@@ -53,25 +57,27 @@
    }
 
    public void sendReport(){
+     try {
+       /* title */
+       string mailtitle = "Report "+ cfg.get_string("GENERAL", "shortname")+" Shopsystem " + @" $startstring - $stopstring";
 
+       string mailpath = this.mailer.create_mail();
+       Mail mail = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Mail", mailpath);
+       mail.from = {cfg.get_string("GENERAL", "shortname")+" Shopsystem", cfg.get_string("MAIL", "mailfromaddress")};
+       mail.add_recipient({cfg.get_string("GENERAL", "shortname") + " Shop Report",cfg.get_string("MAIL", "reportaddress")}, RecipientType.TO);
+       mail.subject = mailtitle;
 
- 		 /* title */
- 		 string mailtitle = "Report "+ cfg.get_string("GENERAL", "shortname")+" Shopsystem " + @" $startstring - $stopstring";
+       string mailcontent = "Here Is Your Daily " + cfg.get_string("GENERAL", "shortname") + " Shop Report\n\n";
 
-     string mailpath = this.mailer.create_mail();
-     Mail mail = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Mail", mailpath);
-     mail.from = {cfg.get_string("GENERAL", "shortname")+" Shopsystem", cfg.get_string("MAIL", "mailfromaddress")};
-     mail.add_recipient({cfg.get_string("GENERAL", "shortname") + " Shop Report",cfg.get_string("MAIL", "reportaddress")}, RecipientType.TO);
-     mail.subject = mailtitle;
+       foreach(string part in this.reportParts){
+         mailcontent += part;
+       }
 
-     string mailcontent = "Here Is Your Daily " + cfg.get_string("GENERAL", "shortname") + " Shop Report\n\n";
-
-     foreach(string part in this.reportParts){
-       mailcontent += part;
+       mail.set_main_part(mailcontent, MessageType.PLAIN);
+       mailer.send_mail(mailpath);
+     } catch (Error e){
+       error("Error: %s\n", e.message);
      }
-
-     mail.set_main_part(mailcontent, MessageType.PLAIN);
-     mailer.send_mail(mailpath);
    }
 
    public void cliOutput(){
@@ -83,88 +89,104 @@
 
    private string collectStockData() {
      string data = "###### STOCK Data\n\n";
+     try {
+       StockEntry[] stockData = db.get_stock();
 
-     StockEntry[] stockData = db.get_stock();
+       foreach (StockEntry entry in stockData) {
+         data += "%i\t| %s\n".printf(entry.amount,entry.name);
+       }
 
-     foreach (StockEntry entry in stockData) {
-       data += "%i\t| %s\n".printf(entry.amount,entry.name);
+       data += "\n";
+     } catch (Error e){
+       error("Error: %s\n", e.message);
      }
-
-     data += "\n";
      return data;
    }
 
    private string collectCashData() {
      string data = "###### CASH Data\n\n";
-     Price currentCash = db.cashbox_status();
-     data += "The Current Amount in the Cashregister is/should be %s €\n\n".printf(currentCash.to_string());
+     try {
+       Price currentCash = db.cashbox_status();
+       data += "The Current Amount in the Cashregister is/should be %s €\n\n".printf(currentCash.to_string());
+     } catch (Error e){
+       error("Error: %s\n", e.message);
+     }
      return data;
    }
 
    private string collectSellData() {
      string data = "###### SELL Data\n\n";
+     try {
+       Sale[] sales = db.get_sales(this.startTime.to_unix(),this.stopTime.to_unix());
 
-     Sale[] sales = db.get_sales(this.startTime.to_unix(),this.stopTime.to_unix());
+       foreach (Sale entry in sales) {
+         DateTime dt = new DateTime.from_unix_local(entry.timestamp);
+         string newdate = dt.format(this.timeFormat);
+         data += "%s\t| %s\t| %s %s\n".printf(newdate,entry.productname,entry.userFirstname,entry.userLastname);
+       }
 
-     foreach (Sale entry in sales) {
-       DateTime dt = new DateTime.from_unix_local(entry.timestamp);
- 			 string newdate = dt.format(this.timeFormat);
-       data += "%s\t| %s\t| %s %s\n".printf(newdate,entry.productname,entry.userFirstname,entry.userLastname);
+       data += "\n";
+     } catch (Error e){
+       error("Error: %s\n", e.message);
      }
-
-     data += "\n";
      return data;
    }
 
    private string collectProductStatisticData() {
      string data = "###### Product Statistic Data\n\n";
+     try {
+       StatisticProductsPerDay[] productsDataDay = db.get_statistic_products_per_day_withDate(this.startTime.format("%Y-%m-%d"));
+       data += "For Day: " + this.startTime.format("%Y-%m-%d") + "\n";
+       foreach (StatisticProductsPerDay productData in productsDataDay) {
+         data += "%ld\t| %s\n".printf((long)productData.numOfProducts,productData.product);
+       }
+       data += "\n";
 
-     StatisticProductsPerDay[] productsDataDay = db.get_statistic_products_per_day_withDate(this.startTime.format("%Y-%m-%d"));
-     data += "For Day: " + this.startTime.format("%Y-%m-%d") + "\n";
-     foreach (StatisticProductsPerDay productData in productsDataDay) {
-       data += "%ld\t| %s\n".printf((long)productData.numOfProducts,productData.product);
-     }
-     data += "\n";
+       StatisticProductsPerMonth[] productsDataMonth = db.get_statistic_products_per_month_withMonthYear(this.startTime.format("%m"),this.startTime.format("%Y"));
+       data += "For Month: " + this.startTime.format("%m %Y") + "\n";
+       foreach (StatisticProductsPerMonth productData in productsDataMonth) {
+         data += "%ld\t| %s\n".printf((long)productData.numOfProducts,productData.product);
+       }
+       data += "\n";
 
-     StatisticProductsPerMonth[] productsDataMonth = db.get_statistic_products_per_month_withMonthYear(this.startTime.format("%m"),this.startTime.format("%Y"));
-     data += "For Month: " + this.startTime.format("%m %Y") + "\n";
-     foreach (StatisticProductsPerMonth productData in productsDataMonth) {
-       data += "%ld\t| %s\n".printf((long)productData.numOfProducts,productData.product);
+       StatisticProductsPerYear[] productsDataYear = db.get_statistic_products_per_year_withYear(this.startTime.format("%Y"));
+       data += "For Year: " + this.startTime.format("%Y") + "\n";
+       foreach (StatisticProductsPerYear productData in productsDataYear) {
+         data += "%ld\t| %s\n".printf((long)productData.numOfProducts,productData.product);
+       }
+       data += "\n";
+     } catch (Error e){
+       error("Error: %s\n", e.message);
      }
-     data += "\n";
-
-     StatisticProductsPerYear[] productsDataYear = db.get_statistic_products_per_year_withYear(this.startTime.format("%Y"));
-     data += "For Year: " + this.startTime.format("%Y") + "\n";
-     foreach (StatisticProductsPerYear productData in productsDataYear) {
-       data += "%ld\t| %s\n".printf((long)productData.numOfProducts,productData.product);
-     }
-     data += "\n";
      return data;
    }
 
    private string collectMoneyStatisticData() {
      string data = "###### Money Statistic Data\n\n";
+     try {
+       StatisticSalesPerDay[] productsDataDay = db.get_statistic_sales_per_day_withDate(this.startTime.format("%Y-%m-%d"));
+       data += "For Day: " + this.startTime.format("%Y-%m-%d") + "\n";
+       foreach (StatisticSalesPerDay productData in productsDataDay) {
+         data += "%s €\n".printf(productData.total.to_string());
+       }
+       data += "\n";
 
-     StatisticSalesPerDay[] productsDataDay = db.get_statistic_sales_per_day_withDate(this.startTime.format("%Y-%m-%d"));
-     data += "For Day: " + this.startTime.format("%Y-%m-%d") + "\n";
-     foreach (StatisticSalesPerDay productData in productsDataDay) {
-       data += "%s €\n".printf(productData.total.to_string());
-     }
-     data += "\n";
+       StatisticSalesPerMonth[] productsDataMonth = db.get_statistic_sales_per_month_withMonthYear(this.startTime.format("%m"),this.startTime.format("%Y"));
+       data += "For Month: " + this.startTime.format("%m %Y") + "\n";
+       foreach (StatisticSalesPerMonth productData in productsDataMonth) {
+         data += "%s €\n".printf(productData.total.to_string());
+       }
+       data += "\n";
 
-     StatisticSalesPerMonth[] productsDataMonth = db.get_statistic_sales_per_month_withMonthYear(this.startTime.format("%m"),this.startTime.format("%Y"));
-     data += "For Month: " + this.startTime.format("%m %Y") + "\n";
-     foreach (StatisticSalesPerMonth productData in productsDataMonth) {
-       data += "%s €\n".printf(productData.total.to_string());
+       StatisticSalesPerYear[] productsDataYear = db.get_statistic_sales_per_year_withYear(this.startTime.format("%Y"));
+       data += "For Year: " + this.startTime.format("%Y") + "\n";
+       foreach (StatisticSalesPerYear productData in productsDataYear) {
+         data += "%s €\n".printf(productData.total.to_string());
+       }
+       data += "\n";
+     } catch (Error e){
+       error("Error: %s\n", e.message);
      }
-     data += "\n";
-
-     StatisticSalesPerYear[] productsDataYear = db.get_statistic_sales_per_year_withYear(this.startTime.format("%Y"));
-     data += "For Year: " + this.startTime.format("%Y") + "\n";
-     foreach (StatisticSalesPerYear productData in productsDataYear) {
-       data += "%s €\n".printf(productData.total.to_string());
-     }
-     data += "\n";
      return data;
    }
  }

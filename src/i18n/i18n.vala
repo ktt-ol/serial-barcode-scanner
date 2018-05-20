@@ -23,16 +23,23 @@ public class I18N {
 			this.file = new KeyFile();
 			this.file.load_from_file(file, KeyFileFlags.NONE);
 		} catch(Error e) {
-			error("Could not load configuration file: %s", e.message);
+			error("Could not load language file: %s", e.message);
 		}
 	}
 
-	public string get_string(string group_name, string key) throws KeyFileError {
-		return file.get_string(group_name, key);
+	public string get_string(string group_name, string key) {
+		try {
+			return file.get_string(group_name, key);
+		} catch(Error e) {
+			error("Could not get string from language file: %s", e.message);
+		}
 	}
 
 	public string[] get_languages(){
-		return file.get_keys("login");
+		try {
+			return file.get_keys("login");
+		} catch(Error e) {
+			error("Could not get string from language file: %s", e.message);
+		}
 	}
-
 }

@@ -19,6 +19,7 @@ public MainLoop loop;
 public AudioPlayer audio;
 public ScannerSession scanner;
 public CursesUI ui;
+public Config config;
 
 private static void play(string file) {
 	try {
@@ -51,6 +52,7 @@ public static int main(string[] args) {
 	try {
 		audio = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.AudioPlayer", "/io/mainframe/shopsystem/audio");
 		scanner = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.ScannerSession", "/io/mainframe/shopsystem/scanner_session");
+		config = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Config", "/io/mainframe/shopsystem/config");
 	} catch(IOError e) {
 		error("IOError: %s\n", e.message);
 	}
@@ -65,13 +67,7 @@ public static int main(string[] args) {
 	scanner.msg_overlay.connect(msg_overlay_handler);
 
   /* get configuration */
-  Config config = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Config", "/io/mainframe/shopsystem/config");
-  var shopname = "--SHOPNAME--";
-	try {
-	   shopname = config.get_string("GENERAL", "longname");
-  } catch(KeyFileError e) {
-       shopname = "Missing in Config";
-  }
+  var shopname = config.get_string("GENERAL", "longname");
 
 	ui.log(MessageType.INFO, @"$shopname Shop System has been started");
 	play("startup.ogg");

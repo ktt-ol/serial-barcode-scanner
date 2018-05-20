@@ -218,7 +218,7 @@
 				}
 
 				/* new & changed users */
-        UserInfo[] membersForDb = [];
+        UserInfo[] membersForDb = {};
 				string data1 = "";
 				foreach(var member in csvimport.get_members()) {
 					if(db.user_exists(member.id) && !db.user_equals(member)) {

@@ -31,34 +31,46 @@ public class UserSession {
   private AudioPlayer audio;
 
   public UserSession(int userid){
-    this.i18n        = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.I18n", "/io/mainframe/shopsystem/i18n");
-    this.cfg         = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Config", "/io/mainframe/shopsystem/config");
-    this.db          = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Database", "/io/mainframe/shopsystem/database");
-    this.audio       = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.AudioPlayer", "/io/mainframe/shopsystem/audio");
+    try {
+      this.i18n        = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.I18n", "/io/mainframe/shopsystem/i18n");
+      this.cfg         = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Config", "/io/mainframe/shopsystem/config");
+      this.db          = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Database", "/io/mainframe/shopsystem/database");
+      this.audio       = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.AudioPlayer", "/io/mainframe/shopsystem/audio");
+    } catch (IOError e){
+      error("IOError: %s\n", e.message);
+    }
 
     this.userid = userid;
     this.loginSuccesfull = this.login();
   }
 
-  private bool login() throws IOError {
+  private bool login() {
     try {
       this.name       = this.db.get_username(this.userid);
       this.disabled   = this.db.user_is_disabled(this.userid);
     } catch(DatabaseError e) {
-      stdout.printf(this.i18n.get_string("loginerror",this.cfg.get_string("GENERAL", "language")).printf(this.userid, e.message));
-      return false;
+      try {
+        stdout.printf(this.i18n.get_string("loginerror",this.cfg.get_string("GENERAL", "language")).printf(this.userid, e.message));
+        return false;
+      } catch(Error e){
+        error("Error: %s",e.message);
+      }
+    } catch(Error e){
+      error("Error: %s",e.message);
     }
 
    try {
       this.theme = this.db.get_user_theme(this.userid, this.audio.get_random_user_theme());
     } catch(DatabaseError e) {
       this.theme = "beep";
+    } catch(Error e) {
+      error("Error: %s",e.message);
     }
 
     try {
       this.language = this.db.get_user_language(this.userid, this.cfg.get_string("GENERAL", "language"));
-    } catch(DatabaseError e) {
-      this.language = this.cfg.get_string("GENERAL", "language");
+    } catch(Error e){
+      error("Error: %s",e.message);
     }
 
     this.logintime = new DateTime.now_utc();
@@ -74,7 +86,13 @@ public class UserSession {
     Product p = Product();
     for(i = 0; i < this.shoppingCard.length; i++) {
       p = this.shoppingCard[i];
-      db.buy(this.userid, p.ean);
+      try {
+        db.buy(this.userid, p.ean);
+      } catch (DatabaseError e){
+        error("DatabaseError: %s", e.message);
+      } catch (IOError e){
+        error("IOError: %s", e.message);
+      }
       amountOfItems++;
       Price price = p.memberprice;
       if(this.isGuest()){

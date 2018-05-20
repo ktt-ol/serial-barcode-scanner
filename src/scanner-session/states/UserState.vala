@@ -25,9 +25,13 @@ public class UserState {
   private Config cfg;
 
   public UserState(){
-    this.db          = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Database", "/io/mainframe/shopsystem/database");
-    this.i18n        = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.I18n", "/io/mainframe/shopsystem/i18n");
-    this.cfg         = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Config", "/io/mainframe/shopsystem/config");
+    try {
+      this.db          = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Database", "/io/mainframe/shopsystem/database");
+      this.i18n        = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.I18n", "/io/mainframe/shopsystem/i18n");
+      this.cfg         = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Config", "/io/mainframe/shopsystem/config");
+    } catch (IOError e){
+      error("IOError: %s\n", e.message);
+    }
   }
 
   public ScannerResult handleScannerData(string scannerdata, UserSession usersession) throws DatabaseError, IOError {
@@ -122,7 +126,13 @@ public class UserState {
       return scannerResult;
     }
     Price currentAmmount = usersession.getInvoiceForCurrentMonth();
-    string currentMonth = new DateTime.now_utc().format(this.cfg.get_string("DATE-FORMAT", "formatMailSubjectMonthly"));
+    string currentMonth = "";
+    try {
+      currentMonth = new DateTime.now_utc().format(this.cfg.get_string("DATE-FORMAT", "formatMailSubjectMonthly"));
+    } catch(KeyFileError e) {
+      error("KeyFileError DATE-FORMAT - formatMailSubjectMonthly not defined: %s\n", e.message);
+    }
+
     scannerResult.type = MessageType.INFO;
     scannerResult.message = i18n.get_string("userinfo",usersession.getLanguage()).printf(currentMonth,currentAmmount.to_string());//i18n.get_string("userinfo",usersession.getLanguage()).printf(removedProduct.name);
     scannerResult.audioType = AudioType.INFO;

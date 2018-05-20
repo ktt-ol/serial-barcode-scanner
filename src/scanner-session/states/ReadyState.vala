@@ -22,11 +22,15 @@ public class ReadyState {
   private string systemlanguage;
 
   public ReadyState(){
-    this.i18n        = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.I18n", "/io/mainframe/shopsystem/i18n");
-    this.cfg         = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Config", "/io/mainframe/shopsystem/config");
-    this.db          = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Database", "/io/mainframe/shopsystem/database");
+    try {
+      this.i18n        = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.I18n", "/io/mainframe/shopsystem/i18n");
+      this.cfg         = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Config", "/io/mainframe/shopsystem/config");
+      this.db          = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Database", "/io/mainframe/shopsystem/database");
 
-    this.systemlanguage = this.cfg.get_string("GENERAL", "language");
+      this.systemlanguage = this.cfg.get_string("GENERAL", "language");
+    } catch (Error e){
+      error("Error %s\n", e.message);
+    }
   }
 
   public ScannerResult handleScannerData(string scannerdata) throws DatabaseError, IOError{

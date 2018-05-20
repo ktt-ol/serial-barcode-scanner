@@ -15,6 +15,6 @@
 
 [DBus (name = "io.mainframe.shopsystem.I18n")]
 public interface I18n : Object {
-	public abstract string get_string(string group_name, string key) throws IOError, KeyFileError;
-	public abstract string[] get_languages() throws IOError, KeyFileError;
+	public abstract string get_string(string group_name, string key);
+	public abstract string[] get_languages();
 }

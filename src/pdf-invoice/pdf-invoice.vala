@@ -68,19 +68,23 @@ public class InvoicePDF {
 	string longname;
 	string umsatzsteuer;
 	string umsatzsteuerNoText;
-        string dateFormat;
-        string dateTimeFormat;
-        string timeFormat;
+  string dateFormat;
+  string dateTimeFormat;
+  string timeFormat;
 
 	public InvoicePDF(string datadir) {
-		this.datadir = datadir;
-		cfg = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Config", "/io/mainframe/shopsystem/config");
-		longname = cfg.get_string("GENERAL", "longname");
-		umsatzsteuer = cfg.get_string("INVOICE", "umsatzsteuer");
-		umsatzsteuerNoText = cfg.get_string("INVOICE", "umsatzsteuerNoText");
-                dateFormat = cfg.get_string("DATE-FORMAT", "format");
-                dateTimeFormat = cfg.get_string("DATE-FORMAT", "formatDateTime");
-                timeFormat = cfg.get_string("DATE-FORMAT", "formatTime");
+		try{
+			this.datadir = datadir;
+			cfg = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Config", "/io/mainframe/shopsystem/config");
+			longname = cfg.get_string("GENERAL", "longname");
+			umsatzsteuer = cfg.get_string("INVOICE", "umsatzsteuer");
+			umsatzsteuerNoText = cfg.get_string("INVOICE", "umsatzsteuerNoText");
+	    dateFormat = cfg.get_string("DATE-FORMAT", "format");
+	    dateTimeFormat = cfg.get_string("DATE-FORMAT", "formatDateTime");
+	    timeFormat = cfg.get_string("DATE-FORMAT", "formatTime");
+		} catch(Error e){
+			error("Error: %s\n", e.message);
+		}
 	}
 
 	private void render_svg(Cairo.Context ctx, string file) {
@@ -91,13 +95,13 @@ public class InvoicePDF {
 			error("Could not load SVG: %s\n", e.message);
 		}
 	}
-	
+
 	private bool svg_file_exists(string file) {
                 try {
                         new Rsvg.Handle.from_file(file);
                         return true;
                 } catch(Error e) {
-                        return false;           
+                        return false;
                 }
         }
 
@@ -107,7 +111,7 @@ public class InvoicePDF {
 		ctx.scale(1.42, 1.42);
 		if(svg_file_exists(datadir + "/../myfooter-line.svg")){
                		render_svg(ctx, datadir + "/../myfooter-line.svg");
-                }       
+                }
                 else {
                 	render_svg(ctx, datadir + "/footer-line.svg");
 		}
@@ -119,7 +123,7 @@ public class InvoicePDF {
 		ctx.translate(366,25);
 		if(svg_file_exists(datadir + "/../mylogo.svg")){
                		render_svg(ctx, datadir + "/../mylogo.svg");
-                }       
+                }
                 else {
                 	render_svg(ctx, datadir + "/logo.svg");
 		}
@@ -141,8 +145,14 @@ public class InvoicePDF {
 		ctx.select_font_face("LMSans10", Cairo.FontSlant.NORMAL, Cairo.FontWeight.NORMAL);
 		ctx.set_font_size(8.45);
 
+		string adressrow = "";
+		try{
+			adressrow = cfg.get_string("INVOICE", "adressrow");
+		} catch(Error e){
+			adressrow = " ";
+		}
 		ctx.move_to(56.5, 142);
-		ctx.show_text(cfg.get_string("INVOICE", "addressrow"));
+		ctx.show_text(adressrow);
 
 		/* actually LMRoman12 */
 		ctx.select_font_face("LMSans10", Cairo.FontSlant.NORMAL, Cairo.FontWeight.NORMAL);
@@ -260,7 +270,12 @@ public class InvoicePDF {
 		/* set page width */
 		layout.set_width((int) 140 * Pango.SCALE);
 
-		var text = cfg.get_string("INVOICE", "footer1");
+		string text = "";
+		try{
+			text = cfg.get_string("INVOICE", "footer1");
+		} catch(Error e){
+			text = " ";
+		}
 
 		/* write invoice date */
 		layout.set_markup(text, text.length);
@@ -296,7 +311,12 @@ public class InvoicePDF {
 		/* set page width */
 		layout.set_width((int) 190 * Pango.SCALE);
 
-		var text = cfg.get_string("INVOICE", "footer2");
+		string text = "";
+		try{
+			text = cfg.get_string("INVOICE", "footer2");
+		} catch(Error e){
+			text = " ";
+		}
 
 		/* write invoice date */
 		layout.set_markup(text, text.length);
@@ -332,7 +352,12 @@ public class InvoicePDF {
 		/* set page width */
 		layout.set_width((int) 150 * Pango.SCALE);
 
-		var text = cfg.get_string("INVOICE", "footer3");
+		string text = "";
+		try{
+			text = cfg.get_string("INVOICE", "footer3");
+		} catch(Error e){
+			text = " ";
+		}
 
 		/* write invoice date */
 		layout.set_markup(text, text.length);

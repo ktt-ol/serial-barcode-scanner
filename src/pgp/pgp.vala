@@ -1,4 +1,5 @@
 /* Copyright 2013, Sebastian Reichel <sre@ring0.de>
+ * Copyright 2018, Johannes Rudolph <johannes.rudolph@gmx.com>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -48,7 +49,7 @@ public class PGPKeyArchive {
 		var archive = new Archive.Read();
 
 		/* support all formats & compression types */
-		archive.support_compression_all();
+		archive.support_filter_all();
 		archive.support_format_all();
 
 		/* load test archive for now */

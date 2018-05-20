@@ -29,8 +29,12 @@ public class ClockWindow {
 
 		win.clrtobot();
 		win.box(0, 0);
-		
-		cfg = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Config", "/io/mainframe/shopsystem/config");
+
+		try {
+			cfg  = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Config", "/io/mainframe/shopsystem/config");
+		} catch(Error e) {
+			error("Error in message_box.vala: %s", e.message);
+		}
 		dateformat = cfg.get_string("DATE-FORMAT", "format");
 
 		win.refresh();

@@ -25,13 +25,17 @@ public class AsciiNumbers {
 
 	private string[] readNumber(string fileName){
 		var file = File.new_for_path(binarylocation + "/numbers/" + fileName);
-		var dis = new DataInputStream(file.read());
-		string line;
-		string[] number = {};
-		while((line = dis.read_line(null)) != null){
-			number += line;
+		try {
+			var dis = new DataInputStream(file.read());
+			string line;
+			string[] number = {};
+			while((line = dis.read_line(null)) != null){
+				number += line;
+			}
+			return number;
+		} catch(Error e) {
+			return {};
 		}
-		return number;
 	}
 
 

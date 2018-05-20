@@ -24,8 +24,6 @@ public static int main(string[] args) {
 		devRfid = new Device(cfg.get_string("INPUT", "rfidreader"));
 	} catch(IOError e) {
 		error("IOError: %s\n", e.message);
-	} catch(KeyFileError e) {
-		error("Config Error: %s\n", e.message);
 	}
 
 	Bus.own_name(

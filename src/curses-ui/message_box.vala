@@ -45,7 +45,12 @@ public class MessageBox {
 		init_pair (WARN_COLOR, Color.YELLOW, Color.BLACK);
 		init_pair (ERROR_COLOR, Color.RED, Color.BLACK);
 
-		cfg  = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Config", "/io/mainframe/shopsystem/config");
+		try {
+			cfg  = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Config", "/io/mainframe/shopsystem/config");
+		} catch(Error e) {
+			error("Error in message_box.vala: %s", e.message);
+		}
+
 	}
 
 	public void add(string msg, short color_pair = MessageBox.INFO_COLOR) {

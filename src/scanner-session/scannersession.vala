@@ -61,8 +61,17 @@ public class ScannerSessionImplementation {
       devRfid.received_barcode.connect(handle_barcode);
       cli.received_barcode.connect(handle_barcode);
 
-      systemlanguage = cfg.get_string("GENERAL", "language");
-      this.timeAutomaticLogout = cfg.get_int64("GENERAL", "autologouttime");
+			try {
+       this.systemlanguage = cfg.get_string("GENERAL", "language");
+			} catch(KeyFileError e) {
+				error("KeyFileError General - language not defined: %s\n", e.message);
+			}
+
+			try {
+       this.timeAutomaticLogout = cfg.get_int64("GENERAL", "autologouttime");
+			} catch(KeyFileError e) {
+				error("KeyFileError General - autologouttime not defined: %s\n", e.message);
+			}
 
       readyState = new ReadyState();
       userState = new UserState();
@@ -80,6 +89,7 @@ public class ScannerSessionImplementation {
 				this.handle_barcode("LOGOUT");
 			}
 		}
+
 		return true;
 	}
 
