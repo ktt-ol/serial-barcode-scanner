@@ -1,0 +1,29 @@
+# remap prefix to Control + a
+set -g prefix C-a
+unbind C-b
+bind C-a send-prefix
+
+# scroll mode with s
+bind s copy-mode
+
+# use windows like tabs (S means shift key)
+bind -n S-down new-window
+bind -n S-left prev
+bind -n S-right next
+
+# Start numbering at 1
+set -g base-index 1
+
+# COLORS!
+set -g default-terminal "screen-256color"
+
+# status line
+set -g status-utf8 on
+set -g status-fg white
+set -g status-bg blue
+set -g window-status-current-bg white
+set -g window-status-current-fg blue
+
+# colorize messages in the command line
+set-option -g message-bg black #base02
+set-option -g message-fg brightred #orange
