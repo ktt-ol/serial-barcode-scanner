@@ -1,10 +1,12 @@
 [Unit]
 Description=Shop System UI
+After=multi-user.target
 
 [Service]
 User=shop
 Group=shop
 Type=simple
+ExecStartPre=/bin/chvt 3
 ExecStart=/home/shop/serial-barcode-scanner/src/curses-ui/curses-ui
 StandardInput=tty
 StandardOutput=tty
