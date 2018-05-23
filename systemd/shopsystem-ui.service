@@ -7,6 +7,7 @@ User=shop
 Group=shop
 Type=simple
 ExecStartPre=/bin/chvt 3
+ExecStartPre=/bin/setupcon
 ExecStart=/home/shop/serial-barcode-scanner/src/curses-ui/curses-ui
 StandardInput=tty
 StandardOutput=tty
