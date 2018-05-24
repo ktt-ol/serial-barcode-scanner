@@ -6,6 +6,7 @@ After=multi-user.target
 User=shop
 Group=shop
 Type=simple
+Restart=always
 ExecStartPre=/bin/chvt 3
 ExecStartPre=/bin/setupcon
 ExecStart=/home/shop/serial-barcode-scanner/src/curses-ui/curses-ui
