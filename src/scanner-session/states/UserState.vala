@@ -50,8 +50,9 @@ public class UserState {
       case ScannerCodeType.RFIDEM4100:
         return this.relogin(scannerdata,usersession);
     }
-
-    return ScannerResult();
+    ScannerResult scannerResult = ScannerResult();
+    scannerResult.usersession = usersession;
+    return scannerResult;
   }
 
   private ScannerResult relogin(string scannerdata, UserSession usersession){
