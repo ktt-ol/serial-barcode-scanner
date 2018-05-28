@@ -65,6 +65,7 @@ public class UserState {
 
   private ScannerResult ean(string scannerdata, UserSession usersession){
     ScannerResult scannerResult = ScannerResult();
+    scannerResult.usersession = usersession;
     uint64 ean = 0;
     scannerdata.scanf("%llu", out ean);
     Product p = {};
