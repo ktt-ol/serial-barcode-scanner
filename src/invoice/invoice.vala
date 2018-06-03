@@ -182,10 +182,10 @@ public class InvoiceImplementation {
 		var csvinvoicedata     = "";
 		var csvjvereininvoicedata = "";
 		if(jvereinmitgliedsnummern == "extern"){
-			csvjvereininvoicedata = "Ext_Mitglieds_Nr;Betrag;Buchungstext;Fälligkeit;Intervall;Endedatum";
+			csvjvereininvoicedata = "Ext_Mitglieds_Nr;Betrag;Buchungstext;Fälligkeit;Intervall;Endedatum\n";
 		}
 		else {
-			csvjvereininvoicedata = "Mitglieds_Nr;Betrag;Buchungstext;Fälligkeit;Intervall;Endedatum";
+			csvjvereininvoicedata = "Mitglieds_Nr;Betrag;Buchungstext;Fälligkeit;Intervall;Endedatum\n";
 		}
 
 		foreach(var userid in users) {
@@ -213,7 +213,9 @@ public class InvoiceImplementation {
 			if(!temporary) {
 				treasurer_mail.add_attachment(invoicedata.pdffilename, "application/pdf", invoicedata.pdfdata);
 				csvinvoicedata += @"$(userdata.id),$(userdata.lastname),$(userdata.firstname),$invoiceid,$total_sum\n";
-				csvjvereininvoicedata += @"$(userdata.id);$total_sum;Shopsystem Rechnung Nummer $invoiceid;$faelligkeitsdatumstring;0;$faelligkeitsdatumstring\n";
+				if(userdata.id > 0){
+					csvjvereininvoicedata += @"$(userdata.id);$total_sum;$shortname Shopsystem Rechnung Nummer $invoiceid;$faelligkeitsdatumstring;0;$faelligkeitsdatumstring\n";
+				}
 			}
 		}
 
