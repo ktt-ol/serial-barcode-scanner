@@ -103,15 +103,20 @@ public class ScannerSessionImplementation {
   private void play_audio(AudioType audioType, string theme){
     switch (audioType) {
       case AudioType.ERROR:
-        audio.play_system("error.ogg");
-        break;
+        try {
+	  audio.play_user(theme, "error");
+	}
+	catch(Error e) {
+	  audio.play_system("error.ogg");
+	}
+	break;
       case AudioType.LOGIN:
         audio.play_user(theme, "login");
         break;
-    	case AudioType.LOGOUT:
+      case AudioType.LOGOUT:
         audio.play_user(theme, "logout");
         break;
-    	case AudioType.PURCHASE:
+      case AudioType.PURCHASE:
         audio.play_user(theme, "purchase");
         break;
       case AudioType.INFO:
