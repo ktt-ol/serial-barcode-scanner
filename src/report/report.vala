@@ -91,6 +91,15 @@
      string data = "###### STOCK Data\n\n";
      try {
        StockEntry[] stockData = db.get_stock();
+       string category = "";
+
+       foreach (StockEntry entry in stockData) {
+          if(category != entry.category){
+            data += "----------------------------------------------------\n";
+            data += "\t%s\n".printf(entry.category);
+            data += "----------------------------------------------------\n";
+            category = entry.category;
+          }
 
        foreach (StockEntry entry in stockData) {
          data += "%i\t| %s\n".printf(entry.amount,entry.name);
