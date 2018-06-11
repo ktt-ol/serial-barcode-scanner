@@ -100,6 +100,7 @@
             data += "----------------------------------------------------\n";
             category = entry.category;
           }
+       }
 
        foreach (StockEntry entry in stockData) {
          data += "%i\t| %s\n".printf(entry.amount,entry.name);
