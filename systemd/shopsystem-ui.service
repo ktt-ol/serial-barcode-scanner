@@ -3,6 +3,7 @@ Description=Shop System UI
 After=multi-user.target
 
 [Service]
+PermissionsStartOnly=true
 User=shop
 Group=shop
 Type=simple
