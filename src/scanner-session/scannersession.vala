@@ -22,6 +22,7 @@ public struct ScannerResult {
 	public string[] nextScannerdata;
 	public UserSession usersession;
 	public ScannerSessionState nextstate;
+	public bool disablePrivacyMode;
 }
 
 [DBus (name = "io.mainframe.shopsystem.ScannerSession")]
@@ -46,6 +47,7 @@ public class ScannerSessionImplementation {
 
   public signal void msg(MessageType type, string message);
   public signal void msg_overlay(string title, string message);
+  public signal void set_privacy_mode(bool mode);
 
   public ScannerSessionImplementation() {
     try {
@@ -150,16 +152,22 @@ public class ScannerSessionImplementation {
 
     send_message(scannerResult.type, scannerResult.message);
     this.state = scannerResult.nextstate;
-		string theme;
-		if(this.usersession != null){
-    	theme = this.usersession.getTheme();
-		} else if(scannerResult.usersession != null){
-			theme = scannerResult.usersession.getTheme();
-		} else {
-			theme = this.systemtheme;
-		}
-		play_audio(scannerResult.audioType,theme);
-		this.usersession = scannerResult.usersession;
+    string theme;
+    if(this.usersession != null){
+        theme = this.usersession.getTheme();
+    } else if(scannerResult.usersession != null){
+        theme = scannerResult.usersession.getTheme();
+    } else {
+        theme = this.systemtheme;
+    }
+    if(scannerResult.disablePrivacyMode){
+        set_privacy_mode(false);
+    }
+    else {
+        set_privacy_mode(true);
+    }
+    play_audio(scannerResult.audioType,theme);
+    this.usersession = scannerResult.usersession;
     if(scannerResult.nextScannerdata != null){
       int i;
       for(i = 0; i < scannerResult.nextScannerdata.length ; i++){

@@ -117,4 +117,8 @@ public class CursesUI {
 		clkwin.redraw();
 		//statuswin.redraw();
 	}
+	
+	public void setPrivacyMode(bool mode){
+                messages.setPrivacyMode(mode);
+        }
 }

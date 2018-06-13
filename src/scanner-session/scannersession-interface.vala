@@ -18,6 +18,7 @@
 public interface ScannerSession : Object {
 	public abstract signal void msg(MessageType type, string message);
 	public abstract signal void msg_overlay(string title, string message);
+	public abstract signal void set_privacy_mode(bool mode);
 }
 
 public enum MessageType {

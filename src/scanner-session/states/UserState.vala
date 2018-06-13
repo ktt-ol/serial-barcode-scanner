@@ -60,11 +60,13 @@ public class UserState {
     scannerResult.nextScannerdata = {"LOGOUT",scannerdata};
     scannerResult.nextstate = ScannerSessionState.USER;
     scannerResult.usersession = usersession;
+    scannerResult.disablePrivacyMode = true;
     return scannerResult;
   }
 
   private ScannerResult ean(string scannerdata, UserSession usersession){
     ScannerResult scannerResult = ScannerResult();
+    scannerResult.disablePrivacyMode = true;
     scannerResult.usersession = usersession;
     uint64 ean = 0;
     scannerdata.scanf("%llu", out ean);
@@ -101,6 +103,7 @@ public class UserState {
 
   private ScannerResult undo(string scannerdata, UserSession usersession){
     ScannerResult scannerResult = ScannerResult();
+    scannerResult.disablePrivacyMode = true;
     if(!usersession.isShoppingCardEmpty()){
       Product removedProduct = usersession.removeLastItemFromShoppingCard();
       scannerResult.type = MessageType.INFO;
@@ -121,9 +124,10 @@ public class UserState {
   }
 
   private ScannerResult userinfo(UserSession usersession){
-    //stdout.printf("userinfo\n");
+    scannerResult.disablePrivacyMode = true;
     ScannerResult scannerResult = ScannerResult();
     scannerResult.usersession = usersession;
+    scannerResult.nextstate = ScannerSessionState.USER;
     if(usersession.isGuest()){
       return scannerResult;
     }
@@ -138,7 +142,6 @@ public class UserState {
     scannerResult.type = MessageType.INFO;
     scannerResult.message = i18n.get_string("userinfo",usersession.getLanguage()).printf(currentMonth,currentAmmount.to_string());//i18n.get_string("userinfo",usersession.getLanguage()).printf(removedProduct.name);
     scannerResult.audioType = AudioType.INFO;
-    scannerResult.nextstate = ScannerSessionState.USER;
     return scannerResult;
   }
 

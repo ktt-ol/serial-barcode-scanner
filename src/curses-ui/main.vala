@@ -37,6 +37,9 @@ public void msg_overlay_handler(string title, string message) {
 	ui.log_overlay(title, message, 5);
 }
 
+public void privacy_handler(bool mode) {
+        ui.setPrivacyMode(mode);
+}
 
 public void log_handler(string? log_domain, LogLevelFlags flags, string message) {
 	ui.log(MessageType.INFO, message);
@@ -65,6 +68,7 @@ public static int main(string[] args) {
 
 	scanner.msg.connect(msg_handler);
 	scanner.msg_overlay.connect(msg_overlay_handler);
+	scanner.set_privacy_mode.connect(privacy_handler);
 
   /* get configuration */
   var shopname = config.get_string("GENERAL", "longname");

@@ -104,6 +104,7 @@ public class ReadyState {
       }
       scannerResult.audioType = AudioType.LOGIN;
       scannerResult.nextstate = ScannerSessionState.USER;
+      scannerResult.disablePrivacyMode = true;
       return scannerResult;
     } else {
       scannerResult.type = MessageType.ERROR;
