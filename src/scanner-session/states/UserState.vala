@@ -124,8 +124,8 @@ public class UserState {
   }
 
   private ScannerResult userinfo(UserSession usersession){
-    scannerResult.disablePrivacyMode = true;
     ScannerResult scannerResult = ScannerResult();
+    scannerResult.disablePrivacyMode = true;
     scannerResult.usersession = usersession;
     scannerResult.nextstate = ScannerSessionState.USER;
     if(usersession.isGuest()){
