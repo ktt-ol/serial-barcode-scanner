@@ -178,7 +178,7 @@
        }
        data += "\n";
 
-       StatisticSalesPerMonth[] productsDataMonth = db.get_statistic_sales_per_month_withMonthYear(this.startTime.format("%m"),this.startTime.format("%Y"));
+       StatisticSalesPerMonth[] productsDataMonth = db.get_statistic_sales_per_month();
        data += "For Month\n";
        foreach (StatisticSalesPerMonth productData in productsDataMonth) {
          data += "%s/%s: %s €\n".printf(productData.month,productData.year, productData.total.to_string());
