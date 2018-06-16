@@ -158,9 +158,9 @@ public class DataBase : Object {
 		queries["statistic_products_day"]  		  = "SELECT * FROM statistic_productsperday";
 		queries["statistic_products_month"]               = "SELECT * FROM statistic_productspermonth";
 		queries["statistic_products_year"]                = "SELECT * FROM statistic_productsperyear";
-		queries["statistic_sales_day"]                    = "SELECT * FROM statistic_salesperday order by day desc";
-		queries["statistic_sales_month"]                  = "SELECT * FROM statistic_salespermonth order by year desc, month desc";
-		queries["statistic_sales_year"]                   = "SELECT * FROM statistic_salesperyear order by year desc";
+		queries["statistic_sales_day"]                    = "SELECT * FROM statistic_salesperday";
+		queries["statistic_sales_month"]                  = "SELECT * FROM statistic_salespermonth;
+		queries["statistic_sales_year"]                   = "SELECT * FROM statistic_salesperyear";
 		queries["statistic_products_day_withDate"]        = "SELECT * FROM statistic_productsperday where day = ?";
 		queries["statistic_products_month_withMonthYear"] = "SELECT * FROM statistic_productspermonth where month = ? and year = ?";
 		queries["statistic_products_year_withYear"]  	  = "SELECT * FROM statistic_productsperyear where year = ?";
