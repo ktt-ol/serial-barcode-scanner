@@ -53,9 +53,10 @@ CREATE VIEW IF NOT EXISTS statistic_productsperday AS
 	( SELECT count(*) from salesView s1 where s1.timestamp >= sdsp.start and s1.timestamp <= sdsp.end and p.id = s1.productId) as numOfProducts,
 	( select sum(s2.price) from salesView s2 where s2.timestamp >= sdsp.start and s2.timestamp <= sdsp.end and p.id = s2.productId) as total,
 	p.name product,
-	p.id productId
+	p.id productId,
+	c.name category
 	from singleDaysSinceFirstSale sdsp, products p
-	where numOfProducts > 0;
+	left join categories as c on (c.id = p.category);
 CREATE VIEW IF NOT EXISTS statistic_productspermonth AS
 	SELECT
 		strftime('%m',day) month,
