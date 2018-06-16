@@ -48,15 +48,20 @@ CREATE VIEW IF NOT EXISTS singleDaysSinceFirstSale AS
 	)
 	SELECT x as start, (x+86399) as end FROM singledays where x < strftime('%s','now')*1.0;
 CREATE VIEW IF NOT EXISTS statistic_productsperday AS
-	select
-	date(sdsp.start, 'unixepoch') day,
-	( SELECT count(*) from salesView s1 where s1.timestamp >= sdsp.start and s1.timestamp <= sdsp.end and p.id = s1.productId) as numOfProducts,
-	( select sum(s2.price) from salesView s2 where s2.timestamp >= sdsp.start and s2.timestamp <= sdsp.end and p.id = s2.productId) as total,
-	p.name product,
-	p.id productId,
-	c.name category
-	from singleDaysSinceFirstSale sdsp, products p
-	left join categories as c on (c.id = p.category);
+	SELECT
+		date(sdsp.start, 'unixepoch') day,
+		( SELECT count(*) from salesView s1 where s1.timestamp >= sdsp.start and s1.timestamp <= sdsp.end and p.id = s1.productId) as numOfProducts,
+		( select sum(s2.price) from salesView s2 where s2.timestamp >= sdsp.start and s2.timestamp <= sdsp.end and p.id = s2.productId) as total,
+		p.name product,
+		p.id productId,
+		c.name category
+	FROM 
+		 singleDaysSinceFirstSale sdsp, products p
+		left join categories as c on (c.id = p.category)
+	ORDER BY 
+		 day desc, 
+		 category asc, 
+		 product asc;
 CREATE VIEW IF NOT EXISTS statistic_productspermonth AS
 	SELECT
 		strftime('%m',day) month,
@@ -64,20 +69,34 @@ CREATE VIEW IF NOT EXISTS statistic_productspermonth AS
 		sum(numOfProducts) numOfProducts,
 		sum(total) total ,
 		product,
-		productId
+		productId,
+		category
 	FROM
 		statistic_productsperday
 	GROUP BY
-		product,month,year;
+		product,month,year
+	ORDER BY 
+		 year desc, 
+		 month desc,
+		 category asc, 
+		 product asc;
 CREATE VIEW IF NOT EXISTS statistic_productsperyear AS
 	SELECT
-	year,
-	sum(numOfProducts) numOfProducts,
-	sum(total) total ,
-	product,
-	productId
-FROM statistic_productspermonth
-GROUP BY product,year;
+		year,
+		sum(numOfProducts) numOfProducts,
+		sum(total) total ,
+		product,
+		productId,
+		category
+	FROM 
+		statistic_productspermonth
+	GROUP BY 
+		 product,
+		 year
+	ORDER BY
+		year desc,
+		category asc, 
+		product asc;
 CREATE VIEW IF NOT EXISTS statistic_salesperday AS
 	SELECT
 		day,
@@ -85,7 +104,10 @@ CREATE VIEW IF NOT EXISTS statistic_salesperday AS
 		sum(total) total
 	FROM
 		statistic_productsperday
-	GROUP BY day;
+	GROUP BY 
+		day	
+	ORDER BY
+		day desc;
 CREATE VIEW IF NOT EXISTS statistic_salespermonth AS
 	SELECT
 		strftime('%m',day) month,
@@ -95,14 +117,19 @@ CREATE VIEW IF NOT EXISTS statistic_salespermonth AS
 	FROM
 		statistic_salesperday
 	GROUP BY
-		month,year;
+		month,year
+	ORDER BY
+		year desc,
+		month desc;
 CREATE VIEW IF NOT EXISTS statistic_salesperyear AS
 	SELECT
-			year,
-			sum(numOfProducts) numOfProducts,
-			sum(total) total
-		FROM
-			statistic_salespermonth
-		GROUP BY
-			year;
+		year,
+		sum(numOfProducts) numOfProducts,
+		sum(total) total
+	FROM
+		statistic_salespermonth
+	GROUP BY
+		year
+	ORDER BY
+		year desc;
 COMMIT;
