@@ -259,6 +259,7 @@ public struct StatisticProductsPerDay {
 	public Price total;
 	public string product;
 	public uint64 productId;
+	public string category;
 }
 
 public struct StatisticProductsPerMonth {
@@ -268,6 +269,7 @@ public struct StatisticProductsPerMonth {
 	public Price total;
 	public string product;
 	public uint64 productId;
+	public string category;
 }
 
 public struct StatisticProductsPerYear {
@@ -276,6 +278,7 @@ public struct StatisticProductsPerYear {
 	public Price total;
 	public string product;
 	public uint64 productId;
+	public string category;
 }
 
 public struct StatisticSalesPerDay {
