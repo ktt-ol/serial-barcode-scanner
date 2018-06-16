@@ -1315,7 +1315,8 @@ public class DataBase : Object {
 				statements["statistic_products_day"].column_int64(1),
 				statements["statistic_products_day"].column_int(2),
 				statements["statistic_products_day"].column_text(3),
-				statements["statistic_products_day"].column_int64(4)
+				statements["statistic_products_day"].column_int64(4),
+				statements["statistic_products_day"].column_text(5)
 			};
 
 			result += entry;
@@ -1336,7 +1337,8 @@ public class DataBase : Object {
 				statements["statistic_products_day_withDate"].column_int64(1),
 				statements["statistic_products_day_withDate"].column_int(2),
 				statements["statistic_products_day_withDate"].column_text(3),
-				statements["statistic_products_day_withDate"].column_int64(4)
+				statements["statistic_products_day_withDate"].column_int64(4),
+				statements["statistic_products_day"].column_text(5)
 			};
 
 			result += entry;
@@ -1357,7 +1359,8 @@ public class DataBase : Object {
 				statements["statistic_products_month"].column_int64(2),
 				statements["statistic_products_month"].column_int(3),
 				statements["statistic_products_month"].column_text(4),
-				statements["statistic_products_month"].column_int64(5)
+				statements["statistic_products_month"].column_int64(5),
+				statements["statistic_products_day"].column_text(6)
 			};
 
 			result += entry;
@@ -1380,7 +1383,8 @@ public class DataBase : Object {
 				statements["statistic_products_month_withMonthYear"].column_int64(2),
 				statements["statistic_products_month_withMonthYear"].column_int(3),
 				statements["statistic_products_month_withMonthYear"].column_text(4),
-				statements["statistic_products_month_withMonthYear"].column_int64(5)
+				statements["statistic_products_month_withMonthYear"].column_int64(5),
+				statements["statistic_products_day"].column_text(6)
 			};
 
 			result += entry;
@@ -1400,7 +1404,8 @@ public class DataBase : Object {
 				statements["statistic_products_year"].column_int64(1),
 				statements["statistic_products_year"].column_int(2),
 				statements["statistic_products_year"].column_text(3),
-				statements["statistic_products_year"].column_int64(4)
+				statements["statistic_products_year"].column_int64(4),
+				statements["statistic_products_day"].column_text(5)
 			};
 
 			result += entry;
@@ -1421,7 +1426,8 @@ public class DataBase : Object {
 				statements["statistic_products_year_withYear"].column_int64(1),
 				statements["statistic_products_year_withYear"].column_int(2),
 				statements["statistic_products_year_withYear"].column_text(3),
-				statements["statistic_products_year_withYear"].column_int64(4)
+				statements["statistic_products_year_withYear"].column_int64(4),
+				statements["statistic_products_day"].column_text(5)
 			};
 
 			result += entry;
