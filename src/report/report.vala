@@ -179,16 +179,16 @@
        data += "\n";
 
        StatisticSalesPerMonth[] productsDataMonth = db.get_statistic_sales_per_month_withMonthYear(this.startTime.format("%m"),this.startTime.format("%Y"));
-       data += "For Month";
+       data += "For Month\n";
        foreach (StatisticSalesPerMonth productData in productsDataMonth) {
          data += "%s/%s: %s €\n".printf(productData.month,productData.year, productData.total.to_string());
        }
        data += "\n";
 
        StatisticSalesPerYear[] productsDataYear = db.get_statistic_sales_per_year_withYear(this.startTime.format("%Y"));
-       data += "For Year: " + this.startTime.format("%Y") + "\n";
+       data += "For Year"\n";
        foreach (StatisticSalesPerYear productData in productsDataYear) {
-         data += "%s €\n".printf(productData.total.to_string());
+         data += "%s: %s €\n".printf(productData.year, productData.total.to_string());
        }
        data += "\n";
      } catch (Error e){
