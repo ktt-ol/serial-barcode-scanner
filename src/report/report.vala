@@ -141,25 +141,52 @@
 
    private string collectProductStatisticData() {
      string data = "###### Product Statistic Data\n\n";
+     string category = "";
      try {
        StatisticProductsPerDay[] productsDataDay = db.get_statistic_products_per_day_withDate(this.startTime.format("%Y-%m-%d"));
        data += "For Day: " + this.startTime.format("%Y-%m-%d") + "\n";
        foreach (StatisticProductsPerDay productData in productsDataDay) {
-         data += "%ld\t| %s\n".printf((long)productData.numOfProducts,productData.product);
+         if (productData.numOfProducts > 0){
+             if(category != entry.category){
+               data += "----------------------------------------------------\n";
+               data += "\t%s\n".printf(entry.category);
+               data += "----------------------------------------------------\n";
+               category = productData.category;
+             }
+             data += "%ld\t| %s\n".printf((long)productData.numOfProducts,productData.product);
+         }
        }
        data += "\n";
-
+       category = "";
+       
        StatisticProductsPerMonth[] productsDataMonth = db.get_statistic_products_per_month_withMonthYear(this.startTime.format("%m"),this.startTime.format("%Y"));
        data += "For Month: " + this.startTime.format("%m %Y") + "\n";
-       foreach (StatisticProductsPerMonth productData in productsDataMonth) {
-         data += "%ld\t| %s\n".printf((long)productData.numOfProducts,productData.product);
+       foreach (StatisticProductsPerDay productData in productsDataDay) {
+         if (productData.numOfProducts > 0){
+             if(category != entry.category){
+               data += "----------------------------------------------------\n";
+               data += "\t%s\n".printf(entry.category);
+               data += "----------------------------------------------------\n";
+               category = productData.category;
+             }
+             data += "%ld\t| %s\n".printf((long)productData.numOfProducts,productData.product);
+         }
        }
        data += "\n";
-
+       category = "";
+       
        StatisticProductsPerYear[] productsDataYear = db.get_statistic_products_per_year_withYear(this.startTime.format("%Y"));
        data += "For Year: " + this.startTime.format("%Y") + "\n";
-       foreach (StatisticProductsPerYear productData in productsDataYear) {
-         data += "%ld\t| %s\n".printf((long)productData.numOfProducts,productData.product);
+       foreach (StatisticProductsPerDay productData in productsDataDay) {
+         if (productData.numOfProducts > 0){
+             if(category != entry.category){
+               data += "----------------------------------------------------\n";
+               data += "\t%s\n".printf(entry.category);
+               data += "----------------------------------------------------\n";
+               category = productData.category;
+             }
+             data += "%ld\t| %s\n".printf((long)productData.numOfProducts,productData.product);
+         }
        }
        data += "\n";
      } catch (Error e){
@@ -181,7 +208,9 @@
        StatisticSalesPerMonth[] productsDataMonth = db.get_statistic_sales_per_month();
        data += "For Month\n";
        foreach (StatisticSalesPerMonth productData in productsDataMonth) {
-         data += "%s/%s: %s €\n".printf(productData.month,productData.year, productData.total.to_string());
+         if (productData.total > 0){
+          data += "%s/%s: %s €\n".printf(productData.month,productData.year, productData.total.to_string());
+         }
        }
        data += "\n";
 
