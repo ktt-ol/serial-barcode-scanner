@@ -153,20 +153,20 @@ public class DataBase : Object {
 		queries["alias_ean_list"]    = "SELECT id, real_ean FROM ean_aliases ORDER BY id ASC";
 		queries["userid_rfid"]       = "SELECT user FROM rfid_users WHERE rfid = ?";
 		queries["rfid_userid"]       = "SELECT rfid FROM rfid_users WHERE user = ?";
-    queries["rfid_insert"]       = "INSERT OR REPLACE INTO rfid_users ('user','rfid') VALUES (?,?)";
-    queries["rfid_delete_user"]  = "DELETE FROM rfid_users WHERE user = ? ";
-		queries["statistic_products_day"]  								= "SELECT * FROM statistic_productsperday";
-		queries["statistic_products_month"]  							= "SELECT * FROM statistic_productspermonth";
-		queries["statistic_products_year"]  							= "SELECT * FROM statistic_productsperyear";
-		queries["statistic_sales_day"]  									= "SELECT * FROM statistic_salesperday";
-		queries["statistic_sales_month"]  								= "SELECT * FROM statistic_salespermonth";
-		queries["statistic_sales_year"]  									= "SELECT * FROM statistic_salesperyear";
-		queries["statistic_products_day_withDate"]  			= "SELECT * FROM statistic_productsperday where day = ?";
+                queries["rfid_insert"]       = "INSERT OR REPLACE INTO rfid_users ('user','rfid') VALUES (?,?)";
+                queries["rfid_delete_user"]  = "DELETE FROM rfid_users WHERE user = ? ";
+		queries["statistic_products_day"]  		  = "SELECT * FROM statistic_productsperday";
+		queries["statistic_products_month"]               = "SELECT * FROM statistic_productspermonth";
+		queries["statistic_products_year"]                = "SELECT * FROM statistic_productsperyear";
+		queries["statistic_sales_day"]                    = "SELECT * FROM statistic_salesperday order by day desc";
+		queries["statistic_sales_month"]                  = "SELECT * FROM statistic_salespermonth order by year desc, month desc";
+		queries["statistic_sales_year"]                   = "SELECT * FROM statistic_salesperyear order by year desc";
+		queries["statistic_products_day_withDate"]        = "SELECT * FROM statistic_productsperday where day = ?";
 		queries["statistic_products_month_withMonthYear"] = "SELECT * FROM statistic_productspermonth where month = ? and year = ?";
-		queries["statistic_products_year_withYear"]  			= "SELECT * FROM statistic_productsperyear where year = ?";
-		queries["statistic_sales_day_withDate"]  					= "SELECT * FROM statistic_salesperday where day = ?";
-		queries["statistic_sales_month_withMonthYear"]  	= "SELECT * FROM statistic_salespermonth where month = ? and year = ?";
-		queries["statistic_sales_year_withYear"]  				= "SELECT * FROM statistic_salesperyear where year = ?";
+		queries["statistic_products_year_withYear"]  	  = "SELECT * FROM statistic_productsperyear where year = ?";
+		queries["statistic_sales_day_withDate"]  	  = "SELECT * FROM statistic_salesperday where day = ?";
+		queries["statistic_sales_month_withMonthYear"]    = "SELECT * FROM statistic_salespermonth where month = ? and year = ?";
+		queries["statistic_sales_year_withYear"]          = "SELECT * FROM statistic_salesperyear where year = ?";
 
 		/* compile queries into statements */
 		foreach(var entry in queries.entries) {
