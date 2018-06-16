@@ -147,9 +147,9 @@
        data += "For Day: " + this.startTime.format("%Y-%m-%d") + "\n";
        foreach (StatisticProductsPerDay productData in productsDataDay) {
          if (productData.numOfProducts > 0){
-             if(category != entry.category){
+             if(category != productData.category){
                data += "----------------------------------------------------\n";
-               data += "\t%s\n".printf(entry.category);
+               data += "\t%s\n".printf(productData.category);
                data += "----------------------------------------------------\n";
                category = productData.category;
              }
@@ -163,9 +163,9 @@
        data += "For Month: " + this.startTime.format("%m %Y") + "\n";
        foreach (StatisticProductsPerDay productData in productsDataDay) {
          if (productData.numOfProducts > 0){
-             if(category != entry.category){
+             if(category != productData.category){
                data += "----------------------------------------------------\n";
-               data += "\t%s\n".printf(entry.category);
+               data += "\t%s\n".printf(productData.category);
                data += "----------------------------------------------------\n";
                category = productData.category;
              }
@@ -179,9 +179,9 @@
        data += "For Year: " + this.startTime.format("%Y") + "\n";
        foreach (StatisticProductsPerDay productData in productsDataDay) {
          if (productData.numOfProducts > 0){
-             if(category != entry.category){
+             if(category != productData.category){
                data += "----------------------------------------------------\n";
-               data += "\t%s\n".printf(entry.category);
+               data += "\t%s\n".printf(productData.category);
                data += "----------------------------------------------------\n";
                category = productData.category;
              }
