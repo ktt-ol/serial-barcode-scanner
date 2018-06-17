@@ -306,9 +306,9 @@ public class DataBase : Object {
 		Product product = Product();
 		try {
 			product.ean = ean_alias_get(ean);
-			product.name = get_product_name(ean);
-			product.memberprice = get_product_price(1, ean);
-			product.guestprice = get_product_price(0, ean);
+			product.name = get_product_name(product.ean);
+			product.memberprice = get_product_price(1, product.ean);
+			product.guestprice = get_product_price(0, product.ean);
 			return product;
 		} catch(DatabaseError e){
 			throw e;
