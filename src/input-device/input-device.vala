@@ -218,7 +218,7 @@ public class Device {
 		char key = '\0';
 
 		if((cond & IOCondition.HUP) == IOCondition.HUP){
-			error("Lost device try reconnect");
+			stdout.printf("Lost device try reconnect");
 			this.connect();
 		}
 		do {
