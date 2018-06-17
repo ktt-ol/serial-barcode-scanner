@@ -217,9 +217,10 @@ public class Device {
 		Linux.Input.Event ev = {};
 		char key = '\0';
 
-		if((cond & IOCondition.HUP) == IOCondition.HUP)
-			error("Lost device");
-
+		if((cond & IOCondition.HUP) == IOCondition.HUP){
+			error("Lost device try reconnect");
+			this.connect();
+		}
 		do {
 			int fd = source.unix_get_fd();
 			ssize_t s = Posix.read(fd, &ev, sizeof(Linux.Input.Event));
