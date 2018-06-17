@@ -19,18 +19,24 @@ public class Device {
 	private IOChannel io_read;
 	private string buffer;
 	private bool shift;
+	private string device;
 
 	public signal void received_barcode(string barcode);
 
 	public Device(string device) {
-		if (device == "ignore") {
+		this.device = device;
+		if (this.device == "ignore") {
  			stdout.printf("Ignoring InputDevice!\n");
  			return;
  		}
+		this.connect();
+	}
+	
+	private void connect(){
 		try {
-			io_read = new IOChannel.file(device, "r");
-			buffer = "";
-			shift = false;
+			io_read = new IOChannel.file(this.device, "r");
+			this.buffer = "";
+			this.shift = false;
 
 			int fd = io_read.unix_get_fd();
 			int flags = Posix.fcntl(fd, Posix.F_GETFL, 0);
