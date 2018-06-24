@@ -1,6 +1,6 @@
 [Unit]
 Description=Shop System UI
-After=multi-user.target
+After=getty-static.service
 
 [Service]
 PermissionsStartOnly=true
