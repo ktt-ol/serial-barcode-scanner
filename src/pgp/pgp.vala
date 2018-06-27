@@ -48,7 +48,7 @@ public class PGPKeyArchive {
 		var archive = new Archive.Read();
 
 		/* support all formats & compression types */
-		archive.support_compression_all();
+		archive.support_filter_all();
 		archive.support_format_all();
 
 		/* load test archive for now */
