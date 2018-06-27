@@ -5,6 +5,6 @@ database: main.vala database.vala db-interface.vala ../config/config-interface.v
 	valac -X -w -o $@ --pkg sqlite3 --pkg gee-0.8 --pkg gio-2.0 $^
 
 clean:
-	rm -rf db
+	rm -rf database
 
 .PHONY: all clean
