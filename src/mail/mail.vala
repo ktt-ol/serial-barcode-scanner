@@ -101,12 +101,12 @@ public class MailImplementation {
 	}
 #endif
 
-	public void add_recipient(MailContact contact, GMime.AddressType type) {
+	public void add_recipient(MailContact contact, GMime.AddressType type) throws DBusError, IOError {
 		m.add_mailbox(type, contact.name, contact.email);
 		recipients += contact.email;
 	}
 
-	public void set_main_part(string text, MessageType type) {
+	public void set_main_part(string text, MessageType type) throws DBusError, IOError {
 		GMime.DataWrapper content = new GMime.DataWrapper.with_stream(
 			new GMime.StreamMem.with_buffer(text.data),
 			GMime.ContentEncoding.DEFAULT);
@@ -129,7 +129,7 @@ public class MailImplementation {
 		}
 	}
 
-	public void add_attachment(string filename, string content_type, uint8[] data) {
+	public void add_attachment(string filename, string content_type, uint8[] data) throws DBusError, IOError {
 		GMime.Part part = new GMime.Part();
 
 		GMime.DataWrapper content = new GMime.DataWrapper.with_stream(

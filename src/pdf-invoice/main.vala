@@ -19,6 +19,8 @@ public static int main(string[] args) {
 	try {
 		Config cfg = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Config", "/io/mainframe/shopsystem/config");
 		datadir = cfg.get_string("INVOICE", "datadir");
+	} catch(DBusError e) {
+		error("DBusError: %s\n", e.message);
 	} catch(IOError e) {
 		error("IOError: %s\n", e.message);
 	} catch(KeyFileError e) {
@@ -41,7 +43,7 @@ public static int main(string[] args) {
 void on_bus_aquired(DBusConnection conn) {
     try {
         conn.register_object("/io/mainframe/shopsystem/invoicepdf", new InvoicePDF(datadir));
-    } catch(IOError e) {
-        stderr.printf("Could not register service\n");
+    } catch(Error e) {
+        stderr.printf("Could not register service: %s\n", e.message);
     }
 }

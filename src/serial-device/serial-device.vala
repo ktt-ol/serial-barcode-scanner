@@ -272,7 +272,7 @@ public class Device {
 	/**
 	 * @param duration duration of the blink in 0.1 seconds
 	 */
-	public void blink(uint duration) {
+	public void blink(uint duration) throws IOError, DBusError {
 		uint size = (byterate/1000) * duration;
 		var msg = new uint8[size];
 		Posix.memset(msg, 0xFF, msg.length);

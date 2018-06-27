@@ -44,6 +44,8 @@ public static int main(string[] args) {
 		error("IOError: %s\n", e.message);
 	} catch(KeyFileError e) {
 		error("KeyFileError: %s\n", e.message);
+	} catch(DBusError e) {
+		error("DBusError: %s\n", e.message);
 	}
 
 	stdout.printf("Web Server Port: %u\n", port);

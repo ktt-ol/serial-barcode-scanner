@@ -24,6 +24,8 @@ public static int main(string[] args) {
 	try {
 		cfg = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Config", "/io/mainframe/shopsystem/config");
 		pgp = new PGPKeyArchive(cfg.get_string("PGP", "keyring"));
+	} catch(DBusError e) {
+		error("DBusError: %s\n", e.message);
 	} catch(IOError e) {
 		error("IOError: %s\n", e.message);
 	} catch(KeyFileError e) {

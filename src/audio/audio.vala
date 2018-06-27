@@ -30,7 +30,7 @@ public class AudioPlayerImplementation {
 		return true;
 	}
 
-	public AudioPlayerImplementation(string path) throws IOError {
+	public AudioPlayerImplementation(string path) throws IOError, DBusError {
 		this.path = path;
 
 		var alsa = Gst.ElementFactory.make("alsasink", "alsa");
@@ -45,7 +45,7 @@ public class AudioPlayerImplementation {
 		p.get_bus().add_watch(Priority.DEFAULT, bus_callback);
 	}
 
-	public void play_system(string file) {
+	public void play_system(string file) throws IOError, DBusError {
 		p.set_state(Gst.State.NULL);
 		p.uri = "file://" + path + "system/" + file;
 		p.set_state(Gst.State.PLAYING);
@@ -76,15 +76,15 @@ public class AudioPlayerImplementation {
 		return files[index];
 	}
 
-	public string get_random_user_theme() {
+	public string get_random_user_theme()  throws IOError, DBusError {
 		return get_random_file(path + "user/");
 	}
 
-	public string[] get_user_themes() {
+	public string[] get_user_themes()  throws IOError, DBusError {
 		return get_files(path + "user/");
 	}
 
-	public void play_user(string theme, string type) {
+	public void play_user(string theme, string type) throws IOError, DBusError {
 		p.set_state(Gst.State.NULL);
 		var file = get_random_file(path + "user/" + theme+ "/" + type);
 		p.uri = "file://" + path + "user/" + theme+ "/" + type + "/" + file;

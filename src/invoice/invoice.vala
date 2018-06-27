@@ -39,7 +39,7 @@ public class InvoiceImplementation {
 	string vat;
 	string jverein_membership_number;
 
-	public InvoiceImplementation() throws IOError, KeyFileError {
+	public InvoiceImplementation() throws DBusError, IOError, KeyFileError {
 		mailer = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Mail", "/io/mainframe/shopsystem/mailer");
 		db = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Database", "/io/mainframe/shopsystem/database");
 		pdf = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.InvoicePDF", "/io/mainframe/shopsystem/invoicepdf");
@@ -53,7 +53,7 @@ public class InvoiceImplementation {
 		jverein_membership_number = cfg.get_string("JVEREIN", "membership_number");
 	}
 
-	public void send_invoice(bool temporary, int64 timestamp, int user) throws IOError, InvoicePDFError, DatabaseError {
+	public void send_invoice(bool temporary, int64 timestamp, int user) throws DBusError, IOError, InvoicePDFError, DatabaseError {
 		int64 prevtimestamp = timestamp - day_in_seconds;
 
 		if(!temporary)
@@ -121,7 +121,7 @@ public class InvoiceImplementation {
 		}
 	}
 
-	public void send_invoices(bool temporary, int64 timestamp) throws IOError, InvoicePDFError, DatabaseError {
+	public void send_invoices(bool temporary, int64 timestamp) throws DBusError, IOError, InvoicePDFError, DatabaseError {
 		int64 prevtimestamp = timestamp - day_in_seconds;
 		string due_date_string = "";
 
@@ -200,7 +200,7 @@ public class InvoiceImplementation {
 		}
 	}
 
-	public InvoiceData generate_invoice(bool temporary, int64 timestamp, int userid, string invoiceid) throws IOError, InvoicePDFError, DatabaseError {
+	public InvoiceData generate_invoice(bool temporary, int64 timestamp, int userid, string invoiceid) throws DBusError, IOError, InvoicePDFError, DatabaseError {
 			int64 prevtimestamp = timestamp - day_in_seconds;
 			if(!temporary)
 				prevtimestamp = new DateTime.from_unix_local(timestamp).add_months(-1).to_unix();

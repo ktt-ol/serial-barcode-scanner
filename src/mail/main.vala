@@ -19,7 +19,7 @@ DBusConnection mail_bus;
 public static int main(string[] args) {
 	try {
 		m = new MailerImplementation();
-	} catch(IOError e) {
+	} catch(Error e) {
 		stderr.printf("Error: %s\n", e.message);
 	}
 

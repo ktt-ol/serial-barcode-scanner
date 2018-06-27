@@ -23,6 +23,8 @@ private static void play(string file) {
 		audio.play_system(file);
 	} catch(IOError e) {
 		ui.log(MessageType.WARNING, "could not play audio: %s".printf(e.message));
+	} catch(DBusError e) {
+		ui.log(MessageType.WARNING, "could not play audio: %s".printf(e.message));
 	}
 }
 
@@ -43,8 +45,8 @@ public static int main(string[] args) {
 	loop = new MainLoop();
 
 	/* handle unix signals */
-	Unix.signal_add(Posix.SIGTERM, handle_signals);
-	Unix.signal_add(Posix.SIGINT,  handle_signals);
+	Unix.signal_add(Posix.Signal.TERM, handle_signals);
+	Unix.signal_add(Posix.Signal.INT,  handle_signals);
 
 	try {
 		audio = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.AudioPlayer", "/io/mainframe/shopsystem/audio");
@@ -62,16 +64,7 @@ public static int main(string[] args) {
 	scanner.msg.connect(msg_handler);
 	scanner.msg_overlay.connect(msg_overlay_handler);
 
-	/* get configuration */
-	Config config = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Config", "/io/mainframe/shopsystem/config");
-	var shopname = "--SHOPNAME--";
-	try {
-		shopname = config.get_string("GENERAL", "longname");
-	} catch(KeyFileError e) {
-		shopname = "Missing in Config";
-	}
-
-	ui.log(MessageType.INFO, "KtT Shop System has been started");
+	ui.log(MessageType.INFO, "Shop System has been started");
 	play("startup.ogg");
 
 	/* run mainloop */

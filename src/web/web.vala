@@ -34,6 +34,8 @@ public class WebServer {
 			handler_400(server, msg, path, query, client, e.message);
 		} catch(IOError e) {
 			handler_400(server, msg, path, query, client, e.message);
+		} catch(DBusError e) {
+			handler_400(server, msg, path, query, client, e.message);
 		}
 	}
 
@@ -53,6 +55,8 @@ public class WebServer {
 		} catch(DatabaseError e) {
 			handler_400(server, msg, path, query, client, e.message);
 		} catch(IOError e) {
+			handler_400(server, msg, path, query, client, e.message);
+		} catch(DBusError e) {
 			handler_400(server, msg, path, query, client, e.message);
 		}
 	}
@@ -123,6 +127,8 @@ public class WebServer {
 			handler_400(server, msg, path, query, client, e.message);
 		} catch(IOError e) {
 			handler_400(server, msg, path, query, client, e.message);
+		} catch(DBusError e) {
+			handler_400(server, msg, path, query, client, e.message);
 		}
 	}
 
@@ -176,6 +182,8 @@ public class WebServer {
 		} catch(DatabaseError e) {
 			handler_400(server, msg, path, query, client, e.message);
 		} catch(IOError e) {
+			handler_400(server, msg, path, query, client, e.message);
+		} catch(DBusError e) {
 			handler_400(server, msg, path, query, client, e.message);
 		}
 	}
@@ -282,6 +290,8 @@ public class WebServer {
 			handler_400(server, msg, path, query, client, e.message);
 		} catch(IOError e) {
 			handler_400(server, msg, path, query, client, e.message);
+		} catch(DBusError e) {
+			handler_400(server, msg, path, query, client, e.message);
 		}
 	}
 
@@ -321,6 +331,8 @@ public class WebServer {
 		} catch(DatabaseError e) {
 			handler_400(server, msg, path, query, client, e.message);
 		} catch(IOError e) {
+			handler_400(server, msg, path, query, client, e.message);
+		} catch(DBusError e) {
 			handler_400(server, msg, path, query, client, e.message);
 		}
 	}
@@ -408,6 +420,8 @@ public class WebServer {
 		} catch(DatabaseError e) {
 			handler_400(server, msg, path, query, client, e.message);
 		} catch(IOError e) {
+			handler_400(server, msg, path, query, client, e.message);
+		} catch(DBusError e) {
 			handler_400(server, msg, path, query, client, e.message);
 		}
 	}
@@ -527,6 +541,8 @@ public class WebServer {
 			handler_400(server, msg, path, query, client, e.message);
 		} catch(IOError e) {
 			handler_400(server, msg, path, query, client, e.message);
+		} catch(DBusError e) {
+			handler_400(server, msg, path, query, client, e.message);
 		}
 	}
 
@@ -594,6 +610,8 @@ public class WebServer {
 			handler_400(server, msg, path, query, client, e.message);
 		} catch(IOError e) {
 			handler_400(server, msg, path, query, client, e.message);
+		} catch(DBusError e) {
+			handler_400(server, msg, path, query, client, e.message);
 		}
 	}
 
@@ -627,6 +645,8 @@ public class WebServer {
 			handler_400(server, msg, path, query, client, e.message);
 		} catch(IOError e) {
 			handler_400(server, msg, path, query, client, e.message);
+		} catch(DBusError e) {
+			handler_400(server, msg, path, query, client, e.message);
 		}
 	}
 
@@ -649,6 +669,8 @@ public class WebServer {
 		} catch(DatabaseError e) {
 			handler_400(server, msg, path, query, client, e.message);
 		} catch(IOError e) {
+			handler_400(server, msg, path, query, client, e.message);
+		} catch(DBusError e) {
 			handler_400(server, msg, path, query, client, e.message);
 		}
 	}
@@ -731,6 +753,8 @@ public class WebServer {
 			handler_400(server, msg, path, query, client, e.message);
 		} catch(IOError e) {
 			handler_400(server, msg, path, query, client, e.message);
+		} catch(DBusError e) {
+			handler_400(server, msg, path, query, client, e.message);
 		}
 	}
 
@@ -781,6 +805,8 @@ public class WebServer {
 		} catch(DatabaseError e) {
 			handler_400(server, msg, path, query, client, e.message);
 		} catch(IOError e) {
+			handler_400(server, msg, path, query, client, e.message);
+		} catch(DBusError e) {
 			handler_400(server, msg, path, query, client, e.message);
 		}
 	}
@@ -840,6 +866,8 @@ public class WebServer {
 			handler_400(server, msg, path, query, client, e.message);
 		} catch(IOError e) {
 			handler_400(server, msg, path, query, client, e.message);
+		} catch(DBusError e) {
+			handler_400(server, msg, path, query, client, e.message);
 		}
 	}
 
@@ -886,6 +914,8 @@ public class WebServer {
 			handler_400(server, msg, path, query, client, e.message);
 		} catch(IOError e) {
 			handler_400(server, msg, path, query, client, e.message);
+		} catch(DBusError e) {
+			handler_400(server, msg, path, query, client, e.message);
 		}
 	}
 
@@ -918,6 +948,8 @@ public class WebServer {
 		} catch(DatabaseError e) {
 			handler_400(server, msg, path, query, client, e.message);
 		} catch(IOError e) {
+			handler_400(server, msg, path, query, client, e.message);
+		} catch(DBusError e) {
 			handler_400(server, msg, path, query, client, e.message);
 		}
 	}
@@ -966,6 +998,8 @@ public class WebServer {
 		} catch(DatabaseError e) {
 			handler_400(server, msg, path, query, client, e.message);
 		} catch(IOError e) {
+			handler_400(server, msg, path, query, client, e.message);
+		} catch(DBusError e) {
 			handler_400(server, msg, path, query, client, e.message);
 		}
 	}
@@ -1139,6 +1173,8 @@ public class WebServer {
 		} catch(IOError e) {
 			stderr.printf(e.message+"\n");
 			handler_400_fallback(server, msg, path, query, client);
+		} catch(DBusError e) {
+			handler_400(server, msg, path, query, client, e.message);
 		}
 	}
 
@@ -1163,6 +1199,8 @@ public class WebServer {
 			handler_400(server, msg, path, query, client, e.message);
 		} catch(IOError e) {
 			handler_400(server, msg, path, query, client, e.message);
+		} catch(DBusError e) {
+			handler_400(server, msg, path, query, client, e.message);
 		}
 	}
 
@@ -1181,6 +1219,8 @@ public class WebServer {
 		} catch(DatabaseError e) {
 			handler_400(server, msg, path, query, client, e.message);
 		} catch(IOError e) {
+			handler_400(server, msg, path, query, client, e.message);
+		} catch(DBusError e) {
 			handler_400(server, msg, path, query, client, e.message);
 		}
 	}
@@ -1229,6 +1269,8 @@ public class WebServer {
 		} catch(DatabaseError e) {
 			handler_400(server, msg, path, query, client, e.message);
 		} catch(IOError e) {
+			handler_400(server, msg, path, query, client, e.message);
+		} catch(DBusError e) {
 			handler_400(server, msg, path, query, client, e.message);
 		}
 	}
@@ -1302,6 +1344,8 @@ public class WebServer {
 			handler_400(server, msg, path, query, client, e.message);
 		} catch(IOError e) {
 			handler_400(server, msg, path, query, client, e.message);
+		} catch(DBusError e) {
+			handler_400(server, msg, path, query, client, e.message);
 		}
 	}
 
@@ -1327,6 +1371,8 @@ public class WebServer {
 			} catch(DatabaseError e) {
 				handler_400(server, msg, path, query, client, e.message);
 			} catch(IOError e) {
+				handler_400(server, msg, path, query, client, e.message);
+			} catch(DBusError e) {
 				handler_400(server, msg, path, query, client, e.message);
 			}
 		}
@@ -1408,6 +1454,8 @@ public class WebServer {
 		} catch(DatabaseError e) {
 			handler_400(server, msg, path, query, client, e.message);
 		} catch(IOError e) {
+			handler_400(server, msg, path, query, client, e.message);
+		} catch(DBusError e) {
 			handler_400(server, msg, path, query, client, e.message);
 		}
 	}

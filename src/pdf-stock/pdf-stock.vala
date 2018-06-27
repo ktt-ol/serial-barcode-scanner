@@ -154,7 +154,7 @@ public class StockPDF {
 		return Cairo.Status.SUCCESS;
 	}
 
-	public uint8[] generate() {
+	public uint8[] generate() throws DBusError, IOError {
 		data = null;
 
 		var surface = new Cairo.PdfSurface.for_stream(pdf_write, a4w, a4h);

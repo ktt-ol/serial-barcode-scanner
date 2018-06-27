@@ -27,35 +27,35 @@ public class Cfg {
 		}
 	}
 
-	public bool has_group(string group_name) throws KeyFileError {
+	public bool has_group(string group_name) throws DBusError, IOError, KeyFileError {
 		return file.has_group(group_name);
 	}
 
-	public bool has_key(string group_name, string key) throws KeyFileError {
+	public bool has_key(string group_name, string key) throws DBusError, IOError, KeyFileError {
 		return file.has_key(group_name, key);
 	}
 
-	public string get_string(string group_name, string key) throws KeyFileError {
+	public string get_string(string group_name, string key) throws DBusError, IOError, KeyFileError {
 		return file.get_string(group_name, key);
 	}
 
-	public bool get_boolean(string group_name, string key) throws KeyFileError {
+	public bool get_boolean(string group_name, string key) throws DBusError, IOError, KeyFileError {
 		return file.get_boolean(group_name, key);
 	}
 
-	public int get_integer(string group_name, string key) throws KeyFileError {
+	public int get_integer(string group_name, string key) throws DBusError, IOError, KeyFileError {
 		return file.get_integer(group_name, key);
 	}
 
-	public int64 get_int64(string group_name, string key) throws KeyFileError {
+	public int64 get_int64(string group_name, string key) throws DBusError, IOError, KeyFileError {
 		return file.get_int64(group_name, key);
 	}
 
-	public uint64 get_uint64(string group_name, string key) throws KeyFileError {
+	public uint64 get_uint64(string group_name, string key) throws DBusError, IOError, KeyFileError {
 		return file.get_uint64(group_name, key);
 	}
 
-	public double get_double(string group_name, string key) throws KeyFileError {
+	public double get_double(string group_name, string key) throws DBusError, IOError, KeyFileError {
 		return file.get_double(group_name, key);
 	}
 

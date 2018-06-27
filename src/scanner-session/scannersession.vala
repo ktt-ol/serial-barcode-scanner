@@ -56,7 +56,7 @@ public class ScannerSessionImplementation {
     msg(type, message);
   }
 
-  private bool login(int user) throws IOError {
+  private bool login(int user) throws DBusError, IOError {
     this.user      = user;
     try {
       this.name      = db.get_username(user);
@@ -79,7 +79,7 @@ public class ScannerSessionImplementation {
     return true;
   }
 
-  private ScannerSessionCodeType getCodeType(string scannerdata){
+  private ScannerSessionCodeType getCodeType(string scannerdata) {
     if(scannerdata.has_prefix("USER ")){
       return ScannerSessionCodeType.USER;
     } else if(scannerdata == "GUEST") {
@@ -103,7 +103,7 @@ public class ScannerSessionImplementation {
     }
   }
 
-  private void play_audio(AudioType audioType){
+  private void play_audio(AudioType audioType) throws DBusError, IOError {
     switch (audioType) {
       case AudioType.ERROR:
         audio.play_system("error.ogg");
@@ -123,7 +123,7 @@ public class ScannerSessionImplementation {
     }
   }
 
-  private ScannerResult handleReadyState(string scannerdata) throws DatabaseError, IOError{
+  private ScannerResult handleReadyState(string scannerdata) throws DatabaseError, DBusError, IOError {
     ScannerSessionCodeType codeType = getCodeType(scannerdata);
     ScannerResult scannerResult = ScannerResult();
     switch (codeType) {
@@ -199,7 +199,7 @@ public class ScannerSessionImplementation {
     }
   }
 
-  private ScannerResult handleUserState(string scannerdata) throws DatabaseError, IOError {
+  private ScannerResult handleUserState(string scannerdata) throws DatabaseError, DBusError, IOError {
     ScannerSessionCodeType codeType = getCodeType(scannerdata);
     ScannerResult scannerResult = ScannerResult();
     switch (codeType) {
@@ -268,7 +268,7 @@ public class ScannerSessionImplementation {
     return scannerResult;
   }
 
-  private ScannerResult buyShoppingCard() {
+  private ScannerResult buyShoppingCard() throws DatabaseError, DBusError, IOError {
     ScannerResult scannerResult = ScannerResult();
     uint8 amountOfItems = 0;
     Price totalPrice = 0;
@@ -295,6 +295,8 @@ public class ScannerSessionImplementation {
       stdout.printf("scannerdata: %s\n", scannerdata);
       if(interpret(scannerdata))
         devScanner.blink(1000);
+    } catch(DBusError e) {
+      send_message(MessageType.ERROR, "DBusError: %s", e.message);
     } catch(IOError e) {
       send_message(MessageType.ERROR, "IOError: %s", e.message);
     } catch(DatabaseError e) {
@@ -302,7 +304,7 @@ public class ScannerSessionImplementation {
     }
   }
 
-  private bool interpret(string scannerdata) throws DatabaseError, IOError {
+  private bool interpret(string scannerdata) throws DatabaseError, DBusError, IOError {
     ScannerResult scannerResult = ScannerResult();
     switch (state) {
       case ScannerSessionState.READY:
@@ -321,7 +323,7 @@ public class ScannerSessionImplementation {
     return true;
   }
 
-  private ScannerResult logout() {
+  private ScannerResult logout() throws DatabaseError, DBusError, IOError {
     ScannerResult scannerResult = ScannerResult();
     scannerResult = buyShoppingCard();
     logged_in = false;

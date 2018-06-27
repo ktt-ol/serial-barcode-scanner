@@ -43,6 +43,6 @@ public interface PDFInvoice : Object {
 	public abstract InvoiceRecipient invoice_recipient { set; owned get; }
 	public abstract InvoiceEntry[] invoice_entries { set; owned get; }
 
-	public abstract uint8[] generate() throws IOError, InvoicePDFError;
-	public abstract void clear() throws IOError;
+	public abstract uint8[] generate() throws DBusError, IOError, InvoicePDFError;
+	public abstract void clear() throws DBusError, IOError;
 }

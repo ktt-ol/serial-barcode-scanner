@@ -82,7 +82,7 @@ public class WebSession {
 		return result;
 	}
 
-	private void setup_auth(int user) throws DatabaseError, IOError {
+	private void setup_auth(int user) throws DatabaseError, IOError, DBusError {
 		var auth = db.get_user_auth(user);
 		this.disabled  = db.user_is_disabled(user);
 		this.superuser = auth.superuser;
@@ -92,7 +92,7 @@ public class WebSession {
 		this.logged_in = true;
 	}
 
-	public void logout() throws DatabaseError, IOError {
+	public void logout() throws DatabaseError, IOError, DBusError {
 		if(logged_in) {
 			db.set_sessionid(user, "");
 			superuser = false;
@@ -103,7 +103,7 @@ public class WebSession {
 		}
 	}
 
-	public WebSession(Soup.Server server, Soup.Message msg, string path, GLib.HashTable<string,string>? query, Soup.ClientContext client) throws DatabaseError, IOError {
+	public WebSession(Soup.Server server, Soup.Message msg, string path, GLib.HashTable<string,string>? query, Soup.ClientContext client) throws DatabaseError, IOError, DBusError {
 		var cookies = Soup.cookies_from_request(msg);
 
 		/* Check for existing session */

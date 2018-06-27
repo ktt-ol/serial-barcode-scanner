@@ -28,6 +28,8 @@ public static int main(string[] args) {
 		error("IOError: %s\n", e.message);
 	} catch(KeyFileError e) {
 		error("Config Error: %s\n", e.message);
+	} catch(DBusError e) {
+		error("DBusError: %s\n", e.message);
 	}
 
 	Bus.own_name(

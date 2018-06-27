@@ -15,9 +15,9 @@
 
 [DBus (name = "io.mainframe.shopsystem.Mailer")]
 public interface Mailer : Object {
-	public abstract string create_mail() throws IOError;
-	public abstract void delete_mail(string path) throws IOError;
-	public abstract void send_mail(string path) throws IOError;
+	public abstract string create_mail() throws IOError, DBusError;
+	public abstract void delete_mail(string path) throws IOError, DBusError;
+	public abstract void send_mail(string path) throws IOError, DBusError;
 }
 
 [DBus (name = "io.mainframe.shopsystem.Mail")]
@@ -28,9 +28,9 @@ public interface Mail : Object {
 	public abstract string reply_to { owned get; set; }
 	public abstract MailDate date { owned get; set; }
 
-	public abstract void add_recipient(MailContact contact, RecipientType type = RecipientType.TO) throws IOError;
-	public abstract void set_main_part(string text, MessageType type = MessageType.PLAIN) throws IOError;
-	public abstract void add_attachment(string filename, string content_type, uint8[] data) throws IOError;
+	public abstract void add_recipient(MailContact contact, RecipientType type = RecipientType.TO) throws IOError, DBusError;
+	public abstract void set_main_part(string text, MessageType type = MessageType.PLAIN) throws IOError, DBusError;
+	public abstract void add_attachment(string filename, string content_type, uint8[] data) throws IOError, DBusError;
 }
 
 public struct MailAttachment {

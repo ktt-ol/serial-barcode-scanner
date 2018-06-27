@@ -21,7 +21,7 @@ public class CliImpl {
 	public CliImpl() {
  	}
 
- 	public void send(string msg) {
+ 	public void send(string msg) throws IOError, DBusError {
  		stdout.printf("Sending: %s\n", msg);                  
  		received_barcode(msg);					
  	}

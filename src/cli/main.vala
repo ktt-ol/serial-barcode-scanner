@@ -42,7 +42,11 @@ public static int main(string[] args) {
 
 void on_name_aquired() {
 	foreach (string cmd in commands) {
-		cli.send(cmd);
+		try {
+			cli.send(cmd);
+		} catch (Error e) {
+			stderr.printf("Error sending command: %s", e.message);
+		}
 	}
 
 	// wait a minimal amount of time, to ensure the event was sent

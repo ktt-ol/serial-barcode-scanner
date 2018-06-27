@@ -15,7 +15,7 @@
 
 [DBus (name = "io.mainframe.shopsystem.PGP")]
 public interface PGP : Object {
-	public abstract string[] import_archive(uint8[] data) throws IOError;
-	public abstract string[] list_keys() throws IOError;
-	public abstract string get_key(string fingerprint) throws IOError;
+	public abstract string[] import_archive(uint8[] data) throws IOError, DBusError;
+	public abstract string[] list_keys() throws IOError, DBusError;
+	public abstract string get_key(string fingerprint) throws IOError, DBusError;
 }

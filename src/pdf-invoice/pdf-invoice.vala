@@ -65,7 +65,7 @@ public class InvoicePDF {
 	string longname;
 	string vat;
 
-	public InvoicePDF(string datadir) {
+	public InvoicePDF(string datadir) throws DBusError, IOError, KeyFileError {
 		this.datadir = datadir;
 		cfg = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Config", "/io/mainframe/shopsystem/config");
 		longname = cfg.get_string("GENERAL", "longname");
@@ -96,7 +96,7 @@ public class InvoicePDF {
 		ctx.restore();
 	}
 
-	private void draw_address(Cairo.Context ctx) {
+	private void draw_address(Cairo.Context ctx) throws DBusError, IOError, KeyFileError {
 		ctx.save();
 		ctx.set_source_rgb(0, 0, 0);
 		ctx.set_line_width(1.0);
@@ -206,7 +206,7 @@ public class InvoicePDF {
 		ctx.restore();
 	}
 
-	private void draw_footer_text_left(Cairo.Context ctx) {
+	private void draw_footer_text_left(Cairo.Context ctx) throws DBusError, IOError, KeyFileError {
 		ctx.save();
 		ctx.move_to(64.0, 742.0);
 		ctx.set_source_rgb(0, 0, 0);
@@ -242,7 +242,7 @@ public class InvoicePDF {
 		ctx.restore();
 	}
 
-	private void draw_footer_text_middle(Cairo.Context ctx) {
+	private void draw_footer_text_middle(Cairo.Context ctx) throws DBusError, IOError, KeyFileError {
 		ctx.save();
 		ctx.move_to(216.5, 742.0);
 		ctx.set_source_rgb(0, 0, 0);
@@ -278,7 +278,7 @@ public class InvoicePDF {
 		ctx.restore();
 	}
 
-	private void draw_footer_text_right(Cairo.Context ctx) {
+	private void draw_footer_text_right(Cairo.Context ctx) throws DBusError, IOError, KeyFileError {
 		ctx.save();
 		ctx.move_to(410.0, 742.0);
 		ctx.set_source_rgb(0, 0, 0);
@@ -331,7 +331,7 @@ public class InvoicePDF {
 			return "Moin";
 	}
 
-	private void draw_first_page_text(Cairo.Context ctx) {
+	private void draw_first_page_text(Cairo.Context ctx) throws IOError {
 		ctx.save();
 		ctx.move_to(56.5, 352.5);
 		ctx.set_source_rgb(0, 0, 0);
@@ -616,7 +616,7 @@ public class InvoicePDF {
 		return Cairo.Status.SUCCESS;
 	}
 
-	public uint8[] generate() throws InvoicePDFError {
+	public uint8[] generate() throws DBusError, IOError, InvoicePDFError, KeyFileError {
 		data = null;
 
 		var document = new Cairo.PdfSurface.for_stream(pdf_write, width, height);
@@ -657,7 +657,7 @@ public class InvoicePDF {
 		return data;
 	}
 
-	public void clear() {
+	public void clear() throws DBusError, IOError {
 		invoice_date                  = 0;
 		invoice_id                    = "";
 		invoice_recipient.firstname   = "";

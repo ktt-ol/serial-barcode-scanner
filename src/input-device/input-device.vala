@@ -315,7 +315,7 @@ public class Device {
 	/**
 	 * @param duration duration of the blink in 0.1 seconds
 	 */
-	public void blink(uint duration) {
+	public void blink(uint duration)  throws IOError, DBusError {
 		/* not supported */
 	}
 }

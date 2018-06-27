@@ -56,7 +56,7 @@ public class MailerImplementation {
 		return 1;
 	}
 
-	public MailerImplementation() throws IOError {
+	public MailerImplementation() throws DBusError, IOError {
 		int result;
 
 		GMime.init();
@@ -67,7 +67,7 @@ public class MailerImplementation {
 		send_queue = new Queue<MailImplementation>();
 
 		/* ignore SIGPIPE, as suggested by libESMTP */
-		Posix.signal(Posix.SIGPIPE, Posix.SIG_IGN);
+		Posix.signal(Posix.Signal.PIPE, Posix.SIG_IGN);
 
 		/* get configuration */
 		Config config = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Config", "/io/mainframe/shopsystem/config");
@@ -120,7 +120,7 @@ public class MailerImplementation {
 		GMime.shutdown();
 	}
 
-	public string create_mail() throws IOError {
+	public string create_mail() throws DBusError, IOError {
 		string path = @"/io/mainframe/shopsystem/mail/$mailcounter";
 
 		var mail = new MailImplementation();
@@ -136,7 +136,7 @@ public class MailerImplementation {
 		return path;
 	}
 
-	public void delete_mail(string path) throws IOError {
+	public void delete_mail(string path) throws DBusError, IOError {
 		if(!(path in mails))
 			throw new IOError.NOT_FOUND("No such mail");
 
@@ -144,7 +144,7 @@ public class MailerImplementation {
 		mails.remove(path);
 	}
 
-	public void send_mail(string path) throws IOError {
+	public void send_mail(string path) throws DBusError, IOError {
 		if(!(path in mails))
 			throw new IOError.NOT_FOUND("No such mail");
 
