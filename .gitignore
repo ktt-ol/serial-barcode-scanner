@@ -1,3 +1,4 @@
+build/
 gnupg/
 *.swp
 shop.db

@@ -1,0 +1,4 @@
+[D-BUS Service]
+Name=io.mainframe.shopsystem.InputDevice
+Exec=@PATH@/shop-input-device
+User=shop

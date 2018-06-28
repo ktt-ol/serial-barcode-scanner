@@ -1,24 +1,20 @@
-all:
-	@cd src && make --no-print-directory all
+all: compile gettext
 
-gettext: locale/de/LC_MESSAGES/shopsystem.mo
+build:
+	meson build
 
-locale/de/LC_MESSAGES/shopsystem.mo: locale/de.po
-	install -d locale/de/LC_MESSAGES/
-	msgfmt -o $@ $<
+compile: build
+	cd build && ninja
 
-locale/%.po: locale/messages.pot
-	msgmerge -N --backup=off --update $@ $<
+gettext: build
+	cd build && ninja shopsystem-pot
+	cd build && ninja shopsystem-update-po
 
-locale/messages.pot: */*/*.vala
-	xgettext --language=vala --from-code=utf-8 --keyword=_ --escape --sort-output -o $@ */*/*.vala
+install: build
+	cd build && DESTDIR=`pwd`/tmpinst ninja install
 
 clean:
-	@cd src && make --no-print-directory clean
-
-install:
-	@cd src && make --no-print-directory install
-	@cd dbus && make --no-print-directory install
+	rm -rf build
 
 shop.db: sql/tables.sql sql/views.sql sql/trigger.sql
 	@for file in $^ ; do \

@@ -1,0 +1,4 @@
+[D-BUS Service]
+Name=io.mainframe.shopsystem.StockPDF
+Exec=@PATH@/shop-pdf-stock
+User=shop

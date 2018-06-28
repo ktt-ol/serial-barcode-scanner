@@ -1,0 +1,13 @@
+[Unit]
+Description=Shop System Web Interface
+
+[Service]
+User=shop
+Group=shop
+Type=simple
+ExecStart=@PATH@/shop-web
+StandardInput=null
+StandardOutput=journal
+
+[Install]
+WantedBy=multi-user.target

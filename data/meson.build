@@ -1,0 +1,10 @@
+datadir = join_paths(get_option('prefix'), get_option('datadir'), 'shopsystem')
+
+install_data('logo.txt', install_dir: datadir)
+install_subdir('sounds', install_dir: datadir)
+install_subdir('templates', install_dir: datadir)
+install_subdir('invoice', install_dir: datadir)
+subdir('dbus')
+subdir('po')
+subdir('systemd')
+subdir('udev')

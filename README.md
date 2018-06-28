@@ -51,17 +51,12 @@ but you need to modify a few things.
  * adduser "shop" with homedir in /home/shop
  * clone git repository into /home/shop/serial-barcode-scanner
 
-=== Build the Software ===
+=== Build and Install the Software ===
 
- * ./configure
- * make shop.db
- * make
-
-=== DBus Configuration ===
-
- * cd dbus
- * make
- * sudo make install
+ * meson build --prefix /usr
+ * cd build
+ * ninja
+ * ninja install
 
 === Systemd ===
 

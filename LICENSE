@@ -2,40 +2,40 @@ Files: *
 Copyright: 2012-2013, Sebastian Reichel <sre@ring0.de>
 License: ISC
 
-Files: templates/js/sorttable.js
+Files: data/templates/js/sorttable.js
 Copyright: 2007, Stuart Langridge <sil@kryogenix.org>
 License: Expat
 
-Files: templates/js/jquery.js
+Files: data/templates/js/jquery.js
 Copyright: 2012, jQuery Foundation and contributors
 License: Expat
 
-Files: templates/js/jquery.mousewheel.js
+Files: data/templates/js/jquery.mousewheel.js
 Copyright: 2011, Brandon Aaron (http://brandonaaron.net)
 License: Expat
 
-Files: templates/js/jquery.flot.js
-       templates/js/jquery.flot.navigate.js
-       templates/js/jquery.flot.selection.js 
+Files: data/templates/js/jquery.flot.js
+       data/templates/js/jquery.flot.navigate.js
+       data/templates/js/jquery.flot.selection.js 
 Copyright: 2007-2012, Ole Laursen
            2007-2012, IOLA
            2008, Three Dub Media (http://threedubmedia.com)
 License: Expat
 
-Files: templates/js/jquery.flot.pie.js
+Files: data/templates/js/jquery.flot.pie.js
 Copyright: 2009, Brian Medendorp
            2009, btburnett3
            2009, Anthony Aragues
            2009, Xavi Ivars
 License: Expat
 
-Files: templates/css/bootstrap.css
-       templates/js/bootstrap.js
+Files: data/templates/css/bootstrap.css
+       data/templates/js/bootstrap.js
 Copyright: Bootstrap
 License: Apache-2.0
 
-Files: templates/img/glyphicons-halflings.png
-       templates/img/glyphicons-halflings-white.png
+Files: data/templates/img/glyphicons-halflings.png
+       data/templates/img/glyphicons-halflings-white.png
 Copyright: Glyphicons
 License: CC-BY-3.0
 

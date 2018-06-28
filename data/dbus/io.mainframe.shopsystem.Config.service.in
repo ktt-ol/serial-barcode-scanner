@@ -1,0 +1,4 @@
+[D-BUS Service]
+Name=io.mainframe.shopsystem.Config
+Exec=@PATH@/shop-config
+User=shop
