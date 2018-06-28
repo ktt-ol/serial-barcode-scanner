@@ -18,40 +18,43 @@ Device devScanner;
 Device devRfid;
 
 public static int main(string[] args) {
+	Intl.setlocale(LocaleCategory.ALL, "");
+	Intl.textdomain("shopsystem");
+
 	try {
 		Config cfg = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Config", "/io/mainframe/shopsystem/config");
 		devScanner = new Device(cfg.get_string("INPUT", "barcodescanner"));
 		devRfid = new Device(cfg.get_string("INPUT", "rfidreader"));
 	} catch(IOError e) {
-		error("IOError: %s\n", e.message);
+		error(_("IO Error: %s\n"), e.message);
 	} catch(KeyFileError e) {
-		error("Config Error: %s\n", e.message);
+		error(_("Config Error: %s\n"), e.message);
 	} catch(DBusError e) {
-		error("DBus Error: %s\n", e.message);
+		error(_("DBus Error: %s\n"), e.message);
 	}
 
 	Bus.own_name(
 		BusType.SYSTEM,
 		"io.mainframe.shopsystem.InputDevice",
 		BusNameOwnerFlags.NONE,
-		on_bus_aquired,
+		on_bus_acquired,
 		() => {},
-		() => stderr.printf("Could not aquire name\n"));
+		() => stderr.printf(_("Could not acquire name\n")));
 
 	new MainLoop().run();
 
 	return 0;
 }
 
-void on_bus_aquired(DBusConnection con) {
+void on_bus_acquired(DBusConnection con) {
     try {
         con.register_object("/io/mainframe/shopsystem/device/scanner", devScanner);
     } catch(IOError e) {
-        stderr.printf("Could not register service\n");
+        stderr.printf(_("Could not register service\n"));
     }
     try {
         con.register_object("/io/mainframe/shopsystem/device/rfid", devRfid);
     } catch(IOError e) {
-        stderr.printf("Could not register service\n");
+        stderr.printf(_("Could not register service\n"));
     }
 }

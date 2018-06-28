@@ -14,23 +14,26 @@
  */
 
 public static int main(string[] args) {
+	Intl.setlocale(LocaleCategory.ALL, "");
+	Intl.textdomain("shopsystem");
+
 	Bus.own_name(
 		BusType.SYSTEM,
 		"io.mainframe.shopsystem.StockPDF",
 		BusNameOwnerFlags.NONE,
-		on_bus_aquired,
+		on_bus_acquired,
 		() => {},
-		() => stderr.printf("Could not aquire name\n"));
+		() => stderr.printf(_("Could not acquire name\n")));
 
 	new MainLoop().run();
 
 	return 0;
 }
 
-void on_bus_aquired(DBusConnection conn) {
+void on_bus_acquired(DBusConnection conn) {
     try {
         conn.register_object("/io/mainframe/shopsystem/stockpdf", new StockPDF());
     } catch(IOError e) {
-        stderr.printf("Could not register service\n");
+        stderr.printf(_("Could not register service\n"));
     }
 }

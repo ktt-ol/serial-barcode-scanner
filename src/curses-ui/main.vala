@@ -24,9 +24,9 @@ private static void play(string file) {
 	try {
 		audio.play_system(file);
 	} catch(IOError e) {
-		ui.log(MessageType.WARNING, "could not play audio: %s".printf(e.message));
+		ui.log(MessageType.WARNING, _("could not play audio: %s").printf(e.message));
 	} catch(DBusError e) {
-		ui.log(MessageType.WARNING, "could not play audio: %s".printf(e.message));
+		ui.log(MessageType.WARNING, _("could not play audio: %s").printf(e.message));
 	}
 }
 
@@ -46,6 +46,9 @@ public void log_handler(string? log_domain, LogLevelFlags flags, string message)
 public static int main(string[] args) {
 	loop = new MainLoop();
 
+	Intl.setlocale(LocaleCategory.ALL, "");
+	Intl.textdomain("shopsystem");
+
 	/* handle unix signals */
 	Unix.signal_add(Posix.Signal.TERM, handle_signals);
 	Unix.signal_add(Posix.Signal.INT,  handle_signals);
@@ -54,7 +57,7 @@ public static int main(string[] args) {
 		audio = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.AudioPlayer", "/io/mainframe/shopsystem/audio");
 		scanner = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.ScannerSession", "/io/mainframe/shopsystem/scanner_session");
 	} catch(IOError e) {
-		error("IOError: %s\n", e.message);
+		error(_("IO Error: %s\n"), e.message);
 	}
 
 	string binarylocation = File.new_for_path(args[0]).get_parent().get_path();
@@ -66,13 +69,13 @@ public static int main(string[] args) {
 	scanner.msg.connect(msg_handler);
 	scanner.msg_overlay.connect(msg_overlay_handler);
 
-	ui.log(MessageType.INFO, "Shop System has been started");
+	ui.log(MessageType.INFO, _("Shop System has been started"));
 	play("startup.ogg");
 
 	/* run mainloop */
 	loop.run();
 
-	ui.log(MessageType.INFO, "Stopping Shop System");
+	ui.log(MessageType.INFO, _("Stopping Shop System"));
 	play("shutdown.ogg");
 
 	/* leave curses mode */

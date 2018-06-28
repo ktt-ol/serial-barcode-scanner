@@ -37,13 +37,13 @@ public class MessageBoxOverlay {
 		Timeout.add_seconds(1, decrementTitleCountdown);
 	}
 
-	private void setTitle() {	
+	private void setTitle() {
 		var title = "    === %s (%d) ===    ".printf(dialogTitle, countdownValue);
 		int title_x = (COLS - title.length)/2;
-		win.mvaddstr(0, title_x, title);		
+		win.mvaddstr(0, title_x, title);
 	}
 
-	private bool decrementTitleCountdown() {	
+	private bool decrementTitleCountdown() {
 		countdownValue--;
 		setTitle();
 		win.refresh();

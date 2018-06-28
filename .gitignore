@@ -5,3 +5,5 @@ ktt-shopsystem.cfg
 config.mk
 config.h
 .DS_Store
+locale/de.mo
+locale/messages.pot

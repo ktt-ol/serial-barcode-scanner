@@ -35,11 +35,11 @@ public class AudioPlayerImplementation {
 
 		var alsa = Gst.ElementFactory.make("alsasink", "alsa");
 		if (alsa == null)
-			throw new GLib.IOError.FAILED("Cannot find alsa GStreamer plugin");
+			throw new GLib.IOError.FAILED(_("Cannot find alsa GStreamer plugin"));
 
 		p = Gst.ElementFactory.make("playbin", "player");
 		if (p == null)
-			throw new GLib.IOError.FAILED("Cannot find playbin2 GStreamer plugin");
+			throw new GLib.IOError.FAILED(_("Cannot find playbin2 GStreamer plugin"));
 
 		p.set("audio-sink", alsa);
 		p.get_bus().add_watch(Priority.DEFAULT, bus_callback);

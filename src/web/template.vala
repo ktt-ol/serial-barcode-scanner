@@ -37,28 +37,28 @@ public class WebTemplate {
 		uint8[] basis, menu, template, auth;
 
 		if(!b.query_exists())
-			throw new TemplateError.NOT_FOUND(templatedir+"base.html not found!");
+			throw new TemplateError.NOT_FOUND(_("%s not found!").printf(templatedir+"base.html"));
 
 		if(!m.query_exists())
-			throw new TemplateError.NOT_FOUND(templatedir+"menu.html not found!");
+			throw new TemplateError.NOT_FOUND(_("%s not found!").printf(templatedir+"menu.html"));
 
 		if(!fauth.query_exists())
-			throw new TemplateError.NOT_FOUND(fauth.get_path()+" not found!");
+			throw new TemplateError.NOT_FOUND(_("%s not found!").printf(fauth.get_path()));
 
 		if(!f.query_exists())
-			throw new TemplateError.NOT_FOUND(templatedir+file+" not found!");
+			throw new TemplateError.NOT_FOUND(_("%s not found!").printf(templatedir+file));
 
 		try {
 			if(!b.load_contents(null, out basis, null))
-				throw new TemplateError.NOT_LOADABLE(templatedir+"base.html could not be loaded!");
+				throw new TemplateError.NOT_LOADABLE(_("%s could not be loaded!").printf(templatedir+"base.html"));
 			if(!m.load_contents(null, out menu, null))
-				throw new TemplateError.NOT_LOADABLE(templatedir+"menu.html could not be loaded!");
+				throw new TemplateError.NOT_LOADABLE(_("%s could not be loaded!").printf(templatedir+"menu.html"));
 			if(!fauth.load_contents(null, out auth, null))
-				throw new TemplateError.NOT_LOADABLE(fauth.get_path()+" could not be loaded!");
+				throw new TemplateError.NOT_LOADABLE(_("%s could not be loaded!").printf(fauth.get_path()));
 			if(!f.load_contents(null, out template, null))
-				throw new TemplateError.NOT_LOADABLE(templatedir+file+" could not be loaded!");
+				throw new TemplateError.NOT_LOADABLE(_("%s could not be loaded!").printf(templatedir+file));
 		} catch(Error e) {
-			throw new TemplateError.NOT_LOADABLE("could not load templates!");
+			throw new TemplateError.NOT_LOADABLE(_("could not load templates!"));
 		}
 
 		this.template = ((string) basis).replace("{{{NAVBAR}}}", ((string) menu));
@@ -75,13 +75,13 @@ public class WebTemplate {
 		uint8[] template;
 
 		if(!f.query_exists())
-			throw new TemplateError.NOT_FOUND(templatedir+file+" not found!");
+			throw new TemplateError.NOT_FOUND(_("%s not found!").printf(templatedir+file));
 
 		try {
 			if(!f.load_contents(null, out template, null))
-				throw new TemplateError.NOT_LOADABLE(templatedir+file+" could not be loaded!");
+				throw new TemplateError.NOT_LOADABLE(_("%s could not be loaded!").printf(templatedir+file));
 		} catch(Error e) {
-			throw new TemplateError.NOT_LOADABLE("could not load templates!");
+			throw new TemplateError.NOT_LOADABLE(_("could not load templates!"));
 		}
 
 		this.template = (string) template;

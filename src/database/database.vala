@@ -25,7 +25,7 @@ public class DataBase : Object {
 			int rc = db.prepare_v2(query, -1, out stmt);
 
 			if(rc != Sqlite.OK) {
-				error("could not prepare statement: %s", query);
+				error(_("Error: could not prepare statement: %s"), query);
 			}
 		}
 
@@ -78,7 +78,7 @@ public class DataBase : Object {
 
 		rc = Sqlite.Database.open(file, out db);
 		if(rc != Sqlite.OK) {
-			error("could not open database!");
+			error(_("Error: could not open database!"));
 		}
 
 		/* setup queries */
@@ -367,7 +367,7 @@ public class DataBase : Object {
 
 		rc = statements["purchase"].step();
 		if(rc != Sqlite.DONE)
-			throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
+			throw new DatabaseError.INTERNAL_ERROR(_("internal error: %d"), rc);
 
 		return true;
 	}
@@ -382,9 +382,9 @@ public class DataBase : Object {
 			case Sqlite.ROW:
 				return statements["product_name"].column_text(0);
 			case Sqlite.DONE:
-				throw new DatabaseError.PRODUCT_NOT_FOUND("unknown product: %llu", article);
+				throw new DatabaseError.PRODUCT_NOT_FOUND(_("unknown product: %llu"), article);
 			default:
-				throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
+				throw new DatabaseError.INTERNAL_ERROR(_("internal error: %d"), rc);
 		}
 	}
 
@@ -398,9 +398,9 @@ public class DataBase : Object {
 			case Sqlite.ROW:
 				return statements["product_category"].column_text(0);
 			case Sqlite.DONE:
-				throw new DatabaseError.PRODUCT_NOT_FOUND("unknown product: %llu", article);
+				throw new DatabaseError.PRODUCT_NOT_FOUND(_("unknown product: %llu"), article);
 			default:
-				throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
+				throw new DatabaseError.INTERNAL_ERROR(_("internal error: %d"), rc);
 		}
 	}
 
@@ -414,9 +414,9 @@ public class DataBase : Object {
 			case Sqlite.ROW:
 				return statements["product_amount"].column_int(0);
 			case Sqlite.DONE:
-				throw new DatabaseError.PRODUCT_NOT_FOUND("unknown product: %llu", article);
+				throw new DatabaseError.PRODUCT_NOT_FOUND(_("unknown product: %llu"), article);
 			default:
-				throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
+				throw new DatabaseError.INTERNAL_ERROR(_("internal error: %d"), rc);
 		}
 	}
 
@@ -430,9 +430,9 @@ public class DataBase : Object {
 			case Sqlite.ROW:
 				return statements["product_deprecated"].column_int(0) == 1;
 			case Sqlite.DONE:
-				throw new DatabaseError.PRODUCT_NOT_FOUND("unknown product: %llu", article);
+				throw new DatabaseError.PRODUCT_NOT_FOUND(_("unknown product: %llu"), article);
 			default:
-				throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
+				throw new DatabaseError.INTERNAL_ERROR(_("internal error: %d"), rc);
 		}
 	}
 
@@ -445,7 +445,7 @@ public class DataBase : Object {
 
 		rc = statements["product_set_deprecated"].step();
 		if(rc != Sqlite.DONE)
-			throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
+			throw new DatabaseError.INTERNAL_ERROR(_("internal error: %d"), rc);
 	}
 
 	public Price get_product_price(int user, uint64 article) throws DBusError, IOError, DatabaseError {
@@ -465,9 +465,9 @@ public class DataBase : Object {
 				else
 					return statements["price"].column_int(1);
 			case Sqlite.DONE:
-				throw new DatabaseError.PRODUCT_NOT_FOUND("unknown product: %llu", article);
+				throw new DatabaseError.PRODUCT_NOT_FOUND(_("unknown product: %llu"), article);
 			default:
-				throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
+				throw new DatabaseError.INTERNAL_ERROR(_("internal error: %d"), rc);
 		}
 	}
 
@@ -484,12 +484,12 @@ public class DataBase : Object {
 			case Sqlite.ROW:
 				pid = uint64.parse(statements["last_purchase"].column_text(0));
 				pname = get_product_name(pid);
-				write_to_log("Remove purchase of %s", pname);
+				stderr.printf(_("Remove purchase of %s"), pname);
 				break;
 			case Sqlite.DONE:
-				throw new DatabaseError.PRODUCT_NOT_FOUND("undo not possible without purchases");
+				throw new DatabaseError.PRODUCT_NOT_FOUND(_("undo not possible without purchases"));
 			default:
-				throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
+				throw new DatabaseError.INTERNAL_ERROR(_("internal error: %d"), rc);
 		}
 
 		statements["undo"].reset();
@@ -497,7 +497,7 @@ public class DataBase : Object {
 
 		rc = statements["undo"].step();
 		if(rc != Sqlite.DONE)
-			throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
+			throw new DatabaseError.INTERNAL_ERROR(_("internal error: %d"), rc);
 
 		return pname;
 	}
@@ -524,7 +524,7 @@ public class DataBase : Object {
 		rc = statements["stock"].step();
 
 		if(rc != Sqlite.DONE)
-			throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
+			throw new DatabaseError.INTERNAL_ERROR(_("internal error: %d"), rc);
 	}
 
 	public void new_product(uint64 id, string name, int category, int memberprice, int guestprice) throws DBusError, IOError, DatabaseError {
@@ -538,7 +538,7 @@ public class DataBase : Object {
 		if(rc == Sqlite.CONSTRAINT) {
 			throw new DatabaseError.CONSTRAINT_FAILED(db.errmsg());
 		} else if(rc != Sqlite.DONE) {
-			throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
+			throw new DatabaseError.INTERNAL_ERROR(_("internal error: %d"), rc);
 		}
 
 		new_price(id, 0, memberprice, guestprice);
@@ -553,7 +553,7 @@ public class DataBase : Object {
 		int rc = statements["price_create"].step();
 
 		if(rc != Sqlite.DONE) {
-			throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
+			throw new DatabaseError.INTERNAL_ERROR(_("internal error: %d"), rc);
 		}
 	}
 
@@ -580,7 +580,7 @@ public class DataBase : Object {
 		statements["user_auth_create"].bind_int(1, user);
 		rc = statements["user_auth_create"].step();
 		if(rc != Sqlite.DONE)
-			throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
+			throw new DatabaseError.INTERNAL_ERROR(_("internal error: %d"), rc);
 
 		/* set password */
 		statements["password_set"].reset();
@@ -588,7 +588,7 @@ public class DataBase : Object {
 		statements["password_set"].bind_int(2, user);
 		rc = statements["password_set"].step();
 		if(rc != Sqlite.DONE)
-			throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
+			throw new DatabaseError.INTERNAL_ERROR(_("internal error: %d"), rc);
 	}
 
 	public void set_sessionid(int user, string sessionid) throws DBusError, IOError, DatabaseError {
@@ -598,7 +598,7 @@ public class DataBase : Object {
 
 		int rc = statements["session_set"].step();
 		if(rc != Sqlite.DONE)
-			throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
+			throw new DatabaseError.INTERNAL_ERROR(_("internal error: %d"), rc);
 	}
 
 	public int get_user_by_sessionid(string sessionid) throws DBusError, IOError, DatabaseError {
@@ -608,7 +608,7 @@ public class DataBase : Object {
 		if(statements["session_get"].step() == Sqlite.ROW) {
 			return statements["session_get"].column_int(0);
 		} else {
-			throw new DatabaseError.SESSION_NOT_FOUND("No such session available in database!");
+			throw new DatabaseError.SESSION_NOT_FOUND(_("No such session available in database!"));
 		}
 	}
 
@@ -633,9 +633,9 @@ public class DataBase : Object {
 			result.soundTheme  = statements["userinfo"].column_text(10);
 			result.joined_at   = statements["userinfo"].column_int64(11);
 		} else if(rc == Sqlite.DONE) {
-			throw new DatabaseError.USER_NOT_FOUND("user not found");
+			throw new DatabaseError.USER_NOT_FOUND(_("user not found"));
 		} else {
-			throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
+			throw new DatabaseError.INTERNAL_ERROR(_("internal error: %d"), rc);
 		}
 
 		statements["rfid_userid"].reset();
@@ -672,7 +672,7 @@ public class DataBase : Object {
 		} else if(rc == Sqlite.DONE) {
 			/* entry not found, we return defaults */
 		} else {
-			throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
+			throw new DatabaseError.INTERNAL_ERROR(_("internal error: %d"), rc);
 		}
 
 		return result;
@@ -686,7 +686,7 @@ public class DataBase : Object {
 		statements["user_auth_create"].bind_int(1, auth.id);
 		rc = statements["user_auth_create"].step();
 		if(rc != Sqlite.DONE)
-			throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
+			throw new DatabaseError.INTERNAL_ERROR(_("internal error: %d"), rc);
 
 		/* set authentication */
 		statements["userauth_set"].reset();
@@ -697,7 +697,7 @@ public class DataBase : Object {
 
 		rc = statements["userauth_set"].step();
 		if(rc != Sqlite.DONE)
-			throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
+			throw new DatabaseError.INTERNAL_ERROR(_("internal error: %d"), rc);
 	}
 
 	public string get_username(int user) throws DBusError, IOError, DatabaseError {
@@ -707,7 +707,7 @@ public class DataBase : Object {
 		if(statements["username"].step() == Sqlite.ROW) {
 			return statements["username"].column_text(0)+" "+statements["username"].column_text(1);
 		} else {
-			throw new DatabaseError.USER_NOT_FOUND("No such user available in database!");
+			throw new DatabaseError.USER_NOT_FOUND(_("No such user available in database!"));
 		}
 	}
 
@@ -719,7 +719,7 @@ public class DataBase : Object {
 		if(statements["user_theme_get"].step() == Sqlite.ROW) {
 			return statements["user_theme_get"].column_text(0);
 		} else {
-			throw new DatabaseError.USER_NOT_FOUND("No such user available in database!");
+			throw new DatabaseError.USER_NOT_FOUND(_("No such user available in database!"));
 		}
 	}
 
@@ -734,7 +734,7 @@ public class DataBase : Object {
 
 		int rc = statements["user_theme_set"].step();
 		if(rc != Sqlite.DONE)
-			throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
+			throw new DatabaseError.INTERNAL_ERROR(_("internal error: %d"), rc);
 	}
 
 	public InvoiceEntry[] get_invoice(int user, int64 from=0, int64 to=-1) throws DBusError, IOError, DatabaseError {
@@ -762,7 +762,7 @@ public class DataBase : Object {
 		}
 
 		if(rc != Sqlite.DONE) {
-			throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
+			throw new DatabaseError.INTERNAL_ERROR(_("internal error: %d"), rc);
 		}
 
 		return result;
@@ -881,7 +881,7 @@ public class DataBase : Object {
 		statements["user_auth_create"].bind_int(1, user);
 		rc = statements["user_auth_create"].step();
 		if(rc != Sqlite.DONE)
-			throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
+			throw new DatabaseError.INTERNAL_ERROR(_("internal error: %d"), rc);
 
 		/* set disabled flag */
 		statements["user_disable"].reset();
@@ -889,7 +889,7 @@ public class DataBase : Object {
 		statements["user_disable"].bind_int(2, user);
 		rc = statements["user_disable"].step();
 		if(rc != Sqlite.DONE)
-			throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
+			throw new DatabaseError.INTERNAL_ERROR(_("internal error: %d"), rc);
 	}
 
 	public void user_replace(UserInfo u) throws DBusError, IOError, DatabaseError {
@@ -910,13 +910,13 @@ public class DataBase : Object {
 
 		int rc = statements["user_replace"].step();
 		if(rc != Sqlite.DONE)
-			throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
+			throw new DatabaseError.INTERNAL_ERROR(_("internal error: %d"), rc);
 
 		statements["rfid_delete_user"].reset();
 		statements["rfid_delete_user"].bind_int(1, u.id);
 		rc = statements["rfid_delete_user"].step();
 		if(rc != Sqlite.DONE)
-			throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
+			throw new DatabaseError.INTERNAL_ERROR(_("internal error: %d"), rc);
 
 		foreach (string rfid in u.rfid) {
 			statements["rfid_insert"].reset();
@@ -924,7 +924,7 @@ public class DataBase : Object {
 			statements["rfid_insert"].bind_text(2, rfid);
 			rc = statements["rfid_insert"].step();
 			if(rc != Sqlite.DONE)
-				throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
+				throw new DatabaseError.INTERNAL_ERROR(_("internal error: %d"), rc);
 		}
 	}
 
@@ -1025,7 +1025,7 @@ public class DataBase : Object {
 		int rc = statements["supplier_add"].step();
 
 		if(rc != Sqlite.DONE) {
-			throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
+			throw new DatabaseError.INTERNAL_ERROR(_("internal error: %d"), rc);
 		}
 	}
 
@@ -1076,7 +1076,7 @@ public class DataBase : Object {
 		int rc = statements["cashbox_add"].step();
 
 		if(rc != Sqlite.DONE) {
-			throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
+			throw new DatabaseError.INTERNAL_ERROR(_("internal error: %d"), rc);
 		}
 	}
 
@@ -1126,7 +1126,7 @@ public class DataBase : Object {
 		int rc = statements["alias_ean_add"].step();
 
 		if(rc != Sqlite.DONE) {
-			throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
+			throw new DatabaseError.INTERNAL_ERROR(_("internal error: %d"), rc);
 		}
 	}
 
@@ -1207,9 +1207,9 @@ public class DataBase : Object {
 			case Sqlite.ROW:
 				return statements["userid_rfid"].column_int(0);
 			case Sqlite.DONE:
-				throw new DatabaseError.RFID_NOT_FOUND("unknown rfid: %s", rfid);
+				throw new DatabaseError.RFID_NOT_FOUND(_("unknown rfid: %s"), rfid);
 			default:
-				throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
+				throw new DatabaseError.INTERNAL_ERROR(_("internal error: %d"), rc);
 		}
 	}
 }

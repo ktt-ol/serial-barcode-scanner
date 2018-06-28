@@ -18,24 +18,27 @@ AudioPlayerImplementation player;
 public static int main(string[] args) {
 	Gst.init(ref args);
 
+	Intl.setlocale(LocaleCategory.ALL, "");
+	Intl.textdomain("shopsystem");
+
 	Bus.own_name(
 		BusType.SYSTEM,
 		"io.mainframe.shopsystem.AudioPlayer",
 		BusNameOwnerFlags.NONE,
-		on_bus_aquired,
+		on_bus_acquired,
 		() => {},
-		() => stderr.printf("Could not aquire name\n"));
+		() => stderr.printf(_("Could not acquire name\n")));
 
 	try {
 		Config cfg = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Config", "/io/mainframe/shopsystem/config");
 		var path = cfg.get_string("AUDIO", "path");
 		player = new AudioPlayerImplementation(path);
 	} catch(IOError e) {
-		error("IOError: %s\n", e.message);
+		error(_("IO Error: %s\n"), e.message);
 	} catch(KeyFileError e) {
-		error("Config Error: %s\n", e.message);
+		error(_("Config Error: %s\n"), e.message);
 	} catch(DBusError e) {
-		error("DBus Error: %s\n", e.message);
+		error(_("DBus Error: %s\n"), e.message);
 	}
 
 	new MainLoop().run();
@@ -43,10 +46,10 @@ public static int main(string[] args) {
 	return 0;
 }
 
-void on_bus_aquired(DBusConnection con) {
+void on_bus_acquired(DBusConnection con) {
     try {
         con.register_object("/io/mainframe/shopsystem/audio", player);
     } catch(IOError e) {
-        stderr.printf("Could not register service\n");
+        stderr.printf(_("Could not register service\n"));
     }
 }

@@ -6,10 +6,10 @@ all: pdf-stock
 	@echo > /dev/null
 
 pdf-stock: main.vala pdf-stock.vala ../database/db-interface.vala ../price.vapi ../../libcairobarcode/libcairobarcode.vapi
-	${VALAC} -X -w ${LIBCAIROBARCODE} -o $@ --pkg cairo --pkg pangocairo --pkg gio-2.0 --pkg posix $^
+	${VALAC} -X -D'GETTEXT_PACKAGE="shopsystem"' -X -w ${LIBCAIROBARCODE} -o $@ --pkg cairo --pkg pangocairo --pkg gio-2.0 --pkg posix $^
 
 test: test.vala pdf-stock-interface.vala
-	${VALAC} -X -w -o $@ --pkg gio-2.0 $^
+	${VALAC} -X -D'GETTEXT_PACKAGE="shopsystem"' -X -w -o $@ --pkg gio-2.0 $^
 
 run: pdf-stock
 	LD_LIBRARY_PATH=../../libcairobarcode ./pdf-stock

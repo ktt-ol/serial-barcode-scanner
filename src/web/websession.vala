@@ -128,9 +128,9 @@ public class WebSession {
 			return;
 		}
 		var form_data = Soup.Form.decode((string) msg.request_body.data);
-		if (form_data == null || !form_data.contains("user") || !form_data.contains("password")) {		
-			return;					
-		}			
+		if (form_data == null || !form_data.contains("user") || !form_data.contains("password")) {
+			return;
+		}
 
 
 		/* get credentials */
@@ -162,7 +162,7 @@ public class WebSession {
 
 			setup_auth(user);
 		} else {
-			stderr.printf("Login for user id %d failed\n", userid);
+			stderr.printf(_("Login for user id %d failed\n"), userid);
 			/* login failed */
 			failed=true;
 		}

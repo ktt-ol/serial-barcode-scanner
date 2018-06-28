@@ -24,7 +24,7 @@ public class Device {
 
 	public Device(string device) {
 		if (device == "ignore") {
-			stdout.printf("Ignoring InputDevice!\n");
+			stdout.printf(_("Ignoring InputDevice!\n"));
 			return;
 		}
 		try {
@@ -37,10 +37,10 @@ public class Device {
 			Posix.fcntl(fd, Posix.F_SETFL, flags | Posix.O_NONBLOCK);
 
 			if(!(io_read.add_watch(IOCondition.IN | IOCondition.HUP, device_read) != 0)) {
-				error("Could not bind IOChannel");
+				error(_("Could not bind IOChannel"));
 			}
 		} catch(FileError e) {
-			error("FileError: %s", e.message);
+			error(_("File Error: %s"), e.message);
 		}
 	}
 
@@ -212,7 +212,7 @@ public class Device {
 		char key = '\0';
 
 		if((cond & IOCondition.HUP) == IOCondition.HUP)
-			error("Lost device");
+			error(_("Lost device"));
 
 		do {
 			int fd = source.unix_get_fd();
@@ -221,7 +221,7 @@ public class Device {
 			/* short read */
 			if (s != sizeof(Linux.Input.Event)) {
 				if(s > 0)
-					stdout.printf("short read!\n");
+					stdout.printf(_("short read!\n"));
 				return true;
 			}
 
@@ -246,7 +246,7 @@ public class Device {
 				buffer += "%c".printf(key);
 		} while(key != '\n');
 
-		stdout.printf("barcode: %s\n", buffer);
+		stdout.printf(_("barcode: %s\n"), buffer);
 
 		if(buffer.has_prefix("USER ") || buffer.has_prefix("STOCK") || buffer.has_prefix("AMOUNT ")) {
 			if(!check_code39_checksum(buffer))

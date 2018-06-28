@@ -249,7 +249,7 @@ public class InvoiceImplementation {
 		try {
 			FileUtils.get_contents(datadir + "/treasurer.mail.txt", out text);
 		} catch(GLib.FileError e) {
-			throw new IOError.FAILED("Could not open invoice template: %s", e.message);
+			throw new IOError.FAILED(_("Could not open invoice template: %s"), e.message);
 		}
 
 		text = text.replace("{{{SHORTNAME}}}", shortname);
@@ -311,12 +311,12 @@ public class InvoiceImplementation {
 			table = generate_invoice_table_html(entries);
 
 		if(filename == "")
-			throw new IOError.FAILED("Unknown MessageType");
+			throw new IOError.FAILED(_("Unknown MessageType"));
 
 		try {
 			FileUtils.get_contents(datadir + "/" + filename, out text);
 		} catch(GLib.FileError e) {
-			throw new IOError.FAILED("Could not open invoice template: %s", e.message);
+			throw new IOError.FAILED(_("Could not open invoice template: %s"), e.message);
 		}
 
 		text = text.replace("{{{ADDRESS}}}", address);
@@ -335,7 +335,7 @@ public class InvoiceImplementation {
 			try {
 				FileUtils.get_contents(datadir + "/" + vattextfilename, out vattext);
 			} catch(GLib.FileError e) {
-				throw new IOError.FAILED("Could not open VAT template: %s", e.message);
+				throw new IOError.FAILED(_("Could not open VAT template: %s"), e.message);
 			}
 
 			text = text.replace("{{{VAT}}}", vattext);

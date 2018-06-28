@@ -28,7 +28,7 @@ public class Logo {
 		var file = File.new_for_path (binarylocation + "/../../logo.txt");
 
 		if (!file.query_exists ()) {
-			stderr.printf ("File '%s' doesn't exist.\n", file.get_path ());
+			stderr.printf (_("File '%s' doesn't exist.\n"), file.get_path ());
 		}
 
 		try {
@@ -41,7 +41,7 @@ public class Logo {
 				win.addstr(line+"\n");
 			}
 		} catch (Error e) {
-			error ("%s", e.message);
+			error (_("Error: %s"), e.message);
 		}
 
 		win.clrtobot();

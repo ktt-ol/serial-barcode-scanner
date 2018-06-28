@@ -16,13 +16,16 @@
 ScannerSessionImplementation session;
 
 public static int main(string[] args) {
+	Intl.setlocale(LocaleCategory.ALL, "");
+	Intl.textdomain("shopsystem");
+
 	Bus.own_name(
 		BusType.SYSTEM,
 		"io.mainframe.shopsystem.ScannerSession",
 		BusNameOwnerFlags.NONE,
-		on_bus_aquired,
+		on_bus_acquired,
 		() => {},
-		() => stderr.printf("Could not aquire name\n"));
+		() => stderr.printf(_("Could not acquire name\n")));
 
 	session = new ScannerSessionImplementation();
 
@@ -31,10 +34,10 @@ public static int main(string[] args) {
 	return 0;
 }
 
-void on_bus_aquired(DBusConnection con) {
+void on_bus_acquired(DBusConnection con) {
     try {
         con.register_object("/io/mainframe/shopsystem/scanner_session", session);
     } catch(IOError e) {
-        stderr.printf("Could not register service\n");
+        stderr.printf(_("Could not register service\n"));
     }
 }

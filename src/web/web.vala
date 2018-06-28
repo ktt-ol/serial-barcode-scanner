@@ -1140,7 +1140,7 @@ public class WebServer {
 				return;
 			}
 		} catch(Error e) {
-			error("there has been some error: %s!\n", e.message);
+			error(_("Error: %s\n"), e.message);
 		}
 
 		handler_404(server, msg, path, query, client);
@@ -1479,7 +1479,7 @@ public class WebServer {
 			options |= Soup.ServerListenOptions.HTTPS;
 
 		if(!srv.listen_all(port, options)) {
-			throw new GLib.IOError.FAILED("Could not setup webserver!");
+			throw new GLib.IOError.FAILED(_("Could not setup webserver!"));
 		}
 
 		/* index */

@@ -76,7 +76,7 @@ public class MailerImplementation {
 			var cfgport	= config.get_integer("MAIL", "port");
 			server   = @"$cfgserv:$cfgport";
 		} catch(KeyFileError e) {
-			throw new IOError.FAILED("server or port configuration is missing");
+			throw new IOError.FAILED(_("server or port configuration is missing"));
 		}
 
 		try {
@@ -96,7 +96,7 @@ public class MailerImplementation {
 		/* setup server */
 		result = session.set_server(server);
 		if(result == 0)
-			throw new IOError.FAILED("could not setup server");
+			throw new IOError.FAILED(_("could not setup server"));
 
 		/* Use TLS if possible */
 		if (starttls)
@@ -104,7 +104,7 @@ public class MailerImplementation {
 		else
 			result = session.starttls_enable(Smtp.StartTlsOption.DISABLED);
 		if(result == 0)
-			throw new IOError.FAILED("could not configure STARTTLS");
+			throw new IOError.FAILED(_("could not configure STARTTLS"));
 
 		/* setup authentication */
 		if(username != "") {
@@ -138,7 +138,7 @@ public class MailerImplementation {
 
 	public void delete_mail(string path) throws DBusError, IOError {
 		if(!(path in mails))
-			throw new IOError.NOT_FOUND("No such mail");
+			throw new IOError.NOT_FOUND(_("No such mail"));
 
 		mail_bus.unregister_object(mails[path].registration_id);
 		mails.remove(path);
@@ -146,7 +146,7 @@ public class MailerImplementation {
 
 	public void send_mail(string path) throws DBusError, IOError {
 		if(!(path in mails))
-			throw new IOError.NOT_FOUND("No such mail");
+			throw new IOError.NOT_FOUND(_("No such mail"));
 
 		send_queue.push_tail(mails[path].mail);
 		delete_mail(path);
@@ -173,11 +173,11 @@ public class MailerImplementation {
 
 		int result = session.start_session();
 		if(result == 0)
-			throw new IOError.FAILED("eSMTP: Start Session failed!");
+			throw new IOError.FAILED(_("eSMTP: Start Session failed!"));
 
 		unowned Smtp.Status status = message.transfer_status();
 		if(status.code < 200 || status.code >= 300)
-			throw new IOError.FAILED("Reply from SMTP-Server: %s", status.text);
+			throw new IOError.FAILED(_("Reply from SMTP-Server: %s"), status.text);
 
 		current_mail = null;
 

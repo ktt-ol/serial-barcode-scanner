@@ -120,7 +120,7 @@ public class PGPKeyArchive {
 			keydata.read(data);
 			return (string) data;
 		} else {
-			stdout.printf("error!\n");
+			stdout.printf(_("Error!\n"));
 			return "";
 		}
 	}

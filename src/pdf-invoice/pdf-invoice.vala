@@ -78,7 +78,7 @@ public class InvoicePDF {
 			var svg = new Rsvg.Handle.from_file(file);
 			svg.render_cairo(ctx);
 		} catch(Error e) {
-			error("Could not load SVG: %s\n", e.message);
+			error(_("Could not load SVG: %s\n"), e.message);
 		}
 	}
 
@@ -376,7 +376,7 @@ public class InvoicePDF {
 				try {
 					FileUtils.get_contents(datadir + "/" + "vat.txt", out vattext);
 				} catch(GLib.FileError e) {
-					throw new IOError.FAILED("Could not open VAT template: %s", e.message);
+					throw new IOError.FAILED(_("Could not open VAT template: %s"), e.message);
 				}
 
 				text = text.replace("{{{VAT}}}", vattext);
@@ -384,7 +384,7 @@ public class InvoicePDF {
 
 			layout.set_markup(text, text.length);
 		} catch(GLib.FileError e) {
-			error("File Error: %s\n", e.message);
+			error(_("File Error: %s\n"), e.message);
 		}
 
 		/* render text */
@@ -468,11 +468,11 @@ public class InvoicePDF {
 		var price = @"$(e.price)€".replace(".", ",");
 
 		if(e.price > 999999) {
-			throw new InvoicePDFError.PRICE_TOO_HIGH("Prices > 9999.99€ are not supported!");
+			throw new InvoicePDFError.PRICE_TOO_HIGH(_("Prices > 9999.99€ are not supported!"));
 		}
 
 		if(tm.get_year() > 9999) {
-			throw new InvoicePDFError.TOO_FAR_IN_THE_FUTURE("Years after 9999 are not supported!");
+			throw new InvoicePDFError.TOO_FAR_IN_THE_FUTURE(_("Years after 9999 are not supported!"));
 		}
 
 		/* if date remains the same do not add it again */
@@ -588,7 +588,7 @@ public class InvoicePDF {
 
 				/* retry adding the entry */
 				if(!draw_invoice_table_entry(ctx, y, entry, out y)) {
-					throw new InvoicePDFError.ARTICLE_NAME_TOO_LONG("Article name \"%s\" does not fit on a single page!", entry.product.name);
+					throw new InvoicePDFError.ARTICLE_NAME_TOO_LONG(_("Article name \"%s\" does not fit on a single page!"), entry.product.name);
 				}
 			}
 		}
@@ -625,16 +625,16 @@ public class InvoicePDF {
 		var ctx = new Cairo.Context(document);
 
 		if(invoice_id == "")
-			throw new InvoicePDFError.NO_INVOICE_ID("No invoice ID given!");
+			throw new InvoicePDFError.NO_INVOICE_ID(_("No invoice ID given!"));
 
 		if(invoice_entries == null)
-			throw new InvoicePDFError.NO_INVOICE_DATA("No invoice data given!");
+			throw new InvoicePDFError.NO_INVOICE_DATA(_("No invoice data given!"));
 
 		if(invoice_date == 0)
-			throw new InvoicePDFError.NO_INVOICE_DATE("No invoice date given!");
+			throw new InvoicePDFError.NO_INVOICE_DATE(_("No invoice date given!"));
 
 		if(invoice_recipient.firstname == "" && invoice_recipient.lastname == "")
-			throw new InvoicePDFError.NO_INVOICE_RECIPIENT("No invoice recipient given!");
+			throw new InvoicePDFError.NO_INVOICE_RECIPIENT(_("No invoice recipient given!"));
 
 		/* first page */
 		draw_logo(ctx);

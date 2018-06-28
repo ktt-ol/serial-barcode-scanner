@@ -19,9 +19,11 @@ public static int main(string args[]) {
 		var pdfdata = stock.generate();
 		FileUtils.set_contents("test.pdf", (string) pdfdata, pdfdata.length);
 	} catch(IOError e) {
-		error("IOError: %s", e.message);
+		error(_("IO Error: %s"), e.message);
 	} catch(FileError e) {
-		error("FileError: %s", e.message);
+		error(_("File Error: %s"), e.message);
+	} catch(DBusError e) {
+		error(_("DBus Error: %s"), e.message);
 	}
 
 	return 0;

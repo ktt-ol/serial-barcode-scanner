@@ -36,11 +36,11 @@ public class Device {
 				if(lockfile.load_contents(null, out data, null)) {
 					pid = int.parse((string) data);
 				} else {
-					error("Can't read lock file!\n");
+					error(_("Can't read lock file!\n"));
 				}
 
 				if(Posix.kill(pid, 0) == 0) {
-					error("serial device is locked!\n");
+					error(_("serial device is locked!\n"));
 				}
 			}
 
@@ -52,11 +52,11 @@ public class Device {
 			if(fd < 0) {
 				fd = -1;
 				lockfile.delete();
-				error("Could not open device!\n");
+				error(_("Could not open device!\n"));
 			}
 
 		} catch(Error e) {
-			error("Could not create lock file: %s!\n", e.message);
+			error(_("Could not create lock file: %s!\n"), e.message);
 		}
 
 
@@ -160,12 +160,12 @@ public class Device {
 			io_read = new IOChannel.unix_new(fd);
 			io_read.set_line_term("\r\n", 2);
 			if(io_read.set_encoding(null) != IOStatus.NORMAL)
-				error("Failed to set encoding");
+				error(_("Failed to set encoding"));
 			if(!(io_read.add_watch(IOCondition.IN | IOCondition.HUP, device_read) != 0)) {
-				error("Could not bind IOChannel");
+				error(_("Could not bind IOChannel"));
 			}
 		} catch(IOChannelError e) {
-			error("IOChannel: %s", e.message);
+			error(_("IOChannel: %s"), e.message);
 		}
 	}
 
@@ -186,7 +186,7 @@ public class Device {
 		size_t len, term_char;
 
 		if((cond & IOCondition.HUP) == IOCondition.HUP)
-			error("Lost device");
+			error(_("Lost device"));
 
 		try {
 			ret = gio.read_line(out msg, out len, out term_char);
@@ -204,11 +204,11 @@ public class Device {
 				received_barcode(msg);
 		}
 		catch(IOChannelError e) {
-			stderr.printf("IOChannel Error: %s", e.message);
+			stderr.printf(_("IOChannel Error: %s"), e.message);
 			return false;
 		}
 		catch(ConvertError e) {
-			stderr.printf("Convert Error: %s", e.message);
+			stderr.printf(_("Convert Error: %s"), e.message);
 			return false;
 		}
 		return true;

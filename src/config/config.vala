@@ -23,7 +23,7 @@ public class Cfg {
 			this.file = new KeyFile();
 			this.file.load_from_file(file, KeyFileFlags.NONE);
 		} catch(Error e) {
-			error("Could not load configuration file: %s", e.message);
+			error(_("Could not load configuration file: %s"), e.message);
 		}
 	}
 

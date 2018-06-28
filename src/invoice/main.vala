@@ -16,11 +16,14 @@
 InvoiceImplementation invoice;
 
 public static void help(string name) {
-	stderr.printf("Usage: %s <temporary> [timestamp]\n", name);
-	stderr.printf("Possible values for <temporary>: temporary, final\n");
+	stderr.printf(_("Usage: %s <temporary> [timestamp]\n"), name);
+	stderr.printf(_("Possible values for <temporary>: temporary, final\n"));
 }
 
 public static int main(string[] args) {
+	Intl.setlocale(LocaleCategory.ALL, "");
+	Intl.textdomain("shopsystem");
+
 	bool temporary = false;
 	int64 timestamp = new DateTime.now_local().to_unix();
 
@@ -45,14 +48,14 @@ public static int main(string[] args) {
 	try {
 		invoice = new InvoiceImplementation();
 	} catch(Error e) {
-		stderr.printf("Error: %s\n", e.message);
+		stderr.printf(_("Error: %s\n"), e.message);
 		return 1;
 	}
 
 	try {
 		invoice.send_invoices(temporary, timestamp);
 	} catch(Error e) {
-		stderr.printf("Error: %s\n", e.message);
+		stderr.printf(_("Error: %s\n"), e.message);
 		return 1;
 	}
 

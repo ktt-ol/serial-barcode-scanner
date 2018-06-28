@@ -14,6 +14,9 @@
  */
 
 public static int main(string[] args) {
+	Intl.setlocale(LocaleCategory.ALL, "");
+	Intl.textdomain("shopsystem");
+
 	try {
 		Mailer mailer = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Mail", "/io/mainframe/shopsystem/mailer");
 		Config cfg = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Config", "/io/mainframe/shopsystem/config");
@@ -35,7 +38,7 @@ public static int main(string[] args) {
 
 		mailer.send_mail(mailpath);
 	} catch(Error e) {
-		stderr.printf("Error: %s\n", e.message);
+		stderr.printf(_("Error: %s\n"), e.message);
 	}
 
 	return 0;

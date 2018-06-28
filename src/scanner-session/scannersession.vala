@@ -17,7 +17,7 @@
 [DBus (name = "io.mainframe.shopsystem.ScannerSession")]
 public class ScannerSessionImplementation {
   private int user = 0;
-  private string name = "Guest";
+  private string name = _("Guest");
   private bool logged_in = false;
   private bool disabled = false;
   private string theme = "beep";
@@ -46,7 +46,7 @@ public class ScannerSessionImplementation {
       devRfid.received_barcode.connect(handle_barcode);
       cli.received_barcode.connect(handle_barcode);
     } catch(IOError e) {
-      error("IOError: %s\n", e.message);
+      error(_("IO Error: %s\n"), e.message);
     }
   }
 
@@ -63,7 +63,7 @@ public class ScannerSessionImplementation {
       this.name      = db.get_username(user);
       this.disabled  = db.user_is_disabled(user);
     } catch(DatabaseError e) {
-      send_message(MessageType.ERROR, "Error (user=%d): %s", user, e.message);
+      send_message(MessageType.ERROR, _("Error (user=%d): %s"), user, e.message);
       return false;
     }
     this.logged_in = true;
@@ -132,13 +132,13 @@ public class ScannerSessionImplementation {
         int32 userid = int.parse(scannerdata.substring(5));
         if(login(userid)) {
           scannerResult.type = MessageType.INFO;
-          scannerResult.message = "Login: %s (%d)".printf(name, user);
+          scannerResult.message = _("Login: %s (%d)").printf(name, user);
           scannerResult.audioType = AudioType.LOGIN;
           shoppingCard = {};
           state = ScannerSessionState.USER;
         } else {
           scannerResult.type = MessageType.ERROR;
-          scannerResult.message = "Login failed (User ID = %d)".printf(userid);
+          scannerResult.message = _("Login failed (User ID = %d)").printf(userid);
           scannerResult.audioType = AudioType.ERROR;
           state = ScannerSessionState.READY;
         }
@@ -146,13 +146,13 @@ public class ScannerSessionImplementation {
       case ScannerSessionCodeType.GUEST:
         if(login(0)) {
           scannerResult.type = MessageType.INFO;
-          scannerResult.message = "Login as GUEST";
+          scannerResult.message = _("Login as GUEST");
           scannerResult.audioType = AudioType.LOGIN;
           shoppingCard = {};
           state = ScannerSessionState.USER;
         } else {
           scannerResult.type = MessageType.ERROR;
-          scannerResult.message = "Login failed as GUEST";
+          scannerResult.message = _("Login failed as GUEST");
           scannerResult.audioType = AudioType.ERROR;
           state = ScannerSessionState.READY;
         }
@@ -165,17 +165,17 @@ public class ScannerSessionImplementation {
           p = db.get_product_for_ean(ean);
         } catch(IOError e) {
           scannerResult.type = MessageType.ERROR;
-          scannerResult.message = "Internal Error!";
+          scannerResult.message = _("Internal Error!");
           scannerResult.audioType = AudioType.ERROR;
           return scannerResult;
         } catch(DatabaseError e) {
           if(e is DatabaseError.PRODUCT_NOT_FOUND) {
             scannerResult.type = MessageType.ERROR;
-            scannerResult.message = "Error: unknown product: %llu".printf(ean);
+            scannerResult.message = _("Error: unknown product: %llu").printf(ean);
             scannerResult.audioType = AudioType.ERROR;
           } else {
             scannerResult.type = MessageType.ERROR;
-            scannerResult.message = "Error: %s".printf(e.message);
+            scannerResult.message = _("Error: %s").printf(e.message);
             scannerResult.audioType = AudioType.ERROR;
           }
           return scannerResult;
@@ -186,13 +186,13 @@ public class ScannerSessionImplementation {
         var pname = p.name;
 
         scannerResult.type = MessageType.INFO;
-        scannerResult.message = @"article info: $pname (Member: $mprice €, Guest: $gprice €)";
+        scannerResult.message = _("article info: %s (Member: %s €, Guest: %s €").printf(@"$pname", @"$mprice", @"$gprice");
         scannerResult.audioType = AudioType.ERROR;
         state = ScannerSessionState.READY;
         return scannerResult;
       case ScannerSessionCodeType.RFIDEM4100:
           int user = db.get_userid_for_rfid(scannerdata);
-          scannerResult.nextScannerdata =@"USER $user";
+          scannerResult.nextScannerdata = @"USER $user";
           return scannerResult;
       default:
         state = ScannerSessionState.READY;
@@ -212,17 +212,17 @@ public class ScannerSessionImplementation {
           p = db.get_product_for_ean(ean);
           } catch(IOError e) {
             scannerResult.type = MessageType.ERROR;
-            scannerResult.message = "Internal Error!";
+            scannerResult.message = _("Internal Error!");
             scannerResult.audioType = AudioType.ERROR;
             return scannerResult;
           } catch(DatabaseError e) {
             if(e is DatabaseError.PRODUCT_NOT_FOUND) {
               scannerResult.type = MessageType.ERROR;
-              scannerResult.message = "Error: unknown product: %llu".printf(ean);
+              scannerResult.message = _("Error: unknown product: %llu").printf(ean);
               scannerResult.audioType = AudioType.ERROR;
             } else {
               scannerResult.type = MessageType.ERROR;
-              scannerResult.message = "Error: %s".printf(e.message);
+              scannerResult.message = _("Error: %s").printf(e.message);
               scannerResult.audioType = AudioType.ERROR;
             }
             return scannerResult;
@@ -237,7 +237,7 @@ public class ScannerSessionImplementation {
         }
 
         scannerResult.type = MessageType.INFO;
-        scannerResult.message = @"article added to shopping card: $(p.name) ($price €)";
+        scannerResult.message = _("article added to shopping card: %s (%s €)").printf(@"$(p.name)", @"$price");
         scannerResult.audioType = AudioType.PURCHASE;
         state = ScannerSessionState.USER;
         break;
@@ -246,11 +246,11 @@ public class ScannerSessionImplementation {
           var removedProduct = shoppingCard[shoppingCard.length-1];
           shoppingCard = shoppingCard[0:shoppingCard.length-1];
           scannerResult.type = MessageType.INFO;
-          scannerResult.message = @"removed last Item from Shopping Cart: $(removedProduct.name)";
+          scannerResult.message = _("removed last Item from Shopping Cart: %s").printf(@"$(removedProduct.name)");
           scannerResult.audioType = AudioType.INFO;
         } else {
           scannerResult.type = MessageType.INFO;
-          scannerResult.message = @"No more Items on your Shopping Cart";
+          scannerResult.message = _("No more Items on your Shopping Cart");
           scannerResult.audioType = AudioType.ERROR;
         }
         break;
@@ -286,7 +286,7 @@ public class ScannerSessionImplementation {
       totalPrice += price;
     }
     scannerResult.type = MessageType.INFO;
-    scannerResult.message = @"$name bought $amountOfItems items for $totalPrice €";
+    scannerResult.message = @_("%s bought %d items for %s €").printf(@"$name", amountOfItems, @"$totalPrice");
     scannerResult.audioType = AudioType.INFO;
     return scannerResult;
   }
@@ -297,11 +297,11 @@ public class ScannerSessionImplementation {
       if(interpret(scannerdata))
         devScanner.blink(1000);
     } catch(DBusError e) {
-      send_message(MessageType.ERROR, "DBusError: %s", e.message);
+      send_message(MessageType.ERROR, _("DBus Error: %s"), e.message);
     } catch(IOError e) {
-      send_message(MessageType.ERROR, "IOError: %s", e.message);
+      send_message(MessageType.ERROR, _("IO Error: %s"), e.message);
     } catch(DatabaseError e) {
-      send_message(MessageType.ERROR, "DatabaseError: %s", e.message);
+      send_message(MessageType.ERROR, _("Database Error: %s"), e.message);
     }
   }
 
@@ -331,6 +331,4 @@ public class ScannerSessionImplementation {
     state = ScannerSessionState.READY;
     return scannerResult;
   }
-
-
 }

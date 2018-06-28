@@ -16,34 +16,37 @@
 private string datadir;
 
 public static int main(string[] args) {
+	Intl.setlocale(LocaleCategory.ALL, "");
+	Intl.textdomain("shopsystem");
+
 	try {
 		Config cfg = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Config", "/io/mainframe/shopsystem/config");
 		datadir = cfg.get_string("INVOICE", "datadir");
 	} catch(DBusError e) {
-		error("DBusError: %s\n", e.message);
+		error(_("DBus Error: %s\n"), e.message);
 	} catch(IOError e) {
-		error("IOError: %s\n", e.message);
+		error(_("IO Error: %s\n"), e.message);
 	} catch(KeyFileError e) {
-		error("Config Error: %s\n", e.message);
+		error(_("Config Error: %s\n"), e.message);
 	}
 
 	Bus.own_name(
 		BusType.SYSTEM,
 		"io.mainframe.shopsystem.InvoicePDF",
 		BusNameOwnerFlags.NONE,
-		on_bus_aquired,
+		on_bus_acquired,
 		() => {},
-		() => stderr.printf("Could not aquire name\n"));
+		() => stderr.printf(_("Could not acquire name\n")));
 
 	new MainLoop().run();
 
 	return 0;
 }
 
-void on_bus_aquired(DBusConnection conn) {
+void on_bus_acquired(DBusConnection conn) {
     try {
         conn.register_object("/io/mainframe/shopsystem/invoicepdf", new InvoicePDF(datadir));
     } catch(Error e) {
-        stderr.printf("Could not register service: %s\n", e.message);
+        stderr.printf(_("Could not register service: %s\n"), e.message);
     }
 }

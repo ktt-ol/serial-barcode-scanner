@@ -17,30 +17,33 @@ MailerImplementation m;
 DBusConnection mail_bus;
 
 public static int main(string[] args) {
+	Intl.setlocale(LocaleCategory.ALL, "");
+	Intl.textdomain("shopsystem");
+
 	try {
 		m = new MailerImplementation();
 	} catch(Error e) {
-		stderr.printf("Error: %s\n", e.message);
+		stderr.printf(_("Error: %s\n"), e.message);
 	}
 
 	Bus.own_name(
 		BusType.SYSTEM,
 		"io.mainframe.shopsystem.Mail",
 		BusNameOwnerFlags.NONE,
-		on_mail_bus_aquired,
+		on_mail_bus_acquired,
 		() => {},
-		() => stderr.printf("Error: Could not aquire name\n"));
+		() => stderr.printf(_("Error: Could not acquire name\n")));
 
 	new MainLoop().run();
 
 	return 0;
 }
 
-void on_mail_bus_aquired(DBusConnection con) {
+void on_mail_bus_acquired(DBusConnection con) {
     try {
 		mail_bus = con;
         con.register_object("/io/mainframe/shopsystem/mailer", m);
     } catch(IOError e) {
-        stderr.printf("Error: Could not register service\n");
+        stderr.printf(_("Error: Could not register service\n"));
     }
 }
