@@ -21,7 +21,8 @@ public static int main(string[] args) {
 
 	try {
 		Config cfg = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Config", "/io/mainframe/shopsystem/config");
-		datadir = cfg.get_string("INVOICE", "datadir");
+		var datapath = cfg.get_string("GENERAL", "datapath");
+		datadir = Path.build_filename(datapath, "invoice");
 	} catch(DBusError e) {
 		error(_("DBus Error: %s\n"), e.message);
 	} catch(IOError e) {

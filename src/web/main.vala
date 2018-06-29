@@ -34,7 +34,8 @@ public static int main(string[] args) {
 		pgp = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.PGP", "/io/mainframe/shopsystem/pgp");
 		cfg = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Config", "/io/mainframe/shopsystem/config");
 		audio = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.AudioPlayer", "/io/mainframe/shopsystem/audio");
-		templatedir = cfg.get_string("WEB", "filepath");
+		var datapath = cfg.get_string("GENERAL", "datapath");
+		templatedir = Path.build_filename(datapath, "templates");
 		port = cfg.get_integer("WEB", "port");
 
 		try {

@@ -44,7 +44,8 @@ public class InvoiceImplementation {
 		db = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Database", "/io/mainframe/shopsystem/database");
 		pdf = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.InvoicePDF", "/io/mainframe/shopsystem/invoicepdf");
 		Config cfg = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Config", "/io/mainframe/shopsystem/config");
-		datadir = cfg.get_string("INVOICE", "datadir");
+		var datapath = cfg.get_string("GENERAL", "datapath");
+		datadir = Path.build_filename(datapath, "invoice");
 		mailfromaddress = cfg.get_string("MAIL", "mailfromaddress");
 		treasurermailaddress = cfg.get_string("MAIL", "treasurermailaddress");
 		shortname = cfg.get_string("GENERAL", "shortname");

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: shopsystem\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-06-29 01:20+0200\n"
+"POT-Creation-Date: 2018-06-29 21:19+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -57,8 +57,8 @@ msgstr ""
 msgid "Cannot find playbin2 GStreamer plugin"
 msgstr ""
 
-#: audio/main.vala:39 database/main.vala:29 input-device/main.vala:31
-#: pdf-invoice/main.vala:30 pgp/main.vala:35 serial-device/main.vala:29
+#: audio/main.vala:40 database/main.vala:29 input-device/main.vala:31
+#: pdf-invoice/main.vala:31 pgp/main.vala:35 serial-device/main.vala:29
 #, c-format
 msgid "Config Error: %s\n"
 msgstr ""
@@ -68,8 +68,8 @@ msgstr ""
 msgid "Convert Error: %s"
 msgstr ""
 
-#: audio/main.vala:30 cli/main.vala:37 config/main.vala:32
-#: database/main.vala:40 input-device/main.vala:42 pdf-invoice/main.vala:39
+#: audio/main.vala:30 cli/main.vala:37 config/main.vala:30
+#: database/main.vala:40 input-device/main.vala:42 pdf-invoice/main.vala:40
 #: pdf-stock/main.vala:26 pgp/main.vala:44 scanner-session/main.vala:28
 #: serial-device/main.vala:40
 msgid "Could not acquire name\n"
@@ -94,7 +94,7 @@ msgstr ""
 msgid "Could not load configuration file: %s"
 msgstr ""
 
-#: invoice/invoice.vala:338 pdf-invoice/pdf-invoice.vala:379
+#: invoice/invoice.vala:339 pdf-invoice/pdf-invoice.vala:379
 #, c-format
 msgid "Could not open VAT template: %s"
 msgstr ""
@@ -103,19 +103,19 @@ msgstr ""
 msgid "Could not open device!\n"
 msgstr ""
 
-#: invoice/invoice.vala:252 invoice/invoice.vala:319
+#: invoice/invoice.vala:253 invoice/invoice.vala:320
 #, c-format
 msgid "Could not open invoice template: %s"
 msgstr ""
 
-#: audio/main.vala:53 cli/main.vala:68 config/main.vala:43
+#: audio/main.vala:54 cli/main.vala:68 config/main.vala:41
 #: database/main.vala:51 input-device/main.vala:53 input-device/main.vala:58
 #: pdf-stock/main.vala:37 pgp/main.vala:55 scanner-session/main.vala:41
 #: serial-device/main.vala:51
 msgid "Could not register service\n"
 msgstr ""
 
-#: pdf-invoice/main.vala:50
+#: pdf-invoice/main.vala:51
 #, c-format
 msgid "Could not register service: %s\n"
 msgstr ""
@@ -124,7 +124,7 @@ msgstr ""
 msgid "Could not setup webserver!"
 msgstr ""
 
-#: web/main.vala:64
+#: web/main.vala:65
 #, c-format
 msgid "Could not start Webserver: %s\n"
 msgstr ""
@@ -134,9 +134,9 @@ msgstr ""
 msgid "DBus Error: %s"
 msgstr ""
 
-#: audio/main.vala:41 database/main.vala:31 input-device/main.vala:33
-#: pdf-invoice/main.vala:26 pgp/main.vala:31 serial-device/main.vala:31
-#: web/main.vala:51
+#: audio/main.vala:42 curses-ui/main.vala:68 database/main.vala:31
+#: input-device/main.vala:33 pdf-invoice/main.vala:27 pgp/main.vala:31
+#: serial-device/main.vala:31 web/main.vala:52
 #, c-format
 msgid "DBus Error: %s\n"
 msgstr ""
@@ -224,10 +224,10 @@ msgstr ""
 msgid "IO Error: %s"
 msgstr ""
 
-#: audio/main.vala:37 curses-ui/main.vala:60 database/main.vala:27
-#: input-device/main.vala:29 pdf-invoice/main.vala:28 pgp/main.vala:33
+#: audio/main.vala:38 curses-ui/main.vala:66 database/main.vala:27
+#: input-device/main.vala:29 pdf-invoice/main.vala:29 pgp/main.vala:33
 #: scanner-session/scannersession.vala:49 serial-device/main.vala:27
-#: web/main.vala:47
+#: web/main.vala:48
 #, c-format
 msgid "IO Error: %s\n"
 msgstr ""
@@ -251,7 +251,7 @@ msgstr ""
 msgid "Internal Error!"
 msgstr ""
 
-#: web/main.vala:44 web/main.vala:49
+#: curses-ui/main.vala:70 web/main.vala:45 web/main.vala:50
 #, c-format
 msgid "KeyFile Error: %s\n"
 msgstr ""
@@ -346,25 +346,25 @@ msgstr ""
 msgid "Sending: %s\n"
 msgstr ""
 
-#: curses-ui/main.vala:72
+#: curses-ui/main.vala:78
 msgid "Shop System has been started"
 msgstr ""
 
-#: curses-ui/main.vala:78
+#: curses-ui/main.vala:84
 msgid "Stopping Shop System"
-msgstr ""
-
-#: web/main.vala:55
-#, c-format
-msgid "TLS certificate: %s\n"
 msgstr ""
 
 #: web/main.vala:56
 #, c-format
+msgid "TLS certificate: %s\n"
+msgstr ""
+
+#: web/main.vala:57
+#, c-format
 msgid "TLS private key: %s\n"
 msgstr ""
 
-#: invoice/invoice.vala:314
+#: invoice/invoice.vala:315
 msgid "Unknown MessageType"
 msgstr ""
 
@@ -373,7 +373,7 @@ msgstr ""
 msgid "Usage: %s <temporary> [timestamp]\n"
 msgstr ""
 
-#: web/main.vala:54
+#: web/main.vala:55
 #, c-format
 msgid "Web Server Port: %u\n"
 msgstr ""
@@ -405,7 +405,7 @@ msgstr ""
 msgid "could not load templates!"
 msgstr ""
 
-#: curses-ui/main.vala:27 curses-ui/main.vala:29
+#: curses-ui/main.vala:28 curses-ui/main.vala:30
 #, c-format
 msgid "could not play audio: %s"
 msgstr ""

@@ -31,7 +31,8 @@ public static int main(string[] args) {
 
 	try {
 		Config cfg = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Config", "/io/mainframe/shopsystem/config");
-		var path = cfg.get_string("AUDIO", "path");
+		var datapath = cfg.get_string("GENERAL", "datapath");
+		var path = Path.build_filename(datapath, "sounds");
 		player = new AudioPlayerImplementation(path);
 	} catch(IOError e) {
 		error(_("IO Error: %s\n"), e.message);

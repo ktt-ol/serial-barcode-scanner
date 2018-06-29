@@ -19,9 +19,7 @@ public static int main(string[] args) {
 	Intl.setlocale(LocaleCategory.ALL, "");
 	Intl.textdomain("shopsystem");
 
-	string binarylocation = File.new_for_path(args[0]).get_parent().get_path();
-
-	cfg = new Cfg(binarylocation + "/../../ktt-shopsystem.cfg");
+	cfg = new Cfg("/etc/shopsystem.cfg");
 
 	Bus.own_name(
 		BusType.SYSTEM,

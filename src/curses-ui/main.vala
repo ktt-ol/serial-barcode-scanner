@@ -19,6 +19,7 @@ public MainLoop loop;
 public AudioPlayer audio;
 public ScannerSession scanner;
 public CursesUI ui;
+private Config cfg;
 
 private static void play(string file) {
 	try {
@@ -56,13 +57,18 @@ public static int main(string[] args) {
 	try {
 		audio = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.AudioPlayer", "/io/mainframe/shopsystem/audio");
 		scanner = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.ScannerSession", "/io/mainframe/shopsystem/scanner_session");
+		cfg = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Config", "/io/mainframe/shopsystem/config");
+
+		var datapath = cfg.get_string("GENERAL", "datapath");
+		var datadir = Path.build_filename(datapath, "curses-ui");
+		ui = new CursesUI(datadir);
 	} catch(IOError e) {
 		error(_("IO Error: %s\n"), e.message);
+	} catch(DBusError e) {
+		error(_("DBus Error: %s\n"), e.message);
+	} catch(KeyFileError e) {
+		error(_("KeyFile Error: %s\n"), e.message);
 	}
-
-	string binarylocation = File.new_for_path(args[0]).get_parent().get_path();
-
-	ui = new CursesUI(binarylocation);
 
 	Log.set_default_handler(log_handler);
 

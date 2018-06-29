@@ -19,28 +19,28 @@ using Curses;
 public class Logo {
 	Window win;
 
-	public Logo(string binarylocation) {
+	public Logo(string datadir) {
 		win = new Window(8, COLS - 2, 0, 1);
 		win.bkgdset(COLOR_PAIR(1) | Attribute.BOLD);
 
 		win.addstr("\n");
 
-		var file = File.new_for_path (binarylocation + "/../../logo.txt");
-
-		if (!file.query_exists ()) {
+		var logofilename = Path.build_filename(datadir, "logo.txt");
+		var file = File.new_for_path(logofilename);
+		if (!file.query_exists()) {
 			stderr.printf (_("File '%s' doesn't exist.\n"), file.get_path ());
 		}
 
 		try {
 			// Open file for reading and wrap returned FileInputStream into a
 			// DataInputStream, so we can read line by line
-			var dis = new DataInputStream (file.read ());
+			var dis = new DataInputStream(file.read());
 			string line;
 			// Read lines until end of file (null) is reached
-			while ((line = dis.read_line (null)) != null) {
+			while ((line = dis.read_line(null)) != null) {
 				win.addstr(line+"\n");
 			}
-		} catch (Error e) {
+		} catch(Error e) {
 			error (_("Error: %s"), e.message);
 		}
 
