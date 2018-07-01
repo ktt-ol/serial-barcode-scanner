@@ -172,12 +172,16 @@ public class MailerImplementation {
 		message.set_reverse_path(current_mail.get_reverse_path());
 
 		int result = session.start_session();
-		if(result == 0)
-			throw new IOError.FAILED(_("eSMTP: Start Session failed!"));
+		if(result == 0) {
+			stderr.printf(_("eSMTP: Start Session failed!"));
+			return false;
+		}
 
 		unowned Smtp.Status status = message.transfer_status();
-		if(status.code < 200 || status.code >= 300)
-			throw new IOError.FAILED(_("Reply from SMTP-Server: %s"), status.text);
+		if(status.code < 200 || status.code >= 300) {
+			stderr.printf(_("Reply from SMTP-Server: %s"));
+			return false;
+		}
 
 		current_mail = null;
 

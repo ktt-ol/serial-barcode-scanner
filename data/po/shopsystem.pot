@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: shopsystem\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-06-29 21:19+0200\n"
+"POT-Creation-Date: 2018-07-01 17:19+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -135,8 +135,8 @@ msgid "DBus Error: %s"
 msgstr ""
 
 #: audio/main.vala:42 curses-ui/main.vala:68 database/main.vala:31
-#: input-device/main.vala:33 pdf-invoice/main.vala:27 pgp/main.vala:31
-#: serial-device/main.vala:31 web/main.vala:52
+#: input-device/main.vala:33 pdf-invoice/main.vala:27 pdf-invoice/test.vala:58
+#: pgp/main.vala:31 serial-device/main.vala:31 web/main.vala:52
 #, c-format
 msgid "DBus Error: %s\n"
 msgstr ""
@@ -210,7 +210,7 @@ msgstr ""
 msgid "File Error: %s"
 msgstr ""
 
-#: pdf-invoice/pdf-invoice.vala:387
+#: pdf-invoice/pdf-invoice.vala:387 pdf-invoice/test.vala:64
 #, c-format
 msgid "File Error: %s\n"
 msgstr ""
@@ -225,7 +225,8 @@ msgid "IO Error: %s"
 msgstr ""
 
 #: audio/main.vala:38 curses-ui/main.vala:66 database/main.vala:27
-#: input-device/main.vala:29 pdf-invoice/main.vala:29 pgp/main.vala:33
+#: input-device/main.vala:29 pdf-invoice/main.vala:29 pdf-invoice/test.vala:22
+#: pdf-invoice/test.vala:60 pgp/main.vala:33
 #: scanner-session/scannersession.vala:49 serial-device/main.vala:27
 #: web/main.vala:48
 #, c-format
@@ -249,6 +250,11 @@ msgstr ""
 #: scanner-session/scannersession.vala:168
 #: scanner-session/scannersession.vala:215
 msgid "Internal Error!"
+msgstr ""
+
+#: pdf-invoice/test.vala:62
+#, c-format
+msgid "Invoice PDF Error: %s\n"
 msgstr ""
 
 #: curses-ui/main.vala:70 web/main.vala:45 web/main.vala:50
