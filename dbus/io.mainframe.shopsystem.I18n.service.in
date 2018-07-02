@@ -1,0 +1,4 @@
+[D-BUS Service]
+Name=io.mainframe.shopsystem.I18n
+Exec=${PATH}/i18n/i18n
+User=shop

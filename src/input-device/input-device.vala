@@ -1,4 +1,5 @@
 /* Copyright 2015, Sebastian Reichel <sre@ring0.de>
+ * Copyright 2017-2018, Johannes Rudolph <johannes.rudolph@gmx.com>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -18,18 +19,24 @@ public class Device {
 	private IOChannel io_read;
 	private string buffer;
 	private bool shift;
+	private string device;
 
 	public signal void received_barcode(string barcode);
 
 	public Device(string device) {
-		if (device == "ignore") {
-			stdout.printf("Ignoring InputDevice!\n");
-			return;
-		}
+		this.device = device;
+		if (this.device == "ignore") {
+ 			stdout.printf("Ignoring InputDevice!\n");
+ 			return;
+ 		}
+		this.connect();
+	}
+	
+	private void connect(){
 		try {
-			io_read = new IOChannel.file(device, "r");
-			buffer = "";
-			shift = false;
+			io_read = new IOChannel.file(this.device, "r");
+			this.buffer = "";
+			this.shift = false;
 
 			int fd = io_read.unix_get_fd();
 			int flags = Posix.fcntl(fd, Posix.F_GETFL, 0);
@@ -210,9 +217,10 @@ public class Device {
 		Linux.Input.Event ev = {};
 		char key = '\0';
 
-		if((cond & IOCondition.HUP) == IOCondition.HUP)
-			error("Lost device");
-
+		if((cond & IOCondition.HUP) == IOCondition.HUP){
+			stdout.printf("Lost device try reconnect");
+			this.connect();
+		}
 		do {
 			int fd = source.unix_get_fd();
 			ssize_t s = Posix.read(fd, &ev, sizeof(Linux.Input.Event));

@@ -1,4 +1,5 @@
 /* Copyright 2013, Sebastian Reichel <sre@ring0.de>
+ * Copyright 2017-2018, Johannes Rudolph <johannes.rudolph@gmx.com>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -18,7 +19,7 @@ Cfg cfg;
 public static int main(string[] args) {
 	string binarylocation = File.new_for_path(args[0]).get_parent().get_path();
 
-	cfg = new Cfg(binarylocation + "/../../ktt-shopsystem.cfg");
+	cfg = new Cfg(binarylocation + "/../../config.cfg");
 
 	Bus.own_name(
 		BusType.SYSTEM,

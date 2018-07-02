@@ -1,4 +1,6 @@
 /* Copyright 2013, Sebastian Reichel <sre@ring0.de>
+ * Copyright 2017-2018, Johannes Rudolph <johannes.rudolph@gmx.com>
+ * Copyright 2018, Malte Modler <malte@malte-modler.de>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,6 +17,9 @@
 
 [DBus (name = "io.mainframe.shopsystem.InvoicePDF")]
 public class InvoicePDF {
+
+	Config cfg;
+
 	/* A4 sizes (in points, 72 DPI) */
 	private const double width = 595.27559;  /* 210mm */
 	private const double height = 841.88976; /* 297mm */
@@ -60,8 +65,26 @@ public class InvoicePDF {
 		"Dezember"
 	};
 
+	string longname;
+	string umsatzsteuer;
+	string umsatzsteuerNoText;
+  string dateFormat;
+  string dateTimeFormat;
+  string timeFormat;
+
 	public InvoicePDF(string datadir) {
-		this.datadir = datadir;
+		try{
+			this.datadir = datadir;
+			cfg = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Config", "/io/mainframe/shopsystem/config");
+			longname = cfg.get_string("GENERAL", "longname");
+			umsatzsteuer = cfg.get_string("INVOICE", "umsatzsteuer");
+			umsatzsteuerNoText = cfg.get_string("INVOICE", "umsatzsteuerNoText");
+	    dateFormat = cfg.get_string("DATE-FORMAT", "format");
+	    dateTimeFormat = cfg.get_string("DATE-FORMAT", "formatDateTime");
+	    timeFormat = cfg.get_string("DATE-FORMAT", "formatTime");
+		} catch(Error e){
+			error("Error: %s\n", e.message);
+		}
 	}
 
 	private void render_svg(Cairo.Context ctx, string file) {
@@ -73,18 +96,37 @@ public class InvoicePDF {
 		}
 	}
 
+	private bool svg_file_exists(string file) {
+                try {
+                        new Rsvg.Handle.from_file(file);
+                        return true;
+                } catch(Error e) {
+                        return false;
+                }
+        }
+
 	private void draw_footer(Cairo.Context ctx) {
 		ctx.save();
 		ctx.translate(-20, 818);
 		ctx.scale(1.42, 1.42);
-		render_svg(ctx, datadir + "/footer-line.svg");
+		if(svg_file_exists(datadir + "/../myfooter-line.svg")){
+               		render_svg(ctx, datadir + "/../myfooter-line.svg");
+                }
+                else {
+                	render_svg(ctx, datadir + "/footer-line.svg");
+		}
 		ctx.restore();
 	}
 
 	private void draw_logo(Cairo.Context ctx) {
 		ctx.save();
 		ctx.translate(366,25);
-		render_svg(ctx, datadir + "/logo.svg");
+		if(svg_file_exists(datadir + "/../mylogo.svg")){
+               		render_svg(ctx, datadir + "/../mylogo.svg");
+                }
+                else {
+                	render_svg(ctx, datadir + "/logo.svg");
+		}
 		ctx.restore();
 	}
 
@@ -103,9 +145,14 @@ public class InvoicePDF {
 		ctx.select_font_face("LMSans10", Cairo.FontSlant.NORMAL, Cairo.FontWeight.NORMAL);
 		ctx.set_font_size(8.45);
 
+		string adressrow = "";
+		try{
+			adressrow = cfg.get_string("INVOICE", "adressrow");
+		} catch(Error e){
+			adressrow = " ";
+		}
 		ctx.move_to(56.5, 142);
-		/* TODO: get string from config file */
-		ctx.show_text("Kreativität trifft Technik e.V., Bahnhofsplatz 10, 26122 Oldenburg");
+		ctx.show_text(adressrow);
 
 		/* actually LMRoman12 */
 		ctx.select_font_face("LMSans10", Cairo.FontSlant.NORMAL, Cairo.FontWeight.NORMAL);
@@ -194,7 +241,6 @@ public class InvoicePDF {
 
 		ctx.move_to(56.5, 323);
 
-		/* TODO: get text from config file */
 		ctx.show_text(@"Rechnung Nr. $invoice_id");
 
 		ctx.restore();
@@ -224,8 +270,12 @@ public class InvoicePDF {
 		/* set page width */
 		layout.set_width((int) 140 * Pango.SCALE);
 
-		/* TODO: get text from config file */
-		var text = "<b>Kreativität trifft Technik e.V.</b>\nAmtsgericht Oldenburg VR 201044\n\nHackspace „Mainframe“\nFabLab „Fab-O-Lab“\nSchnittstelle „Schnittstelle“\n\nBahnhofsplatz 10 • 26122 Oldenburg";
+		string text = "";
+		try{
+			text = cfg.get_string("INVOICE", "footer1");
+		} catch(Error e){
+			text = " ";
+		}
 
 		/* write invoice date */
 		layout.set_markup(text, text.length);
@@ -261,8 +311,12 @@ public class InvoicePDF {
 		/* set page width */
 		layout.set_width((int) 190 * Pango.SCALE);
 
-		/* TODO: get text from config file */
-		var text = "<b>Mail:</b> vorstand@kreativitaet-trifft-technik.de\n<b>Web:</b> www.kreativitaet-trifft-technik.de\n\n\n\n<b>BGB-Vorstand:</b>\nPatrick Günther, Michael Pensler, Jan Janssen";
+		string text = "";
+		try{
+			text = cfg.get_string("INVOICE", "footer2");
+		} catch(Error e){
+			text = " ";
+		}
 
 		/* write invoice date */
 		layout.set_markup(text, text.length);
@@ -298,8 +352,12 @@ public class InvoicePDF {
 		/* set page width */
 		layout.set_width((int) 150 * Pango.SCALE);
 
-		/* TODO: get text from config file */
-		var text = "<b>Raiffeisenbank Oldenburg</b>\nIBAN: DE34 2806 0228 0037 0185 00\nBIC: GENODEF1OL2\n\n\n<b>Finanzamt Oldenburg</b>\nAls gemeinnützig anerkannt.\nSteuer Nr.: 64/220/18413";
+		string text = "";
+		try{
+			text = cfg.get_string("INVOICE", "footer3");
+		} catch(Error e){
+			text = " ";
+		}
 
 		/* write invoice date */
 		layout.set_markup(text, text.length);
@@ -362,6 +420,15 @@ public class InvoicePDF {
 			text = text.replace("{{{ADDRESS}}}", address);
 			text = text.replace("{{{LASTNAME}}}", invoice_recipient.lastname);
 			text = text.replace("{{{SUM}}}", @"$sum");
+			text = text.replace("{{{VEREINSNAME}}}", longname);
+
+			if(umsatzsteuer == "yes") {
+				text = text.replace("{{{UMSATZSTEUER}}}", "");
+			}
+			else {
+				text = text.replace("{{{UMSATZSTEUER}}}", umsatzsteuerNoText);
+			}
+
 			layout.set_markup(text, text.length);
 		} catch(GLib.FileError e) {
 			error("File Error: %s\n", e.message);
@@ -442,8 +509,8 @@ public class InvoicePDF {
 
 		/* generate strings for InvoiceEntry */
 		var tm = new DateTime.from_unix_local(e.timestamp);
-		var date = tm.format("%Y-%m-%d");
-		var time = tm.format("%H:%M:%S");
+		var date = tm.format(dateFormat);
+                var time = tm.format(timeFormat);
 		var article = e.product.name;
 		var price = @"$(e.price)€".replace(".", ",");
 

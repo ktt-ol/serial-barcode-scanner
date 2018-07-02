@@ -1,4 +1,6 @@
 /* Copyright 2012-2013, Sebastian Reichel <sre@ring0.de>
+ * Copyright 2017-2018, Johannes Rudolph <johannes.rudolph@gmx.com>
+ * Copyright 2017-2018, Malte Modler <malte@malte-modler.de>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -13,36 +15,85 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+public struct ScannerResult {
+	public MessageType type;
+	public string message;
+	public AudioType audioType;
+	public string[] nextScannerdata;
+	public UserSession usersession;
+	public ScannerSessionState nextstate;
+	public bool disablePrivacyMode;
+}
+
 [DBus (name = "io.mainframe.shopsystem.ScannerSession")]
 public class ScannerSessionImplementation {
-  private int user = 0;
-  private string name = "Guest";
-  private bool logged_in = false;
-  private bool disabled = false;
-  private string theme = "beep";
+  private string systemlanguage;
+  private string systemtheme = "beep";
+  private int64 timeAutomaticLogout;
 
   private Database db;
   private AudioPlayer audio;
-  private InputDevice dev;
+  private InputDevice devScanner;
+  private InputDevice devRfid;
   private Cli cli;
+  private I18n i18n;
+  private Config cfg;
+  private ReadyState readyState;
+  private UserState userState;
 
+  private UserSession usersession;
+
+  private ScannerSessionState state = ScannerSessionState.READY;
 
   public signal void msg(MessageType type, string message);
   public signal void msg_overlay(string title, string message);
+  public signal void set_privacy_mode(bool mode);
 
   public ScannerSessionImplementation() {
     try {
-      db       = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Database", "/io/mainframe/shopsystem/database");
-      dev      = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.InputDevice", "/io/mainframe/shopsystem/device");
-      cli      = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Cli", "/io/mainframe/shopsystem/cli");
-      audio    = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.AudioPlayer", "/io/mainframe/shopsystem/audio");
+      db          = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Database", "/io/mainframe/shopsystem/database");
+      devScanner  = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.InputDevice", "/io/mainframe/shopsystem/device/scanner");
+      devRfid     = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.InputDevice", "/io/mainframe/shopsystem/device/rfid");
+      cli         = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Cli", "/io/mainframe/shopsystem/cli");
+      audio       = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.AudioPlayer", "/io/mainframe/shopsystem/audio");
+      i18n        = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.I18n", "/io/mainframe/shopsystem/i18n");
+      cfg         = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Config", "/io/mainframe/shopsystem/config");
 
-      dev.received_barcode.connect(handle_barcode);
+      devScanner.received_barcode.connect(handle_barcode);
+      devRfid.received_barcode.connect(handle_barcode);
       cli.received_barcode.connect(handle_barcode);
+
+			try {
+       this.systemlanguage = cfg.get_string("GENERAL", "language");
+			} catch(KeyFileError e) {
+				error("KeyFileError General - language not defined: %s\n", e.message);
+			}
+
+			try {
+       this.timeAutomaticLogout = cfg.get_int64("GENERAL", "autologouttime");
+			} catch(KeyFileError e) {
+				error("KeyFileError General - autologouttime not defined: %s\n", e.message);
+			}
+
+      readyState = new ReadyState();
+      userState = new UserState();
+
+			Timeout.add_seconds(1, () => this.check_userssession());
     } catch(IOError e) {
       error("IOError: %s\n", e.message);
     }
   }
+
+	private bool check_userssession(){
+		if(this.usersession != null){
+			int64 timediff = (new DateTime.now_utc().to_unix()) - (this.usersession.getLastActionTime().to_unix());
+			if(timediff >= this.timeAutomaticLogout){
+				this.handle_barcode("LOGOUT");
+			}
+		}
+
+		return true;
+	}
 
   private void send_message(MessageType type, string format, ...) {
     var arguments = va_list();
@@ -51,168 +102,79 @@ public class ScannerSessionImplementation {
     msg(type, message);
   }
 
-  private void logout() {
-    logged_in = false;
-  }
-
-  private bool login(int user) throws IOError {
-    this.user      = user;
-    try {
-      this.name      = db.get_username(user);
-      this.disabled  = db.user_is_disabled(user);
-    } catch(DatabaseError e) {
-      send_message(MessageType.ERROR, "Error (user=%d): %s", user, e.message);
-      return false;
+  private void play_audio(AudioType audioType, string theme){
+    switch (audioType) {
+      case AudioType.ERROR:
+        try {
+	  audio.play_user(theme, "error");
+	}
+	catch(Error e) {
+	  audio.play_system("error.ogg");
+	}
+	break;
+      case AudioType.LOGIN:
+        audio.play_user(theme, "login");
+        break;
+      case AudioType.LOGOUT:
+        audio.play_user(theme, "logout");
+        break;
+      case AudioType.PURCHASE:
+        audio.play_user(theme, "purchase");
+        break;
+      case AudioType.INFO:
+        audio.play_user(theme, "info");
+        break;
     }
-    this.logged_in = true;
-
-    try {
-      this.theme = db.get_user_theme(user, "");
-      if (this.theme == "") {
-        this.theme = audio.get_random_user_theme();
-      }
-    } catch(DatabaseError e) {
-      this.theme = "beep";
-    }
-
-    return true;
   }
 
   private void handle_barcode(string scannerdata) {
     try {
       stdout.printf("scannerdata: %s\n", scannerdata);
       if(interpret(scannerdata))
-        dev.blink(1000);
+        devScanner.blink(1000);
     } catch(IOError e) {
-      send_message(MessageType.ERROR, "IOError: %s", e.message);
+      send_message(MessageType.ERROR, i18n.get_string("ioerror",systemlanguage).printf(e.message));
     } catch(DatabaseError e) {
-      send_message(MessageType.ERROR, "DatabaseError: %s", e.message);
+      send_message(MessageType.ERROR, i18n.get_string("databaseerror",systemlanguage).printf(e.message));
     }
   }
 
   private bool interpret(string scannerdata) throws DatabaseError, IOError {
-    if(scannerdata.has_prefix("USER ")) {
-      string str_id = scannerdata.substring(5);
-      int32 id = int.parse(str_id);
+    ScannerResult scannerResult = ScannerResult();
+    switch (this.state) {
+      case ScannerSessionState.READY:
+        scannerResult = this.readyState.handleScannerData(scannerdata);
+        break;
+      case ScannerSessionState.USER:
+        scannerResult = this.userState.handleScannerData(scannerdata,this.usersession);
+        break;
+    }
 
-      /* check if scannerdata has valid format */
-      if(scannerdata != "USER %d".printf(id)) {
-        audio.play_system("error.ogg");
-        send_message(MessageType.ERROR, "Invalid User ID: %s", scannerdata);
-        return false;
-      }
-
-      if(logged_in) {
-        send_message(MessageType.WARNING, "Last user forgot to logout");
-        logout();
-      }
-
-      if(login(id)) {
-        audio.play_user(theme, "login");
-        send_message(MessageType.INFO, "Login: %s (%d)", name, user);
-        return true;
-      } else {
-        audio.play_system("error.ogg");
-        send_message(MessageType.ERROR, "Login failed (User ID = %d)", id);
-        return false;
-      }
-    } else if(scannerdata == "GUEST") {
-      if(logged_in) {
-        send_message(MessageType.WARNING, "Last user forgot to logout");
-        logout();
-      }
-
-      if(login(0)) {
-        audio.play_user(theme, "login");
-        send_message(MessageType.INFO, "Login: %s (%d)", name, user);
-        return true;
-      } else {
-        audio.play_system("error.ogg");
-        send_message(MessageType.ERROR, "Login failed (User ID = 0)");
-        return false;
-      }
-    } else if(scannerdata == "UNDO") {
-      if(!logged_in) {
-        audio.play_system("error.ogg");
-        send_message(MessageType.ERROR, "Can't undo if not logged in!");
-        return false;
-      } else {
-        string product = db.undo(user);
-
-        if(product != "") {
-          audio.play_user(theme, "purchase");
-          send_message(MessageType.INFO, "Removed purchase of %s", product);
-          return true;
-        } else {
-          audio.play_user(theme, "error");
-          send_message(MessageType.ERROR, "Couldn't undo last purchase!");
-          return false;
-        }
-      }
-    } else if(scannerdata == "LOGOUT") {
-      if(logged_in) {
-        audio.play_user(theme, "logout");
-        send_message(MessageType.INFO, "Logout!");
-        logout();
-        return true;
-      }
-
-      return false;
+    send_message(scannerResult.type, scannerResult.message);
+    this.state = scannerResult.nextstate;
+    string theme;
+    if(this.usersession != null){
+        theme = this.usersession.getTheme();
+    } else if(scannerResult.usersession != null){
+        theme = scannerResult.usersession.getTheme();
     } else {
-      uint64 id = 0;
-      scannerdata.scanf("%llu", out id);
-
-      /* check if scannerdata has valid format */
-      if(scannerdata != "%llu".printf(id) && scannerdata != "%08llu".printf(id) && scannerdata != "%013llu".printf(id)) {
-        audio.play_user(theme, "error");
-        send_message(MessageType.ERROR, "invalid product: %s", scannerdata);
-        return false;
-      }
-
-      string name = "unknown product";
-
-      try {
-        id = db.ean_alias_get(id);
-        name = db.get_product_name(id);
-      } catch(IOError e) {
-        audio.play_user(theme, "error");
-        send_message(MessageType.ERROR, "Internal Error!");
-        return false;
-      } catch(DatabaseError e) {
-        if(e is DatabaseError.PRODUCT_NOT_FOUND) {
-          audio.play_user(theme, "error");
-          var msg = "Error: unknown product: %llu".printf(id);
-          send_message(MessageType.ERROR, msg);
-          msg_overlay("Attention", msg);
-        } else {
-          audio.play_user(theme, "error");
-          send_message(MessageType.ERROR, "Error: %s", e.message);
-        }
-        return false;
-      }
-
-      if(!logged_in) {
-        var mprice = db.get_product_price(1, id);
-        var gprice = db.get_product_price(0, id);
-        var msg = @"article info: $name (Member: $mprice €, Guest: $gprice €)";
-        audio.play_system("error.ogg");
-        send_message(MessageType.INFO, msg);
-        send_message(MessageType.ERROR, "Login required for purchase!");
-        msg_overlay("Attention", "%s\nLogin required for purchase!".printf(msg));
-
-        return false;
-      }
-
-      if(db.buy(user, id)) {
-        var price = db.get_product_price(user, id);
-        audio.play_user(theme, "purchase");
-        send_message(MessageType.INFO, @"article bought: $name ($price €)");
-        return true;
-      } else {
-        audio.play_user(theme, "error");
-        send_message(MessageType.ERROR, "purchase failed!");
-        return false;
+        theme = this.systemtheme;
+    }
+    if(scannerResult.disablePrivacyMode){
+        set_privacy_mode(false);
+    }
+    else {
+        set_privacy_mode(true);
+    }
+    play_audio(scannerResult.audioType,theme);
+    this.usersession = scannerResult.usersession;
+    if(scannerResult.nextScannerdata != null){
+      int i;
+      for(i = 0; i < scannerResult.nextScannerdata.length ; i++){
+        interpret(scannerResult.nextScannerdata[i]);
       }
     }
+    return true;
   }
+
 }

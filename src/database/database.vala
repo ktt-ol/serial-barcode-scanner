@@ -1,4 +1,5 @@
 /* Copyright 2012-2013, Sebastian Reichel <sre@ring0.de>
+ * Copyright 2017-2018, Johannes Rudolph <johannes.rudolph@gmx.com>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -66,6 +67,9 @@ public class DataBase : Object {
 		}
 	}
 
+	private Mqtt mqtt;
+	private Config cfg;
+
 	private Sqlite.Database db;
 	private static Gee.HashMap<string,string> queries = new Gee.HashMap<string,string>();
 	private static Gee.HashMap<string,Statement> statements = new Gee.HashMap<string,Statement>();
@@ -75,6 +79,12 @@ public class DataBase : Object {
 	public DataBase(string file) {
 		int rc;
 
+		try {
+		this.mqtt = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Mqtt", "/io/mainframe/shopsystem/mqtt");
+		this.cfg = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Config", "/io/mainframe/shopsystem/config");
+		} catch (Error e) {
+			error("Error: %s\n",e.message);
+		}
 		rc = Sqlite.Database.open(file, out db);
 		if(rc != Sqlite.OK) {
 			error("could not open database!");
@@ -106,13 +116,16 @@ public class DataBase : Object {
 		queries["username"]          = "SELECT firstname, lastname FROM users WHERE id = ?";
 		queries["user_theme_get"]    = "SELECT CASE WHEN sound_theme IS NULL THEN ? ELSE sound_theme END FROM users WHERE id = ?";
 		queries["user_theme_set"]    = "UPDATE users SET sound_theme=? WHERE id = ?";
+		queries["user_language_get"] = "SELECT CASE WHEN language IS NULL THEN ? ELSE language END FROM users WHERE id = ?";
+		queries["user_language_set"] = "UPDATE users SET language=? WHERE id = ?";
 		queries["password_get"]      = "SELECT password FROM authentication WHERE user = ?";
 		queries["password_set"]      = "UPDATE authentication SET password=? WHERE user = ?";
-		queries["userinfo"]          = "SELECT firstname, lastname, email, gender, street, plz, city, pgp, hidden, disabled, sound_theme, joined_at FROM users WHERE id = ?";
+		queries["userinfo"]          = "SELECT firstname, lastname, email, gender, street, plz, city, pgp, hidden, disabled, sound_theme, joined_at, language FROM users WHERE id = ?";
 		queries["userauth"]          = "SELECT superuser, auth_users, auth_products, auth_cashbox FROM authentication WHERE user = ?";
 		queries["userauth_set"]      = "UPDATE authentication SET auth_users = ?, auth_products = ?, auth_cashbox = ? WHERE user = ?";
 		queries["profit_by_product"] = "SELECT name, SUM(memberprice - (SELECT price FROM purchaseprices WHERE product = purch.product)) AS price FROM sales purch, prices, products WHERE purch.product = products.id AND purch.product = prices.product AND purch.user > 0 AND purch.timestamp > ? AND purch.timestamp < ? AND prices.valid_from = (SELECT valid_from FROM prices WHERE product = purch.product AND valid_from < purch.timestamp ORDER BY valid_from DESC LIMIT 1) GROUP BY name ORDER BY price;";
 		queries["invoice"]           = "SELECT timestamp, id AS productid, name AS productname, CASE WHEN user < 0 THEN (SELECT SUM(price * amount) / SUM(amount) FROM restock WHERE restock.product = id AND restock.timestamp <= sales.timestamp) else (SELECT CASE WHEN user=0 THEN guestprice else memberprice END FROM prices WHERE product = id AND valid_from <= timestamp ORDER BY valid_from DESC LIMIT 1) END AS price FROM sales INNER JOIN products ON sales.product = products.id WHERE user = ? AND timestamp >= ? AND timestamp <= ? ORDER BY timestamp";
+		queries["sales"]           	 = "SELECT * from salesView Where timestamp >= ? AND timestamp <= ?";
 		queries["purchase_first"]    = "SELECT timestamp FROM sales WHERE user = ? ORDER BY timestamp ASC  LIMIT 1";
 		queries["purchase_last"]     = "SELECT timestamp FROM sales WHERE user = ? ORDER BY timestamp DESC LIMIT 1";
 		queries["count_articles"]    = "SELECT COUNT(*) FROM products";
@@ -121,7 +134,7 @@ public class DataBase : Object {
 		queries["total_sales"]       = "SELECT SUM(price) FROM invoice WHERE user >= 0 AND timestamp >= ?";
 		queries["total_profit"]      = "SELECT SUM(price - (SELECT price FROM purchaseprices WHERE product = productid)) FROM invoice WHERE user >= 0 AND timestamp >= ?";
 		queries["user_get_ids"]      = "SELECT id FROM users WHERE id > 0";
-		queries["user_replace"]      = "INSERT OR REPLACE INTO users ('id', 'email', 'firstname', 'lastname', 'gender', 'street', 'plz', 'city', 'pgp', 'hidden', 'disabled', 'joined_at', 'sound_theme') VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, (select sound_theme from users where id = ?))";
+		queries["user_replace"]      = "INSERT OR REPLACE INTO users ('id', 'email', 'firstname', 'lastname', 'gender', 'street', 'plz', 'city', 'pgp', 'hidden', 'disabled', 'joined_at', 'sound_theme','language') VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, (select sound_theme from users where id = ?))";
 		queries["user_auth_create"]  = "INSERT OR IGNORE INTO authentication (user) VALUES (?)";
 		queries["user_disable"]      = "UPDATE users SET disabled = ? WHERE id = ?";
 		queries["last_timestamp"]    = "SELECT timestamp FROM sales ORDER BY timestamp DESC LIMIT 1";
@@ -138,6 +151,22 @@ public class DataBase : Object {
 		queries["alias_ean_add"]     = "INSERT OR IGNORE INTO ean_aliases (id, real_ean) VALUES (?, ?)";
 		queries["alias_ean_get"]     = "SELECT real_ean FROM ean_aliases WHERE id = ?";
 		queries["alias_ean_list"]    = "SELECT id, real_ean FROM ean_aliases ORDER BY id ASC";
+		queries["userid_rfid"]       = "SELECT user FROM rfid_users WHERE rfid = ?";
+		queries["rfid_userid"]       = "SELECT rfid FROM rfid_users WHERE user = ?";
+                queries["rfid_insert"]       = "INSERT OR REPLACE INTO rfid_users ('user','rfid') VALUES (?,?)";
+                queries["rfid_delete_user"]  = "DELETE FROM rfid_users WHERE user = ? ";
+		queries["statistic_products_day"]  		  = "SELECT * FROM statistic_productsperday";
+		queries["statistic_products_month"]               = "SELECT * FROM statistic_productspermonth";
+		queries["statistic_products_year"]                = "SELECT * FROM statistic_productsperyear";
+		queries["statistic_sales_day"]                    = "SELECT * FROM statistic_salesperday";
+		queries["statistic_sales_month"]                  = "SELECT * FROM statistic_salespermonth";
+		queries["statistic_sales_year"]                   = "SELECT * FROM statistic_salesperyear";
+		queries["statistic_products_day_withDate"]        = "SELECT * FROM statistic_productsperday where day = ?";
+		queries["statistic_products_month_withMonthYear"] = "SELECT * FROM statistic_productspermonth where month = ? and year = ?";
+		queries["statistic_products_year_withYear"]  	  = "SELECT * FROM statistic_productsperyear where year = ?";
+		queries["statistic_sales_day_withDate"]  	  = "SELECT * FROM statistic_salesperday where day = ?";
+		queries["statistic_sales_month_withMonthYear"]    = "SELECT * FROM statistic_salespermonth where month = ? and year = ?";
+		queries["statistic_sales_year_withYear"]          = "SELECT * FROM statistic_salesperyear where year = ?";
 
 		/* compile queries into statements */
 		foreach(var entry in queries.entries) {
@@ -272,6 +301,19 @@ public class DataBase : Object {
 		return result;
 	}
 #endif
+
+	public Product get_product_for_ean(uint64 ean) throws DatabaseError {
+		Product product = Product();
+		try {
+			product.ean = ean_alias_get(ean);
+			product.name = get_product_name(product.ean);
+			product.memberprice = get_product_price(1, product.ean);
+			product.guestprice = get_product_price(0, product.ean);
+			return product;
+		} catch(DatabaseError e){
+			throw e;
+		}
+	}
 
 	public StockEntry[] get_stock() {
 		StockEntry[] result = {};
@@ -504,6 +546,8 @@ public class DataBase : Object {
 
 		if(rc != Sqlite.DONE)
 			throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
+
+		this.publish_mqtt_stock_info();
 	}
 
 	public void new_product(uint64 id, string name, int category, int memberprice, int guestprice) throws DatabaseError {
@@ -521,6 +565,8 @@ public class DataBase : Object {
 		}
 
 		new_price(id, 0, memberprice, guestprice);
+
+		this.publish_mqtt_stock_info();
 	}
 
 	public void new_price(uint64 product, int64 timestamp, int memberprice, int guestprice) throws DatabaseError {
@@ -611,11 +657,27 @@ public class DataBase : Object {
 			result.disabled	   = statements["userinfo"].column_int(9) == 1;
 			result.soundTheme  = statements["userinfo"].column_text(10);
 			result.joined_at   = statements["userinfo"].column_int64(11);
+			result.language    = statements["userinfo"].column_text(12);
 		} else if(rc == Sqlite.DONE) {
 			throw new DatabaseError.USER_NOT_FOUND("user not found");
 		} else {
 			throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
 		}
+
+		statements["rfid_userid"].reset();
+    statements["rfid_userid"].bind_int(1, user);
+    rc = statements["rfid_userid"].step();
+
+    string[] rfid = {};
+
+    while(rc == Sqlite.ROW) {
+    	//string rfidcode = statements["rfid_userid"].column_text(0);
+      rfid += statements["rfid_userid"].column_text(0);
+
+      rc = statements["rfid_userid"].step();
+    }
+
+    result.rfid = rfid;
 
 		return result;
 	}
@@ -691,6 +753,18 @@ public class DataBase : Object {
 		}
 	}
 
+	public string get_user_language(int user, string fallback) throws DatabaseError {
+		statements["user_language_get"].reset();
+		statements["user_language_get"].bind_text(1, fallback);
+		statements["user_language_get"].bind_int(2, user);
+
+		if(statements["user_language_get"].step() == Sqlite.ROW) {
+			return statements["user_language_get"].column_text(0);
+		} else {
+			throw new DatabaseError.USER_NOT_FOUND("No such user available in database!");
+		}
+	}
+
 	public void set_userTheme(int user, string userTheme) throws DatabaseError {
 		statements["user_theme_set"].reset();
 		if (userTheme == "") {
@@ -701,6 +775,20 @@ public class DataBase : Object {
 		statements["user_theme_set"].bind_int(2, user);
 
 		int rc = statements["user_theme_set"].step();
+		if(rc != Sqlite.DONE)
+			throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
+	}
+
+	public void set_userLanguage(int user, string language) throws DatabaseError {
+		statements["user_language_set"].reset();
+		if (language == "") {
+			statements["user_language_set"].bind_null(1);
+		} else {
+			statements["user_language_set"].bind_text(1, language);
+		}
+		statements["user_language_set"].bind_int(2, user);
+
+		int rc = statements["user_language_set"].step();
 		if(rc != Sqlite.DONE)
 			throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
 	}
@@ -727,6 +815,40 @@ public class DataBase : Object {
 			result += entry;
 
 			rc = statements["invoice"].step();
+		}
+
+		if(rc != Sqlite.DONE) {
+			throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
+		}
+
+		return result;
+	}
+
+	public Sale[] get_sales(int64 from=0, int64 to=-1) throws DatabaseError {
+		Sale[] result = {};
+
+		if(to == -1) {
+			to = time_t();
+		}
+
+		statements["sales"].reset();
+		statements["sales"].bind_int64(1, from);
+		statements["sales"].bind_int64(2, to);
+		int rc = statements["sales"].step();
+
+		while(rc == Sqlite.ROW) {
+			Sale entry = {};
+			entry.timestamp 			= statements["sales"].column_int64(0);
+			entry.ean							= statements["sales"].column_int64(1);
+			entry.productname			= statements["sales"].column_text(2);
+			entry.userId					= statements["sales"].column_int(3);
+			entry.userFirstname		= statements["sales"].column_text(4);
+			entry.userLastname		= statements["sales"].column_text(5);
+			entry.price						= statements["sales"].column_int(6);
+
+			result += entry;
+
+			rc = statements["sales"].step();
 		}
 
 		if(rc != Sqlite.DONE) {
@@ -874,11 +996,27 @@ public class DataBase : Object {
 		statements["user_replace"].bind_int(10, u.hidden ? 1 : 0);
 		statements["user_replace"].bind_int(11, u.disabled ? 1 : 0);
 		statements["user_replace"].bind_int64(12, u.joined_at);
-		statements["user_replace"].bind_int(13, u.id);
+		statements["user_replace"].bind_text(13, u.soundTheme != "" ? u.soundTheme : null);
+		statements["user_replace"].bind_text(14, u.language != "" ? u.language : null);
 
 		int rc = statements["user_replace"].step();
 		if(rc != Sqlite.DONE)
 			throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
+
+		statements["rfid_delete_user"].reset();
+		statements["rfid_delete_user"].bind_int(1, u.id);
+	  	rc = statements["rfid_delete_user"].step();
+		if(rc != Sqlite.DONE)
+			throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
+
+		foreach (string rfid in u.rfid) {
+			statements["rfid_insert"].reset();
+			statements["rfid_insert"].bind_int(1, u.id);
+			statements["rfid_insert"].bind_text(2, rfid);
+			rc = statements["rfid_insert"].step();
+			if(rc != Sqlite.DONE)
+				throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
+		}
 	}
 
 	public bool user_is_disabled(int user) throws DatabaseError {
@@ -1149,4 +1287,282 @@ public class DataBase : Object {
 
 		return bbdlist.data;
 	}
+
+	public int get_userid_for_rfid(string rfid) throws IOError, DatabaseError{
+		statements["userid_rfid"].reset();
+		statements["userid_rfid"].bind_text(1, rfid);
+
+		int rc = statements["userid_rfid"].step();
+
+		switch(rc) {
+			case Sqlite.ROW:
+				return statements["userid_rfid"].column_int(0);
+			case Sqlite.DONE:
+				throw new DatabaseError.RFID_NOT_FOUND("unknown rfid: %s", rfid);
+			default:
+				throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
+		}
+	}
+
+	public StatisticProductsPerDay[] get_statistic_products_per_day() throws DatabaseError {
+		StatisticProductsPerDay[] result = {};
+
+		statements["statistic_products_day"].reset();
+
+		while(statements["statistic_products_day"].step() == Sqlite.ROW) {
+			StatisticProductsPerDay entry = {
+				statements["statistic_products_day"].column_text(0),
+				statements["statistic_products_day"].column_int64(1),
+				statements["statistic_products_day"].column_int(2),
+				statements["statistic_products_day"].column_text(3),
+				statements["statistic_products_day"].column_int64(4),
+				statements["statistic_products_day"].column_text(5)
+			};
+
+			result += entry;
+		}
+
+		return result;
+	}
+
+	public StatisticProductsPerDay[] get_statistic_products_per_day_withDate(string date) throws DatabaseError {
+		StatisticProductsPerDay[] result = {};
+
+		statements["statistic_products_day_withDate"].reset();
+		statements["statistic_products_day_withDate"].bind_text(1, date);
+
+		while(statements["statistic_products_day_withDate"].step() == Sqlite.ROW) {
+			StatisticProductsPerDay entry = {
+				statements["statistic_products_day_withDate"].column_text(0),
+				statements["statistic_products_day_withDate"].column_int64(1),
+				statements["statistic_products_day_withDate"].column_int(2),
+				statements["statistic_products_day_withDate"].column_text(3),
+				statements["statistic_products_day_withDate"].column_int64(4),
+				statements["statistic_products_day"].column_text(5)
+			};
+
+			result += entry;
+		}
+
+		return result;
+	}
+
+	public StatisticProductsPerMonth[] get_statistic_products_per_month() throws DatabaseError {
+		StatisticProductsPerMonth[] result = {};
+
+		statements["statistic_products_month"].reset();
+
+		while(statements["statistic_products_month"].step() == Sqlite.ROW) {
+			StatisticProductsPerMonth entry = {
+				statements["statistic_products_month"].column_text(0),
+				statements["statistic_products_month"].column_text(1),
+				statements["statistic_products_month"].column_int64(2),
+				statements["statistic_products_month"].column_int(3),
+				statements["statistic_products_month"].column_text(4),
+				statements["statistic_products_month"].column_int64(5),
+				statements["statistic_products_day"].column_text(6)
+			};
+
+			result += entry;
+		}
+
+		return result;
+	}
+
+	public StatisticProductsPerMonth[] get_statistic_products_per_month_withMonthYear(string month, string year) throws DatabaseError {
+		StatisticProductsPerMonth[] result = {};
+
+		statements["statistic_products_month_withMonthYear"].reset();
+		statements["statistic_products_month_withMonthYear"].bind_text(1, month);
+		statements["statistic_products_month_withMonthYear"].bind_text(2, year);
+
+		while(statements["statistic_products_month_withMonthYear"].step() == Sqlite.ROW) {
+			StatisticProductsPerMonth entry = {
+				statements["statistic_products_month_withMonthYear"].column_text(0),
+				statements["statistic_products_month_withMonthYear"].column_text(1),
+				statements["statistic_products_month_withMonthYear"].column_int64(2),
+				statements["statistic_products_month_withMonthYear"].column_int(3),
+				statements["statistic_products_month_withMonthYear"].column_text(4),
+				statements["statistic_products_month_withMonthYear"].column_int64(5),
+				statements["statistic_products_day"].column_text(6)
+			};
+
+			result += entry;
+		}
+
+	 return result;
+  }
+
+	public StatisticProductsPerYear[] get_statistic_products_per_year() throws DatabaseError {
+		StatisticProductsPerYear[] result = {};
+
+		statements["statistic_products_year"].reset();
+
+		while(statements["statistic_products_year"].step() == Sqlite.ROW) {
+			StatisticProductsPerYear entry = {
+				statements["statistic_products_year"].column_text(0),
+				statements["statistic_products_year"].column_int64(1),
+				statements["statistic_products_year"].column_int(2),
+				statements["statistic_products_year"].column_text(3),
+				statements["statistic_products_year"].column_int64(4),
+				statements["statistic_products_day"].column_text(5)
+			};
+
+			result += entry;
+		}
+
+		return result;
+	}
+
+	public StatisticProductsPerYear[] get_statistic_products_per_year_withYear(string year) throws DatabaseError {
+		StatisticProductsPerYear[] result = {};
+
+		statements["statistic_products_year_withYear"].reset();
+		statements["statistic_products_year_withYear"].bind_text(1, year);
+
+		while(statements["statistic_products_year_withYear"].step() == Sqlite.ROW) {
+			StatisticProductsPerYear entry = {
+				statements["statistic_products_year_withYear"].column_text(0),
+				statements["statistic_products_year_withYear"].column_int64(1),
+				statements["statistic_products_year_withYear"].column_int(2),
+				statements["statistic_products_year_withYear"].column_text(3),
+				statements["statistic_products_year_withYear"].column_int64(4),
+				statements["statistic_products_day"].column_text(5)
+			};
+
+			result += entry;
+		}
+
+		return result;
+	}
+
+	public StatisticSalesPerDay[] get_statistic_sales_per_day() throws DatabaseError {
+		StatisticSalesPerDay[] result = {};
+
+		statements["statistic_sales_day"].reset();
+
+		while(statements["statistic_sales_day"].step() == Sqlite.ROW) {
+			StatisticSalesPerDay entry = {
+				statements["statistic_sales_day"].column_text(0),
+				statements["statistic_sales_day"].column_int64(1),
+				statements["statistic_sales_day"].column_int(2)
+			};
+
+			result += entry;
+		}
+
+		return result;
+	}
+
+	public StatisticSalesPerDay[] get_statistic_sales_per_day_withDate(string date) throws DatabaseError {
+		StatisticSalesPerDay[] result = {};
+
+		statements["statistic_sales_day_withDate"].reset();
+		statements["statistic_sales_day_withDate"].bind_text(1, date);
+
+		while(statements["statistic_sales_day_withDate"].step() == Sqlite.ROW) {
+			StatisticSalesPerDay entry = {
+				statements["statistic_sales_day_withDate"].column_text(0),
+				statements["statistic_sales_day_withDate"].column_int64(1),
+				statements["statistic_sales_day_withDate"].column_int(2)
+			};
+
+			result += entry;
+		}
+
+		return result;
+	}
+
+	public StatisticSalesPerMonth[] get_statistic_sales_per_month() throws DatabaseError {
+		StatisticSalesPerMonth[] result = {};
+
+		statements["statistic_sales_month"].reset();
+
+		while(statements["statistic_sales_month"].step() == Sqlite.ROW) {
+			StatisticSalesPerMonth entry = {
+				statements["statistic_sales_month"].column_text(0),
+				statements["statistic_sales_month"].column_text(1),
+				statements["statistic_sales_month"].column_int64(2),
+				statements["statistic_sales_month"].column_int(3)
+			};
+
+			result += entry;
+		}
+
+		return result;
+	}
+
+	public StatisticSalesPerMonth[] get_statistic_sales_per_month_withMonthYear(string month, string year) throws DatabaseError {
+		StatisticSalesPerMonth[] result = {};
+
+		statements["statistic_sales_month_withMonthYear"].reset();
+		statements["statistic_sales_month_withMonthYear"].bind_text(1, month);
+		statements["statistic_sales_month_withMonthYear"].bind_text(2, year);
+
+		while(statements["statistic_sales_month_withMonthYear"].step() == Sqlite.ROW) {
+			StatisticSalesPerMonth entry = {
+				statements["statistic_sales_month_withMonthYear"].column_text(0),
+				statements["statistic_sales_month_withMonthYear"].column_text(1),
+				statements["statistic_sales_month_withMonthYear"].column_int64(2),
+				statements["statistic_sales_month_withMonthYear"].column_int(3)
+			};
+
+			result += entry;
+		}
+
+		return result;
+	}
+
+	public StatisticSalesPerYear[] get_statistic_sales_per_year() throws DatabaseError {
+		StatisticSalesPerYear[] result = {};
+
+		statements["statistic_sales_year"].reset();
+
+		while(statements["statistic_sales_year"].step() == Sqlite.ROW) {
+			StatisticSalesPerYear entry = {
+				statements["statistic_sales_year"].column_text(0),
+				statements["statistic_sales_year"].column_int64(1),
+				statements["statistic_sales_year"].column_int(2)
+			};
+
+			result += entry;
+		}
+
+		return result;
+	}
+
+	public StatisticSalesPerYear[] get_statistic_sales_per_year_withYear(string year) throws DatabaseError {
+		StatisticSalesPerYear[] result = {};
+
+		statements["statistic_sales_year_withYear"].reset();
+		statements["statistic_sales_year_withYear"].bind_text(1, year);
+
+		while(statements["statistic_sales_year_withYear"].step() == Sqlite.ROW) {
+			StatisticSalesPerYear entry = {
+				statements["statistic_sales_year_withYear"].column_text(0),
+				statements["statistic_sales_year_withYear"].column_int64(1),
+				statements["statistic_sales_year_withYear"].column_int(2)
+			};
+
+			result += entry;
+		}
+
+		return result;
+	}
+
+	public void publish_mqtt_stock_info() {
+		StockEntry[] stockData = this.get_stock();
+
+		string[] articles = {};
+		foreach (StockEntry e in stockData) {
+			articles += "{\"ean\":\"%s\",\"name\":\"%s\",\"category\":\"%s\",\"amount\":\"%i\",\"memberprice\":\"%s\",\"guestprice\":\"%s\"}".printf(e.id,e.name,e.category,e.amount,e.memberprice.to_string(),e.guestprice.to_string());
+		}
+		string message = "["+ string.joinv(",",articles) +"]";
+		try {
+			mqtt.push_message(message,this.cfg.get_string("MQTT", "stockInfoTopic"));
+		} catch (Error e) {
+			error("Error: %s\n",e.message);
+		}
+	}
+
 }

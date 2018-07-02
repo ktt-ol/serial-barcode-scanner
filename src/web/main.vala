@@ -1,4 +1,5 @@
 /* Copyright 2013, Sebastian Reichel <sre@ring0.de>
+ * Copyright 2018, Johannes Rudolph <johannes.rudolph@gmx.com>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -18,6 +19,7 @@ public CSVMemberFile csvimport;
 public PGP pgp;
 public Config cfg;
 public AudioPlayer audio;
+public I18n i18n;
 string templatedir;
 
 public static int main(string[] args) {
@@ -27,12 +29,13 @@ public static int main(string[] args) {
 	uint port = 8080;
 
 	try {
-		db  = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Database", "/io/mainframe/shopsystem/database");
-		pgp = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.PGP", "/io/mainframe/shopsystem/pgp");
-		cfg = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Config", "/io/mainframe/shopsystem/config");
-    audio	= Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.AudioPlayer", "/io/mainframe/shopsystem/audio");
-		templatedir = cfg.get_string("WEB", "filepath");
-		port = cfg.get_integer("WEB", "port");
+		db  				= Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Database", "/io/mainframe/shopsystem/database");
+		pgp 				= Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.PGP", "/io/mainframe/shopsystem/pgp");
+		cfg 				= Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Config", "/io/mainframe/shopsystem/config");
+    		audio				= Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.AudioPlayer", "/io/mainframe/shopsystem/audio");
+		i18n        			= Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.I18n", "/io/mainframe/shopsystem/i18n");
+		templatedir 			= cfg.get_string("WEB", "filepath");
+		port 				= cfg.get_integer("WEB", "port");
 
 		try {
 			certificate = cfg.get_string("WEB", "cert");

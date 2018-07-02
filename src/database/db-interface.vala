@@ -1,4 +1,5 @@
 /* Copyright 2013, Sebastian Reichel <sre@ring0.de>
+ * Copyright 2017-2018, Johannes Rudolph <johannes.rudolph@gmx.com>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -33,13 +34,16 @@ public interface Database : Object {
 	public abstract void set_user_password(int32 user, string password) throws IOError, DatabaseError;
 	public abstract void set_sessionid(int user, string sessionid) throws IOError, DatabaseError;
 	public abstract void set_userTheme(int user, string userTheme) throws IOError, DatabaseError;
+	public abstract void set_userLanguage(int user, string language) throws IOError, DatabaseError;
 	public abstract int get_user_by_sessionid(string sessionid) throws IOError, DatabaseError;
 	public abstract UserInfo get_user_info(int user) throws IOError, DatabaseError;
 	public abstract UserAuth get_user_auth(int user) throws IOError, DatabaseError;
 	public abstract void set_user_auth(UserAuth auth) throws IOError, DatabaseError;
 	public abstract string get_username(int user) throws IOError, DatabaseError;
 	public abstract string get_user_theme(int user, string fallback) throws IOError, DatabaseError;
+	public abstract string get_user_language(int user, string fallback) throws IOError, DatabaseError;
 	public abstract InvoiceEntry[] get_invoice(int user, int64 from=0, int64 to=-1) throws IOError, DatabaseError;
+	public abstract Sale[] get_sales(int64 from=0, int64 to=-1) throws IOError, DatabaseError;
 	public abstract int64 get_first_purchase(int user) throws IOError;
 	public abstract int64 get_last_purchase(int user) throws IOError;
 	public abstract StatsInfo get_stats_info() throws IOError;
@@ -55,7 +59,7 @@ public interface Database : Object {
 	public abstract Supplier get_supplier(int id) throws IOError;
 	public abstract void add_supplier(string name, string postal_code, string city, string street, string phone, string website) throws IOError, DatabaseError;
 	public abstract int[] get_users_with_sales(int64 timestamp_from, int64 timestamp_to) throws IOError;
-	public abstract Price get_user_invoice_sum(int user, int64 timestamp_from, int64 timestamp_to) throws IOError;
+	public abstract Price get_user_invoice_sum(int user, int64 timestamp_from, int64 timestamp_to);
 	public abstract Price cashbox_status() throws IOError;
 	public abstract void cashbox_add(int user, Price amount, int64 timestamp) throws IOError, DatabaseError;
 	public abstract CashboxDiff[] cashbox_history() throws IOError;
@@ -64,6 +68,23 @@ public interface Database : Object {
 	public abstract uint64 ean_alias_get(uint64 ean) throws IOError;
 	public abstract EanAlias[] ean_alias_list() throws IOError;
 	public abstract BestBeforeEntry[] bestbeforelist() throws IOError;
+	public abstract Product get_product_for_ean(uint64 ean) throws IOError, DatabaseError;
+	public abstract int get_userid_for_rfid(string rfid) throws IOError, DatabaseError;
+	public abstract void addrfid(string rfid, int user) throws IOError, DatabaseError;
+	public abstract void delete_rfid_for_user(int user) throws IOError, DatabaseError;
+	public abstract StatisticProductsPerDay[] get_statistic_products_per_day() throws DatabaseError;
+	public abstract StatisticProductsPerDay[] get_statistic_products_per_day_withDate(string date) throws DatabaseError;
+	public abstract StatisticProductsPerMonth[] get_statistic_products_per_month() throws DatabaseError;
+	public abstract StatisticProductsPerMonth[] get_statistic_products_per_month_withMonthYear(string month, string year) throws DatabaseError;
+	public abstract StatisticProductsPerYear[] get_statistic_products_per_year() throws DatabaseError;
+	public abstract StatisticProductsPerYear[] get_statistic_products_per_year_withYear(string year) throws DatabaseError;
+	public abstract StatisticSalesPerDay[] get_statistic_sales_per_day() throws DatabaseError;
+	public abstract StatisticSalesPerDay[] get_statistic_sales_per_day_withDate(string date) throws DatabaseError;
+	public abstract StatisticSalesPerMonth[] get_statistic_sales_per_month() throws DatabaseError;
+	public abstract StatisticSalesPerMonth[] get_statistic_sales_per_month_withMonthYear(string month, string year) throws DatabaseError;
+	public abstract StatisticSalesPerYear[] get_statistic_sales_per_year() throws DatabaseError;
+	public abstract StatisticSalesPerYear[] get_statistic_sales_per_year_withYear(string year) throws DatabaseError;
+	public abstract void publish_mqtt_stock_info();
 }
 
 public struct Category {
@@ -125,6 +146,8 @@ public struct UserInfo {
 	public bool disabled;
 	public bool hidden;
 	public string soundTheme;
+	public string[] rfid;
+	public string language;
 
 	public bool equals(UserInfo x) {
 		if(id != x.id) return false;
@@ -139,6 +162,34 @@ public struct UserInfo {
 		if(joined_at != x.joined_at) return false;
 		if(disabled != x.disabled) return false;
 		if(hidden != x.hidden) return false;
+		if(rfid.length != x.rfid.length) return false;
+
+		bool foundinequals = false;
+		foreach (string rowSource in rfid) {
+			foundinequals = false;
+			foreach (string rowEquals in x.rfid){
+				if(rowSource == rowEquals){
+					foundinequals = true;
+					break;
+				}
+			}
+			if(!foundinequals){
+				return false;
+			}
+		}
+
+		foreach (string rowEquals in x.rfid){
+			foundinequals = false;
+		  foreach (string rowSource in rfid) {
+				if(rowSource == rowEquals){
+					foundinequals = true;
+					break;
+				}
+			}
+			if(!foundinequals){
+				return false;
+			}
+		}
 
 		return true;
 	}
@@ -155,12 +206,24 @@ public struct UserAuth {
 public struct Product {
 	public uint64 ean;
 	public string name;
+	public Price memberprice;
+	public Price guestprice;
 }
 
 public struct InvoiceEntry {
 	public int64 timestamp;
 	Product product;
 	Price price;
+}
+
+public struct Sale {
+	public int64 timestamp;
+	public uint64 ean;
+	public string productname;
+	public int userId;
+	public string userFirstname;
+	public string userLastname;
+	public Price price;
 }
 
 public struct CashboxDiff {
@@ -190,10 +253,58 @@ public struct StatsInfo {
 	public Price profit_per_month;
 }
 
+public struct StatisticProductsPerDay {
+	public string day;
+	public int64 numOfProducts;
+	public Price total;
+	public string product;
+	public uint64 productId;
+	public string category;
+}
+
+public struct StatisticProductsPerMonth {
+	public string month;
+	public string year;
+	public int64 numOfProducts;
+	public Price total;
+	public string product;
+	public uint64 productId;
+	public string category;
+}
+
+public struct StatisticProductsPerYear {
+	public string year;
+	public int64 numOfProducts;
+	public Price total;
+	public string product;
+	public uint64 productId;
+	public string category;
+}
+
+public struct StatisticSalesPerDay {
+	public string day;
+	public int64 numOfProducts;
+	public Price total;
+}
+
+public struct StatisticSalesPerMonth {
+	public string month;
+	public string year;
+	public int64 numOfProducts;
+	public Price total;
+}
+
+public struct StatisticSalesPerYear {
+	public string year;
+	public int64 numOfProducts;
+	public Price total;
+}
+
 public errordomain DatabaseError {
 	INTERNAL_ERROR,
 	PRODUCT_NOT_FOUND,
 	SESSION_NOT_FOUND,
 	USER_NOT_FOUND,
 	CONSTRAINT_FAILED,
+	RFID_NOT_FOUND,
 }

@@ -85,9 +85,13 @@ public class AudioPlayerImplementation {
 	}
 
 	public void play_user(string theme, string type) {
-		p.set_state(Gst.State.NULL);
-		var file = get_random_file(path + "user/" + theme+ "/" + type);
-		p.uri = "file://" + path + "user/" + theme+ "/" + type + "/" + file;
-		p.set_state(Gst.State.PLAYING);
+		try {
+			p.set_state(Gst.State.NULL);
+			var file = get_random_file(path + "user/" + theme+ "/" + type);
+			p.uri = "file://" + path + "user/" + theme+ "/" + type + "/" + file;
+			p.set_state(Gst.State.PLAYING);
+		} catch (IOError e) {
+			error("IOError Cannot Play %s %s: %s\n", theme, type, e.message);
+		}
 	}
 }

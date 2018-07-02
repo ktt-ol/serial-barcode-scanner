@@ -2,6 +2,7 @@
  * update Makefiles to use config.mk
  * create VAPI file for config.h
  * support "make install"
+ * update README: how to setup the physical scanner device
 
 #### CORE
  * disallow buying for disabled users
@@ -9,9 +10,11 @@
  * remove hardcoded stuff from invoice and pdf-invoice
  * drop to user rights in all daemons if started as root user
   - [old code](https://github.com/ktt-ol/serial-barcode-scanner/commit/504cefec4a93a9b52fa9d25d6f353a4676485c43)
+ * 
 
 ### frontend
  * add auto-logout
+ * add cart-info - "what is in my current shopping cart?"
 
 #### USERLIST-PDF
  * write new vala process, which generates a user list pdf using libcairobarcode
@@ -23,6 +26,7 @@
 
 #### MAIL
  * add PGP support in mail script
+ * add i18n
 
 #### MAIL-SERVICE
  * IMAP client, which is parsing incoming mails from shop@ktt-ol
@@ -48,6 +52,7 @@
  * Support generating shopping list (PRODUCTLIST-PDF)
  * Implement a more fine-grained authentication system
  * OpenID based login
+ * add i18n
 
 #### LOG
  * implement log daemon

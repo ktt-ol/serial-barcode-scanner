@@ -1,10 +1,16 @@
 [Unit]
 Description=Shop System UI
+After=getty-static.service
 
 [Service]
+PermissionsStartOnly=true
 User=shop
 Group=shop
 Type=simple
+Restart=always
+ExecStartPre=/bin/chvt 3
+ExecStartPre=/bin/cat /etc/issue
+ExecStartPre=/bin/setupcon
 ExecStart=/home/shop/serial-barcode-scanner/src/curses-ui/curses-ui
 StandardInput=tty
 StandardOutput=tty

@@ -1,1 +1,1 @@
-ACTION=="add", ATTRS{idVendor}=="0536", ATTRS{idProduct}=="02e1", MODE="0666", SYMLINK+="barcodescanner" TAG+="systemd", ENV{SYSTEMD_WANTS}="shopsystem-input-device"
+ACTION=="add", ATTRS{idVendor}=="e851", ATTRS{idProduct}=="1000", MODE="0666", SYMLINK+="barcodescanner" TAG+="systemd", ENV{SYSTEMD_WANTS}="shopsystem-input-device"

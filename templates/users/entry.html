@@ -11,7 +11,7 @@
 				<canvas id="barcode"></canvas><br>
 				<a href="#" onclick="window.open(code39_url());">Download</a>
 				<br>
-				<a href="https://api-bwipjs.rhcloud.com/?bcid=code39&text=USER%20{{{UID}}}&scale=6&includetext&includecheck&includecheckintext" target="_blank">Get HighRes Version (external)
+				<a href="https://barcode.tec-it.com/barcode.ashx?translate-esc=off&data=USER%20{{{UID}}}&code=Code39FullASCII&multiplebarcodes=false&unit=Fit&dpi=96&imagetype=png&rotation=0&color=%23000000&bgcolor=%23ffffff&qunit=Mm&quiet=0" target="_blank">Get HighRes Version (external)</a>
 			</td>
 		</tr>
 		<tr><th>Firstname</th><td>{{{FIRSTNAME}}}</td></tr>
@@ -22,6 +22,7 @@
 		<tr><th>Street</th><td>{{{STREET}}}</td></tr>
 		<tr><th>PLZ</th><td>{{{POSTALCODE}}}</td></tr>
 		<tr><th>City</th><td>{{{CITY}}}</td></tr>
+		<tr><th>RFID</th><td>{{{RFID}}}</td></tr>
 		<tr><th colspan="2">Settings</th></tr>
 		<tr><th>Sound theme</th>
 		<td>
@@ -34,6 +35,17 @@
 			</form>
 			<br>
 			<a href="https://github.com/ktt-ol/serial-barcode-scanner/tree/master/sounds/user" target="_blank">See Preview</a>
+		</td>
+		</tr>
+		<tr><th>Language</th>
+		<td>
+			<form method="POST" enctype="multipart/form-data" action="#">
+			<select class="form-control" name="language">
+				<option value="##system">SYSTEM</option>
+				{{{LANGUAGES}}}
+			</select>
+			<input type="submit" class="btn btn-default" value="Update">
+			</form>
 		</td>
 		</tr>
 	</table>

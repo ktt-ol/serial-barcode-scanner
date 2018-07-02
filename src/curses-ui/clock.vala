@@ -1,4 +1,5 @@
 /* Copyright 2013, Sebastian Reichel <sre@ring0.de>
+ * Copyright 2018, Malte Modler <malte@malte-modler.de>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -18,14 +19,23 @@ using Curses;
 public class ClockWindow {
 	AsciiNumbers ascii;
 	Window win;
+	string dateformat;
+	Config cfg;
 
-	public ClockWindow() {
-		ascii = new AsciiNumbers();
+	public ClockWindow(string binarylocation) {
+		ascii = new AsciiNumbers(binarylocation);
 		win   = new Window(6, 18, 1, COLS-2-18);
 		win.bkgdset(COLOR_PAIR(0) | Attribute.BOLD);
 
 		win.clrtobot();
 		win.box(0, 0);
+
+		try {
+			cfg  = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Config", "/io/mainframe/shopsystem/config");
+		} catch(Error e) {
+			error("Error in message_box.vala: %s", e.message);
+		}
+		dateformat = cfg.get_string("DATE-FORMAT", "format");
 
 		win.refresh();
 	}
@@ -63,7 +73,7 @@ public class ClockWindow {
 		win.clrtobot();
 		win.box(0, 0);
 
-		win.mvaddstr(5,4, now.format("%Y-%m-%d"));
+		win.mvaddstr(5,4, now.format(dateformat));
 
 		win.refresh();
 	}

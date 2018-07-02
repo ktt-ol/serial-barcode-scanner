@@ -1,0 +1,4 @@
+[D-BUS Service]
+Name=io.mainframe.shopsystem.Mqtt
+Exec=${PATH}/mqtt/mqtt
+User=shop

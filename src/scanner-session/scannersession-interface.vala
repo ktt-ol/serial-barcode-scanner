@@ -1,4 +1,5 @@
 /* Copyright 2013, Sebastian Reichel <sre@ring0.de>
+ * Copyright 2018, Johannes Rudolph <johannes.rudolph@gmx.com>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -17,10 +18,16 @@
 public interface ScannerSession : Object {
 	public abstract signal void msg(MessageType type, string message);
 	public abstract signal void msg_overlay(string title, string message);
+	public abstract signal void set_privacy_mode(bool mode);
 }
 
 public enum MessageType {
 	INFO,
 	WARNING,
 	ERROR
+}
+
+public enum ScannerSessionState{
+	READY,
+	USER
 }

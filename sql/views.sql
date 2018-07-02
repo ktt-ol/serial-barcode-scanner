@@ -1,7 +1,7 @@
 BEGIN TRANSACTION;
 CREATE VIEW IF NOT EXISTS stock AS SELECT id, name, category, amount FROM products WHERE deprecated = 0 OR amount != 0;
 CREATE VIEW IF NOT EXISTS purchaseprices AS SELECT product, SUM(price * amount) / SUM(amount) AS price FROM restock GROUP BY product;
-CREATE VIEW IF NOT EXISTS invoice AS 
+CREATE VIEW IF NOT EXISTS invoice AS
 	SELECT user, timestamp, id AS productid, name AS productname,
 		CASE
 			WHEN user < 0 THEN
@@ -38,4 +38,98 @@ CREATE VIEW IF NOT EXISTS current_cashbox_status AS
 			SELECT SUM(amount) FROM cashbox_diff
 		)
 	) AS amount;
+CREATE VIEW IF NOT EXISTS singleDaysSinceFirstSale AS
+	WITH RECURSIVE
+	singledays(x) AS (
+	 SELECT (SELECT strftime('%s',datetime( (select s.timestamp from sales s order by s.timestamp asc limit 1), 'unixepoch','start of year'))*1)
+	 UNION ALL
+	 SELECT x+86400 FROM singledays
+	  LIMIT 10000
+	)
+	SELECT x as start, (x+86399) as end FROM singledays where x < strftime('%s','now')*1.0;
+CREATE VIEW IF NOT EXISTS statistic_productsperday AS
+	SELECT
+		date(sdsp.start, 'unixepoch') day,
+		( SELECT count(*) from salesView s1 where s1.timestamp >= sdsp.start and s1.timestamp <= sdsp.end and p.id = s1.productId) as numOfProducts,
+		( select sum(s2.price) from salesView s2 where s2.timestamp >= sdsp.start and s2.timestamp <= sdsp.end and p.id = s2.productId) as total,
+		p.name product,
+		p.id productId,
+		c.name category
+	FROM 
+		 singleDaysSinceFirstSale sdsp, products p
+		left join categories as c on (c.id = p.category)
+	ORDER BY 
+		 day desc, 
+		 category asc, 
+		 product asc;
+CREATE VIEW IF NOT EXISTS statistic_productspermonth AS
+	SELECT
+		strftime('%m',day) month,
+		strftime('%Y',day) year,
+		sum(numOfProducts) numOfProducts,
+		sum(total) total ,
+		product,
+		productId,
+		category
+	FROM
+		statistic_productsperday
+	GROUP BY
+		product,month,year
+	ORDER BY 
+		 year desc, 
+		 month desc,
+		 category asc, 
+		 product asc;
+CREATE VIEW IF NOT EXISTS statistic_productsperyear AS
+	SELECT
+		year,
+		sum(numOfProducts) numOfProducts,
+		sum(total) total ,
+		product,
+		productId,
+		category
+	FROM 
+		statistic_productspermonth
+	GROUP BY 
+		 product,
+		 year
+	ORDER BY
+		year desc,
+		category asc, 
+		product asc;
+CREATE VIEW IF NOT EXISTS statistic_salesperday AS
+	SELECT
+		day,
+		sum(numOfProducts) numOfProducts,
+		sum(total) total
+	FROM
+		statistic_productsperday
+	GROUP BY 
+		day	
+	ORDER BY
+		day desc;
+CREATE VIEW IF NOT EXISTS statistic_salespermonth AS
+	SELECT
+		strftime('%m',day) month,
+		strftime('%Y',day) year,
+		sum(numOfProducts) numOfProducts,
+		sum(total) total
+	FROM
+		statistic_salesperday
+	GROUP BY
+		month,year
+	ORDER BY
+		year desc,
+		month desc;
+CREATE VIEW IF NOT EXISTS statistic_salesperyear AS
+	SELECT
+		year,
+		sum(numOfProducts) numOfProducts,
+		sum(total) total
+	FROM
+		statistic_salespermonth
+	GROUP BY
+		year
+	ORDER BY
+		year desc;
 COMMIT;

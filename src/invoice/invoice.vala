@@ -1,4 +1,6 @@
 /* Copyright 2013, Sebastian Reichel <sre@ring0.de>
+ * Copyright 2018, Johannes Rudolph <johannes.rudolph@gmx.com>
+ * Copyright 2018, Malte Modler <malte@malte-modler.de>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -32,13 +34,38 @@ public class InvoiceImplementation {
 	Database db;
 	PDFInvoice pdf;
 	string datadir;
+	string mailfromaddress;
+	string treasurermailaddress;
+	string shortname;
+	string spacename;
+	string umsatzsteuer;
+	string jvereinmitgliedsnummern;
+	string umsatzsteuerNoText;
+        string umsatzsteuerNoHtml;
+        string dateFormat;
+	string dateFormatMailSubjectMonthly;
+        string dateTimeFormat;
+        string timeFormat;
 
 	public InvoiceImplementation() throws IOError, KeyFileError {
 		mailer = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Mail", "/io/mainframe/shopsystem/mailer");
 		db = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Database", "/io/mainframe/shopsystem/database");
 		pdf = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.InvoicePDF", "/io/mainframe/shopsystem/invoicepdf");
 		Config cfg = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Config", "/io/mainframe/shopsystem/config");
-		datadir = cfg.get_string("INVOICE", "datadir");
+
+		datadir                         = cfg.get_string("INVOICE", "datadir");
+		mailfromaddress                 = cfg.get_string("MAIL", "mailfromaddress");
+		treasurermailaddress            = cfg.get_string("MAIL", "treasurermailaddress");
+		shortname                       = cfg.get_string("GENERAL", "shortname");
+		spacename                       = cfg.get_string("GENERAL", "spacename");
+		umsatzsteuer                    = cfg.get_string("INVOICE", "umsatzsteuer");
+		jvereinmitgliedsnummern         = cfg.get_string("JVEREIN", "mitgliedsnummern");
+		umsatzsteuerNoText              = cfg.get_string("INVOICE", "umsatzsteuerNoText");
+    		umsatzsteuerNoHtml              = cfg.get_string("INVOICE", "umsatzsteuerNoHtml");
+    		dateFormat                      = cfg.get_string("DATE-FORMAT", "format");
+		dateFormatMailSubjectMonthly 	= cfg.get_string("DATE-FORMAT", "formatMailSubjectMonthly");
+    		dateTimeFormat 			= cfg.get_string("DATE-FORMAT", "formatDateTime");
+    		timeFormat                      = cfg.get_string("DATE-FORMAT", "formatTime");
 	}
 
 	public void send_invoice(bool temporary, int64 timestamp, int user) throws IOError, InvoicePDFError, DatabaseError {
@@ -54,12 +81,17 @@ public class InvoiceImplementation {
 
 		var start = new DateTime.from_unix_local(ts.from);
 		var stop  = new DateTime.from_unix_local(ts.to);
-		var startstring = start.format("%d.%m.%Y %H:%M:%S");
-		var stopstring  = stop.format("%d.%m.%Y %H:%M:%S");
+		var startstring = start.format(dateTimeFormat);
+                var stopstring  = stop.format(dateTimeFormat);
 
 		/* title */
-		string mailtitle = temporary ? "Getränkezwischenstand" : "Getränkerechnung";
-		mailtitle += @" $startstring - $stopstring";
+		string mailtitle = temporary ? "Shopsytem Zwischenstand" : "Shopsystem Monatsaberechnung";
+		if(temporary){
+			mailtitle += @" $startstring - $stopstring";
+		}
+		else {
+			mailtitle += " " + start.format(dateFormatMailSubjectMonthly);
+		}
 
 		stdout.printf(mailtitle + "\n\n");
 
@@ -67,9 +99,9 @@ public class InvoiceImplementation {
 
 		string treasurer_path  = mailer.create_mail();
 		Mail treasurer_mail    = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Mail", treasurer_path);
-		treasurer_mail.from    = {"KtT Shopsystem", "shop@kreativitaet-trifft-technik.de"};
+		treasurer_mail.from    = {shortname + " Shopsystem", mailfromaddress};
 		treasurer_mail.subject = mailtitle;
-		treasurer_mail.add_recipient({"Schatzmeister", "shop-einzug@kreativitaet-trifft-technik.de"}, RecipientType.TO);
+		treasurer_mail.add_recipient({"Schatzmeister", treasurermailaddress}, RecipientType.TO);
 		var csvinvoicedata     = "";
 
 		foreach(var userid in users) {
@@ -82,7 +114,7 @@ public class InvoiceImplementation {
 				var invoicedata = generate_invoice(temporary, timestamp, userid, invoiceid);
 				string mail_path = mailer.create_mail();
 				Mail mail = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Mail", mail_path);
-				mail.from = {"KtT Shopsystem", "shop@kreativitaet-trifft-technik.de"};
+				mail.from = {shortname + " Shopsystem", mailfromaddress};
 				mail.subject = mailtitle;
 				mail.add_recipient({@"$(userdata.firstname) $(userdata.lastname)", userdata.email}, RecipientType.TO);
 
@@ -111,9 +143,13 @@ public class InvoiceImplementation {
 
 	public void send_invoices(bool temporary, int64 timestamp) throws IOError, InvoicePDFError, DatabaseError {
 		int64 prevtimestamp = timestamp - day_in_seconds;
+		string faelligkeitsdatumstring = "";
 
-		if(!temporary)
+		if(!temporary){
 			prevtimestamp = new DateTime.from_unix_local(timestamp).add_months(-1).to_unix();
+			var faelligkeitsdatum = new DateTime.from_unix_local(timestamp).add_days(10);
+			faelligkeitsdatumstring = faelligkeitsdatum.format(dateFormat);
+		}
 
 		Timespan ts = get_timespan(temporary, prevtimestamp);
 		Timespan tst = get_timespan(false, prevtimestamp);
@@ -122,12 +158,17 @@ public class InvoiceImplementation {
 
 		var start = new DateTime.from_unix_local(ts.from);
 		var stop  = new DateTime.from_unix_local(ts.to);
-		var startstring = start.format("%d.%m.%Y %H:%M:%S");
-		var stopstring  = stop.format("%d.%m.%Y %H:%M:%S");
+		var startstring = start.format(dateTimeFormat);
+		var stopstring  = stop.format(dateTimeFormat);
 
 		/* title */
-		string mailtitle = temporary ? "Getränkezwischenstand" : "Getränkerechnung";
-		mailtitle += @" $startstring - $stopstring";
+		string mailtitle = temporary ? "Shopsytem Zwischenstand" : "Shopsystem Monatsaberechnung";
+		if(temporary){
+			mailtitle += @" $startstring - $stopstring";
+		}
+		else {
+			mailtitle += " " + start.format(dateFormatMailSubjectMonthly);
+		}
 
 		stdout.printf(mailtitle + "\n\n");
 
@@ -135,10 +176,17 @@ public class InvoiceImplementation {
 
 		string treasurer_path  = mailer.create_mail();
 		Mail treasurer_mail    = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Mail", treasurer_path);
-		treasurer_mail.from    = {"KtT Shopsystem", "shop@kreativitaet-trifft-technik.de"};
+		treasurer_mail.from    = {shortname + " Shopsystem", mailfromaddress};
 		treasurer_mail.subject = mailtitle;
-		treasurer_mail.add_recipient({"Schatzmeister", "shop-einzug@kreativitaet-trifft-technik.de"}, RecipientType.TO);
+		treasurer_mail.add_recipient({"Schatzmeister", treasurermailaddress}, RecipientType.TO);
 		var csvinvoicedata     = "";
+		var csvjvereininvoicedata = "";
+		if(jvereinmitgliedsnummern == "extern"){
+			csvjvereininvoicedata = "Ext_Mitglieds_Nr;Betrag;Buchungstext;Fälligkeit;Intervall;Endedatum\n";
+		}
+		else {
+			csvjvereininvoicedata = "Mitglieds_Nr;Betrag;Buchungstext;Fälligkeit;Intervall;Endedatum\n";
+		}
 
 		foreach(var userid in users) {
 			number++;
@@ -149,7 +197,7 @@ public class InvoiceImplementation {
 
 			string mail_path = mailer.create_mail();
 			Mail mail = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Mail", mail_path);
-			mail.from = {"KtT Shopsystem", "shop@kreativitaet-trifft-technik.de"};
+			mail.from = {shortname + " Shopsystem", mailfromaddress};
 			mail.subject = mailtitle;
 			mail.add_recipient({@"$(userdata.firstname) $(userdata.lastname)", userdata.email}, RecipientType.TO);
 
@@ -165,12 +213,16 @@ public class InvoiceImplementation {
 			if(!temporary) {
 				treasurer_mail.add_attachment(invoicedata.pdffilename, "application/pdf", invoicedata.pdfdata);
 				csvinvoicedata += @"$(userdata.id),$(userdata.lastname),$(userdata.firstname),$invoiceid,$total_sum\n";
+				if(userdata.id > 0){
+					csvjvereininvoicedata += @"$(userdata.id);$total_sum;$shortname Shopsystem Rechnung Nummer $invoiceid;$faelligkeitsdatumstring;0;$faelligkeitsdatumstring\n";
+				}
 			}
 		}
 
 		if(!temporary) {
 			treasurer_mail.set_main_part(get_treasurer_text(), MessageType.PLAIN);
 			treasurer_mail.add_attachment("invoice.csv", "text/csv; charset=utf-8", csvinvoicedata.data);
+			treasurer_mail.add_attachment("jvereininvoice.csv", "text/csv; charset=utf-8", csvjvereininvoicedata.data);
 			mailer.send_mail(treasurer_path);
 		}
 	}
@@ -226,6 +278,8 @@ public class InvoiceImplementation {
 		} catch(GLib.FileError e) {
 			throw new IOError.FAILED("Could not open invoice template: %s", e.message);
 		}
+
+		text = text.replace("{{{SHORTNAME}}}", shortname);
 
 		return text;
 	}
@@ -294,8 +348,24 @@ public class InvoiceImplementation {
 
 		text = text.replace("{{{ADDRESS}}}", address);
 		text = text.replace("{{{LASTNAME}}}", name);
+		text = text.replace("{{{SPACENAME}}}", spacename);
 		text = text.replace("{{{INVOICE_TABLE}}}", table);
 		text = text.replace("{{{SUM_MONTH}}}", "%d,%02d".printf(total_sum / 100, total_sum % 100));
+
+		if(umsatzsteuer == "yes") {
+			text = text.replace("{{{UMSATZSTEUER}}}", "");
+		}
+		else {
+			string umsatzsteuertext;
+			if(type == MessageType.HTML) {
+				umsatzsteuertext = umsatzsteuerNoHtml;
+			}
+			else {
+				umsatzsteuertext = umsatzsteuerNoText;
+			}
+
+			text = text.replace("{{{UMSATZSTEUER}}}", umsatzsteuertext);
+		}
 
 		return text;
 	}
@@ -307,8 +377,9 @@ public class InvoiceImplementation {
 		const int article_minsize = 7;
 
 		/* no articles bought */
-		if(entries.length == 0)
+		if(entries.length == 0){
 			return result;
+		}
 
 		/* get length of longest name + invoice sum */
 		int namelength = 0;
@@ -332,9 +403,9 @@ public class InvoiceImplementation {
 		string lastdate = "";
 		foreach(var entry in entries) {
 			var dt = new DateTime.from_unix_local(entry.timestamp);
-			string newdate = dt.format("%Y-%m-%d");
+			string newdate = dt.format(dateFormat);
 			string date = (lastdate == newdate) ? "          " : newdate;
-			result += " | %s | %s | %s%s | %3d,%02d € |\n".printf(date, dt.format("%H:%M:%S"), entry.product.name, string.nfill(namelength-entry.product.name.char_count(), ' '), entry.price / 100, entry.price % 100);
+			result += " | %s | %s | %s%s | %3d,%02d € |\n".printf(date, dt.format(timeFormat), entry.product.name, string.nfill(namelength-entry.product.name.char_count(), ' '), entry.price / 100, entry.price % 100);
 			lastdate = newdate;
 		}
 
@@ -356,8 +427,8 @@ public class InvoiceImplementation {
 		int total = 0;
 		foreach(var entry in entries) {
 			var dt = new DateTime.from_unix_local(entry.timestamp);
-			string newdate = dt.format("%Y-%m-%d");
-			string time = dt.format("%H:%M:%S");
+			string newdate = dt.format(dateFormat);
+			string time = dt.format(timeFormat);
 			string date = (lastdate == newdate) ? "" : newdate;
 			total += entry.price;
 

@@ -1,4 +1,6 @@
 /* Copyright 2013, Sebastian Reichel <sre@ring0.de>
+ * Copyright 2017-2018, Johannes Rudolph <johannes.rudolph@gmx.com>
+ * Copyright 2018, Malte Modler <malte@malte-modler.de>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -17,6 +19,7 @@ public MainLoop loop;
 public AudioPlayer audio;
 public ScannerSession scanner;
 public CursesUI ui;
+public Config config;
 
 private static void play(string file) {
 	try {
@@ -34,6 +37,9 @@ public void msg_overlay_handler(string title, string message) {
 	ui.log_overlay(title, message, 5);
 }
 
+public void privacy_handler(bool mode) {
+        ui.setPrivacyMode(mode);
+}
 
 public void log_handler(string? log_domain, LogLevelFlags flags, string message) {
 	ui.log(MessageType.INFO, message);
@@ -49,18 +55,25 @@ public static int main(string[] args) {
 	try {
 		audio = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.AudioPlayer", "/io/mainframe/shopsystem/audio");
 		scanner = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.ScannerSession", "/io/mainframe/shopsystem/scanner_session");
+		config = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Config", "/io/mainframe/shopsystem/config");
 	} catch(IOError e) {
 		error("IOError: %s\n", e.message);
 	}
 
-	ui = new CursesUI();
+  string binarylocation = File.new_for_path(args[0]).get_parent().get_path();
+
+	ui = new CursesUI(binarylocation);
 
 	Log.set_default_handler(log_handler);
 
 	scanner.msg.connect(msg_handler);
 	scanner.msg_overlay.connect(msg_overlay_handler);
+	scanner.set_privacy_mode.connect(privacy_handler);
 
-	ui.log(MessageType.INFO, "KtT Shop System has been started");
+  /* get configuration */
+  var shopname = config.get_string("GENERAL", "longname");
+
+	ui.log(MessageType.INFO, @"$shopname Shop System has been started");
 	play("startup.ogg");
 
 	/* run mainloop */

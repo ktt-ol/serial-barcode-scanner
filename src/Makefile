@@ -1,4 +1,4 @@
-DAEMONS=audio backup cli config curses-ui database input-device invoice mail pdf-invoice pdf-stock pgp scanner-session serial-device input-device web
+DAEMONS=audio backup cli config curses-ui database i18n input-device invoice mail mqtt pdf-invoice pdf-stock pgp report scanner-session serial-device input-device web
 
 all:
 	@$(foreach dir,$(DAEMONS),cd $(dir) && echo "Building $(dir)..." && make --no-print-directory all ; cd ..;)

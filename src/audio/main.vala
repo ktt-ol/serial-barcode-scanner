@@ -33,7 +33,7 @@ public static int main(string[] args) {
 	} catch(IOError e) {
 		error("IOError: %s\n", e.message);
 	} catch(KeyFileError e) {
-		error("Config Error: %s\n", e.message);
+		error("KeyFileError Audo path not defined: %s\n", e.message);
 	}
 
 	new MainLoop().run();

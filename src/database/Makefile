@@ -1,7 +1,7 @@
 all: database
 	@echo > /dev/null
 
-database: main.vala database.vala db-interface.vala ../config/config-interface.vala ../price.vapi
+database: main.vala database.vala db-interface.vala ../config/config-interface.vala ../price.vapi ../mqtt/mqtt-interface.vala
 	valac -X -w -o $@ --pkg sqlite3 --pkg gee-0.8 --pkg gio-2.0 $^
 
 clean:

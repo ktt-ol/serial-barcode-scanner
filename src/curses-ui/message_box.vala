@@ -1,4 +1,5 @@
 /* Copyright 2013, Sebastian Reichel <sre@ring0.de>
+ * Copyright 2018, Johannnes Rudolph <johannes.rudolph@gmx.com>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -19,6 +20,9 @@ public class MessageBox {
 	Window win;
 	Window subwin;
 	DateTime last;
+
+	private Config cfg;
+	private bool privacyMode = true;
 
 	public const short INFO_COLOR = 5;
 	public const short WARN_COLOR = 6;
@@ -41,20 +45,31 @@ public class MessageBox {
 
 		init_pair (INFO_COLOR, Color.WHITE, Color.BLACK);
 		init_pair (WARN_COLOR, Color.YELLOW, Color.BLACK);
-		init_pair (ERROR_COLOR, Color.RED, Color.BLACK);		
+		init_pair (ERROR_COLOR, Color.RED, Color.BLACK);
+		
+		Timeout.add_seconds(10, addBlank);
+		
+		Timeout.add_seconds(10, addBlank);
+
+		try {
+			cfg  = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Config", "/io/mainframe/shopsystem/config");
+		} catch(Error e) {
+			error("Error in message_box.vala: %s", e.message);
+		}
+
 	}
 
 	public void add(string msg, short color_pair = MessageBox.INFO_COLOR) {
 		var now = new DateTime.now_local();
 
 		if(now.get_day_of_year() != last.get_day_of_year() || now.get_year() != last.get_year()) {
-			string curtime = now.format("%Y-%m-%d");
+			string curtime = now.format(cfg.get_string("DATE-FORMAT", "format"));
 			subwin.addstr("\nDate Changed: " + curtime);
 		}
 
 		last = now;
 
-		string curtime = now.format("%H:%M:%S");
+		string curtime = now.format(cfg.get_string("DATE-FORMAT", "formatCursesUi"));
 		subwin.bkgdset(COLOR_PAIR(color_pair));
 		subwin.addstr("\n[" + curtime + "] " + msg);
 		subwin.refresh();
@@ -66,4 +81,17 @@ public class MessageBox {
 		subwin.touchwin();
 		subwin.refresh();
 	}
+	
+	public bool addBlank(){
+                if(this.privacyMode) {
+                        subwin.addstr("\n");
+                        subwin.refresh();
+                }
+                return true;
+        }
+
+        public void setPrivacyMode(bool mode){
+                this.privacyMode = mode;        
+        }
+	
 }
