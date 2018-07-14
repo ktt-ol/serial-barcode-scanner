@@ -19,13 +19,13 @@ using Curses;
 public class Logo {
 	Window win;
 
-	public Logo(string datadir) {
+	public Logo(string configdir) {
 		win = new Window(8, COLS - 2, 0, 1);
 		win.bkgdset(COLOR_PAIR(1) | Attribute.BOLD);
 
 		win.addstr("\n");
 
-		var logofilename = Path.build_filename(datadir, "logo.txt");
+		var logofilename = Path.build_filename(configdir, "logo.txt");
 		var file = File.new_for_path(logofilename);
 		if (!file.query_exists()) {
 			stderr.printf (_("File '%s' doesn't exist.\n"), file.get_path ());

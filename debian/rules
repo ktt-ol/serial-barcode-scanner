@@ -1,0 +1,13 @@
+#!/usr/bin/make -f
+export DEB_BUILD_MAINT_OPTIONS = hardening=+all
+DPKG_EXPORT_BUILDFLAGS = 1
+include /usr/share/dpkg/buildflags.mk
+
+%:
+	dh $@ --buildsystem=meson --with=sysuser
+
+override_dh_install:
+	dh_install
+	mkdir -p debian/shopsystem/usr/share/dbconfig-common/data/shopsystem/install
+	cat data/sql/tables.sql data/sql/trigger.sql data/sql/views.sql > debian/shopsystem/usr/share/dbconfig-common/data/shopsystem/install/sqlite3
+	find debian/shopsystem/usr/share/shopsystem/sounds -name LICENSE -exec rm {} \;

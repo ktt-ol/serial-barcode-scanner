@@ -19,7 +19,7 @@ public static int main(string[] args) {
 	Intl.setlocale(LocaleCategory.ALL, "");
 	Intl.textdomain("shopsystem");
 
-	cfg = new Cfg("/etc/shopsystem.cfg");
+	cfg = new Cfg("/etc/shopsystem/config.ini");
 
 	Bus.own_name(
 		BusType.SYSTEM,

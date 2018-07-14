@@ -23,7 +23,7 @@ public class CursesUI {
 	//StatusPanel statuswin;
 	MessageBoxOverlay mbOverlay;
 
-	public CursesUI(string datadir) {
+	public CursesUI(string configdir) {
 		/* unicode support */
 		Intl.setlocale(LocaleCategory.CTYPE, "");
 
@@ -40,7 +40,7 @@ public class CursesUI {
 		Curses.init_pair(2, Curses.Color.WHITE, Curses.Color.RED);
 
 		/* initialize widgets */
-		banner    = new Logo(datadir);
+		banner    = new Logo(configdir);
 		//statuswin = new StatusPanel();
 		messages  = new MessageBox();
 		clkwin    = new ClockWindow();

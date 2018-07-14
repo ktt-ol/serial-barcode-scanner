@@ -1,6 +1,6 @@
 systemd = dependency('systemd')
 systemdsystemunitdir = systemd.get_pkgconfig_variable('systemdsystemunitdir')
-bindir = join_paths(get_option('prefix'), get_option('bindir'))
+bindir = join_paths(get_option('prefix'), get_option('libexecdir'), 'shopsystem')
 
 cfg = configuration_data()
 cfg.set('PATH', bindir)

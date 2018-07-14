@@ -1,6 +1,8 @@
 datadir = join_paths(get_option('prefix'), get_option('datadir'), 'shopsystem')
+cfgdir = join_paths(get_option('sysconfdir'), 'shopsystem')
 
-install_data('logo.txt', install_dir: datadir)
+install_data('config/logo.txt', install_dir: cfgdir)
+install_data('config/config.ini', install_dir: cfgdir)
 install_subdir('sounds', install_dir: datadir)
 install_subdir('templates', install_dir: datadir)
 install_subdir('invoice', install_dir: datadir)

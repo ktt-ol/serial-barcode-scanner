@@ -32,51 +32,35 @@ support for the following tasks:
 The system consists of multiple daemons written in Vala, which communicate
 with each other using DBus.
 
-Build Dependencies:
- * apt install build-essential valac libesmtp-dev libgpgme11-dev libncursesw5-dev libncurses5-dev libgee-0.8-dev libgmime-2.6-dev libarchive-dev libgstreamer1.0-dev libgtk2.0-dev librsvg2-dev libsoup2.4-dev libsqlite3-dev libpango1.0-dev libssl-dev dbus-x11 policykit-1
+=== Building ===
 
-Additional runtime dependencies:
- * apt install fonts-lmodern gstreamer1.0-alsa gstreamer1.0-plugins-base
+ * Install dependencies listed by `dpkg-checkbuilddeps` via `apt install`
+ * Build the package with `dpkg-buildpackage -b`
 
-Suggested runtime dependencies:
- * apt install sqlite3
+=== Install ===
 
-== Installation ==
-
-You can install to different location or use a different username,
-but you need to modify a few things.
-
-=== Git Setup ===
-
- * adduser "shop" with homedir in /home/shop
- * clone git repository into /home/shop/serial-barcode-scanner
-
-=== Build and Install the Software ===
-
- * meson build --prefix /usr
- * cd build
- * ninja
- * ninja install
-
-=== Systemd ===
-
- * cd systemd
- * sudo make install
+ * `apt install ./shopsystem.deb`
 
 === Configuration ===
 
- * mv example.cfg ktt-shopsystem.cfg
- * edit ktt-shopsystem.cfg
+ * Edit /etc/shopsystem/config.ini
 
 === Database ===
 
- * Create initial account with super user permissions
-  `busctl --system call io.mainframe.shopsystem.Database /io/mainframe/shopsystem/database io.mainframe.shopsystem.Database UserReplace "(issssssssxbbsas)" "<userid>" "<firstname>" "<lastname>" "<email>" "<gender>" "<street>" "<postcode>" "<city>" "" 0 0 0 "" 0`
-  `busctl --system call io.mainframe.shopsystem.Database /io/mainframe/shopsystem/database io.mainframe.shopsystem.Database SetUserPassword "is" "<userid>" "<password>"`
-  `busctl --system call io.mainframe.shopsystem.Database /io/mainframe/shopsystem/database io.mainframe.shopsystem.Database SetUserAuth "(ibbbb)" "<userid>" 1 1 1 1`
- * Demo Data
-  `busctl --system call io.mainframe.shopsystem.Database /io/mainframe/shopsystem/database io.mainframe.shopsystem.Database AddCategory "s" "Getränke"`
-  `busctl --system call io.mainframe.shopsystem.Database /io/mainframe/shopsystem/database io.mainframe.shopsystem.Database AddSupplier "ssssss" "Demo Lieferant" "12345" "Musterstadt" "Musterstr. 5" "+49 1234 56789" "https://www.example.org"`
+To use the web interface, you need add a super user first. Further
+user can then be imported using the web interface. Creation of the
+initial super user is done with the following commands:
+
+ * `busctl --system call io.mainframe.shopsystem.Database /io/mainframe/shopsystem/database io.mainframe.shopsystem.Database UserReplace "(issssssssxbbsas)" "<userid>" "<firstname>" "<lastname>" "<email>" "<gender>" "<street>" "<postcode>" "<city>" "" 0 0 0 "" 0`
+ * `busctl --system call io.mainframe.shopsystem.Database /io/mainframe/shopsystem/database io.mainframe.shopsystem.Database SetUserPassword "is" "<userid>" "<password>"`
+ * `busctl --system call io.mainframe.shopsystem.Database /io/mainframe/shopsystem/database io.mainframe.shopsystem.Database SetUserAuth "(ibbbb)" "<userid>" 1 1 1 1`
+
+Unfortunately the web interface does not yet allow do add categories
+or suppliers. You can use the following queries to add this before
+adding products:
+
+ * `busctl --system call io.mainframe.shopsystem.Database /io/mainframe/shopsystem/database io.mainframe.shopsystem.Database AddCategory "s" "Getränke"`
+ * `busctl --system call io.mainframe.shopsystem.Database /io/mainframe/shopsystem/database io.mainframe.shopsystem.Database AddSupplier "ssssss" "Demo Lieferant" "12345" "Musterstadt" "Musterstr. 5" "+49 1234 56789" "https://www.example.org"`
 
 It's also possible to directly access the database. While there are
 some triggers to keep the database in a sensible state, please be
@@ -91,7 +75,7 @@ It will be restarted by any process, that needs the database DBus API.
 
 You can control display power via MQTT by configuring the MQTT settings (i.e. BROKER, TOPIC) in the config file.
 
-== Customize Your Shop ==
+=== Customize Your Shop ===
 
 Edit the Logo in the logo.txt File.
 A helpful tool you will found here [http://patorjk.com/software/taag/](http://patorjk.com/software/taag/)

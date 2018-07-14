@@ -1,4 +1,4 @@
-bindir = join_paths(get_option('prefix'), get_option('bindir'))
+bindir = join_paths(get_option('prefix'), get_option('libexecdir'), 'shopsystem')
 dbusdir = join_paths(get_option('prefix'), get_option('datadir'), 'dbus-1', 'system-services')
 dbuscfgdir = join_paths(get_option('sysconfdir'), 'dbus-1', 'system.d')
 

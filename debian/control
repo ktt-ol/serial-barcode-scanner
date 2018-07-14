@@ -1,0 +1,65 @@
+Source: shopsystem
+Section: misc
+Priority: optional
+Maintainer: Sebastian Reichel <sre@debian.org>
+Build-Depends:
+    debhelper (>= 11~),
+    dh-sysuser,
+    libarchive-dev,
+    libesmtp-dev,
+    libgee-0.8-dev,
+    libgmime-3.0-dev,
+    libgpgme11-dev,
+    libgstreamer1.0-dev,
+    libncursesw5-dev,
+    libncurses5-dev,
+    libpango1.0-dev,
+    librsvg2-dev,
+    libsqlite3-dev,
+    libsoup2.4-dev,
+    libssl-dev,
+    meson,
+    udev,
+    valac
+Standards-Version: 4.1.5
+
+Package: shopsystem
+Architecture: any
+Depends: ${misc:Depends},
+         ${shlibs:Depends},
+         console-setup,
+         dbconfig-common,
+         dbconfig-sqlite3 |  dbconfig-no-thanks,
+         dbus-x11,
+         policykit-1,
+         fonts-lmodern,
+         kbd,
+         gstreamer1.0-alsa,
+         gstreamer1.0-plugins-base,
+         libjs-bootstrap,
+         libjs-c3,
+         libjs-d3,
+         libjs-jquery,
+         libjs-jquery-datatables,
+         libjs-jquery-flot,
+         libjs-jquery-mousewheel,
+         udev
+Recommends: postfix, nginx
+Suggests: sqlite3
+Description: Kiosk shop system for hackspaces
+ The software has been developed as a credit based system for members of
+ hackspaces. The system depends on a standard USB barcode scanner, which
+ is used to establish user sessions (by scanning CODE39 based user codes)
+ and buying products (by scanning their EAN). The members receive an invoice
+ at the end of the month, which is also send to the hackspace's treasurer
+ for further processing.
+ .
+ It is recommended to use nginx as reverse proxy for the web support
+ and postfix as local mail server, that queues any outgoing mail when
+ network/internet connection is temporarily unavailable. Also it's
+ recommended to start kernel with "console=tty1" parameter to avoid
+ systemd messages on the curses UI.
+ .
+ NOTE: This package does not follow Debian packaging guidelines in all
+ aspects and is not intended to be integrated into the official
+ Debian archive.
