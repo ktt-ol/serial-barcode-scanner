@@ -59,13 +59,19 @@ public class ScannerSessionImplementation {
 
   private bool login(int user) throws DBusError, IOError {
     this.user      = user;
-    try {
-      this.name      = db.get_username(user);
-      this.disabled  = db.user_is_disabled(user);
-    } catch(DatabaseError e) {
-      send_message(MessageType.ERROR, _("Error (user=%d): %s"), user, e.message);
-      return false;
+    if (user != 0) {
+      try {
+        this.name      = db.get_username(user);
+        this.disabled  = db.user_is_disabled(user);
+      } catch(DatabaseError e) {
+        send_message(MessageType.ERROR, _("Error (user=%d): %s"), user, e.message);
+        return false;
+      }
+    } else {
+      this.name = _("Guest");
+      this.disabled = false;
     }
+
     this.logged_in = true;
 
     try {
