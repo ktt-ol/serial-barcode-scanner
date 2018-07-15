@@ -248,7 +248,7 @@ public class InvoiceImplementation {
 		string text;
 
 		try {
-			FileUtils.get_contents(datadir + "/treasurer.mail.txt", out text);
+			FileUtils.get_contents(Path.build_filename(datadir, "/treasurer.mail.txt"), out text);
 		} catch(GLib.FileError e) {
 			throw new IOError.FAILED(_("Could not open invoice template: %s"), e.message);
 		}
@@ -315,7 +315,7 @@ public class InvoiceImplementation {
 			throw new IOError.FAILED(_("Unknown MessageType"));
 
 		try {
-			FileUtils.get_contents(datadir + "/" + filename, out text);
+			FileUtils.get_contents(Path.build_filename(datadir, filename), out text);
 		} catch(GLib.FileError e) {
 			throw new IOError.FAILED(_("Could not open invoice template: %s"), e.message);
 		}
@@ -334,7 +334,7 @@ public class InvoiceImplementation {
 			vattextfilename = (type == MessageType.HTML) ? "vat.html" : "vat.txt";
 
 			try {
-				FileUtils.get_contents(datadir + "/" + vattextfilename, out vattext);
+				FileUtils.get_contents(Path.build_filename(datadir, vattextfilename), out vattext);
 			} catch(GLib.FileError e) {
 				throw new IOError.FAILED(_("Could not open VAT template: %s"), e.message);
 			}

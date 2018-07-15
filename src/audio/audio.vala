@@ -34,12 +34,18 @@ public class AudioPlayerImplementation {
 		this.path = path;
 
 		var alsa = Gst.ElementFactory.make("alsasink", "alsa");
-		if (alsa == null)
-			throw new GLib.IOError.FAILED(_("Cannot find alsa GStreamer plugin"));
+		if (alsa == null) {
+			var msg = _("Cannot find alsa GStreamer plugin");
+			stderr.printf(msg);
+			throw new GLib.IOError.FAILED(msg);
+		}
 
 		p = Gst.ElementFactory.make("playbin", "player");
-		if (p == null)
-			throw new GLib.IOError.FAILED(_("Cannot find playbin2 GStreamer plugin"));
+		if (p == null) {
+			var msg = _("Cannot find playbin2 GStreamer plugin");
+			stderr.printf(msg);
+			throw new GLib.IOError.FAILED(msg);
+		}
 
 		p.set("audio-sink", alsa);
 		p.get_bus().add_watch(Priority.DEFAULT, bus_callback);
@@ -47,7 +53,8 @@ public class AudioPlayerImplementation {
 
 	public void play_system(string file) throws IOError, DBusError {
 		p.set_state(Gst.State.NULL);
-		p.uri = "file://" + path + "system/" + file;
+		p.uri = "file://" + Path.build_filename(path, "system", file);
+		stdout.printf("Play: %s\n", p.uri);
 		p.set_state(Gst.State.PLAYING);
 	}
 
@@ -77,17 +84,18 @@ public class AudioPlayerImplementation {
 	}
 
 	public string get_random_user_theme()  throws IOError, DBusError {
-		return get_random_file(path + "user/");
+		return get_random_file(Path.build_filename(path, "user"));
 	}
 
 	public string[] get_user_themes()  throws IOError, DBusError {
-		return get_files(path + "user/");
+		return get_files(Path.build_filename(path, "user"));
 	}
 
 	public void play_user(string theme, string type) throws IOError, DBusError {
 		p.set_state(Gst.State.NULL);
-		var file = get_random_file(path + "user/" + theme+ "/" + type);
-		p.uri = "file://" + path + "user/" + theme+ "/" + type + "/" + file;
+		var file = get_random_file(Path.build_filename(path, "user", theme, type));
+		p.uri = "file://" + Path.build_filename(path, "user", theme, type, file);
+		stdout.printf("Play: %s\n", p.uri);
 		p.set_state(Gst.State.PLAYING);
 	}
 }

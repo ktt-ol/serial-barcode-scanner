@@ -86,14 +86,14 @@ public class InvoicePDF {
 		ctx.save();
 		ctx.translate(-20, 818);
 		ctx.scale(1.42, 1.42);
-		render_svg(ctx, datadir + "/footer-line.svg");
+		render_svg(ctx, Path.build_filename(datadir, "footer-line.svg"));
 		ctx.restore();
 	}
 
 	private void draw_logo(Cairo.Context ctx) {
 		ctx.save();
 		ctx.translate(366,25);
-		render_svg(ctx, datadir + "/logo.svg");
+		render_svg(ctx, Path.build_filename(datadir, "logo.svg"));
 		ctx.restore();
 	}
 
@@ -362,7 +362,7 @@ public class InvoicePDF {
 		/* load text template */
 		try {
 			var text = "";
-			FileUtils.get_contents(datadir + "/pdf-template.txt", out text);
+			FileUtils.get_contents(Path.build_filename(datadir, "pdf-template.txt"), out text);
 			text = text.replace("{{{ADDRESS}}}", address);
 			text = text.replace("{{{LASTNAME}}}", invoice_recipient.lastname);
 			text = text.replace("{{{SUM}}}", @"$sum");
@@ -374,7 +374,7 @@ public class InvoicePDF {
 				string vattext;
 
 				try {
-					FileUtils.get_contents(datadir + "/" + "vat.txt", out vattext);
+					FileUtils.get_contents(Path.build_filename(datadir, "vat.txt"), out vattext);
 				} catch(GLib.FileError e) {
 					throw new IOError.FAILED(_("Could not open VAT template: %s"), e.message);
 				}
