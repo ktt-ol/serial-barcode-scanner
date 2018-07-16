@@ -70,14 +70,22 @@ but you need to modify a few things.
 
 === Database ===
 
- * Create user
-  `sqlite3 shop.db "INSERT INTO users (id, email, firstname, lastname) VALUES (1, 'test@tester', 'Firstname', 'Lastname');"`
- * Setup user password
-  `busctl --system call io.mainframe.shopsystem.Database /io/mainframe/shopsystem/database io.mainframe.shopsystem.Database SetUserPassword id 1 "password"`
-  `sqlite3 shop.db "UPDATE authentication set superuser = 1, auth_users = 1, auth_products = 1, auth_cashbox = 1 where user = 1";`
+ * Create initial account with super user permissions
+  `busctl --system call io.mainframe.shopsystem.Database /io/mainframe/shopsystem/database io.mainframe.shopsystem.Database UserReplace "(issssssssxbbsas)" "<userid>" "<firstname>" "<lastname>" "<email>" "<gender>" "<street>" "<postcode>" "<city>" "" 0 0 0 "" 0`
+  `busctl --system call io.mainframe.shopsystem.Database /io/mainframe/shopsystem/database io.mainframe.shopsystem.Database SetUserPassword "is" "<userid>" "<password>"`
+  `busctl --system call io.mainframe.shopsystem.Database /io/mainframe/shopsystem/database io.mainframe.shopsystem.Database SetUserAuth "(ibbbb)" "<userid>" 1 1 1 1`
  * Demo Data
-  `sqlite3 shop.db "INSERT INTO categories (name) VALUES ('Getränke')";`
-  `sqlite3 shop.db "INSERT INTO supplier (name,city,postal_code,street,phone,website) VALUES ('Demo Lieferant','Musterstadt','12345','Musterstraße 5','+49 1234 56789','https://www.ktt.de');"`
+  `busctl --system call io.mainframe.shopsystem.Database /io/mainframe/shopsystem/database io.mainframe.shopsystem.Database AddCategory "s" "Getränke"`
+  `busctl --system call io.mainframe.shopsystem.Database /io/mainframe/shopsystem/database io.mainframe.shopsystem.Database AddSupplier "ssssss" "Demo Lieferant" "12345" "Musterstadt" "Musterstr. 5" "+49 1234 56789" "https://www.example.org"`
+
+It's also possible to directly access the database. While there are
+some triggers to keep the database in a sensible state, please be
+careful with direct database transactions. For accessing the database
+in write mode, you need to kill the shopsystem database process first.
+It will be restarted by any process, that needs the database DBus API.
+
+ * `pkill -15 shop-database`
+ * `sqlite3 /path/to/shopsystem.db`
 
 === Display on / off via MQTT ===
 
