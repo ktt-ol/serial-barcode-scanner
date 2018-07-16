@@ -152,13 +152,13 @@ public class ScannerSessionImplementation {
       case ScannerSessionCodeType.GUEST:
         if(login(0)) {
           scannerResult.type = MessageType.INFO;
-          scannerResult.message = _("Login as GUEST");
+          scannerResult.message = _("Login as Guest");
           scannerResult.audioType = AudioType.LOGIN;
           shoppingCard = {};
           state = ScannerSessionState.USER;
         } else {
           scannerResult.type = MessageType.ERROR;
-          scannerResult.message = _("Login failed as GUEST");
+          scannerResult.message = _("Login failed (Guest)");
           scannerResult.audioType = AudioType.ERROR;
           state = ScannerSessionState.READY;
         }
@@ -192,7 +192,7 @@ public class ScannerSessionImplementation {
         var pname = p.name;
 
         scannerResult.type = MessageType.INFO;
-        scannerResult.message = _("article info: %s (Member: %s €, Guest: %s €").printf(@"$pname", @"$mprice", @"$gprice");
+        scannerResult.message = _("Article info: %s (Member: %s €, Guest: %s €").printf(@"$pname", @"$mprice", @"$gprice");
         scannerResult.audioType = AudioType.ERROR;
         state = ScannerSessionState.READY;
         return scannerResult;
@@ -243,7 +243,7 @@ public class ScannerSessionImplementation {
         }
 
         scannerResult.type = MessageType.INFO;
-        scannerResult.message = _("article added to shopping card: %s (%s €)").printf(@"$(p.name)", @"$price");
+        scannerResult.message = _("Article added to shopping card: %s (%s €)").printf(@"$(p.name)", @"$price");
         scannerResult.audioType = AudioType.PURCHASE;
         state = ScannerSessionState.USER;
         break;
@@ -252,7 +252,7 @@ public class ScannerSessionImplementation {
           var removedProduct = shoppingCard[shoppingCard.length-1];
           shoppingCard = shoppingCard[0:shoppingCard.length-1];
           scannerResult.type = MessageType.INFO;
-          scannerResult.message = _("removed last Item from Shopping Cart: %s").printf(@"$(removedProduct.name)");
+          scannerResult.message = _("Removed last Item from Shopping Cart: %s").printf(@"$(removedProduct.name)");
           scannerResult.audioType = AudioType.INFO;
         } else {
           scannerResult.type = MessageType.INFO;
@@ -331,8 +331,8 @@ public class ScannerSessionImplementation {
   }
 
   private ScannerResult logout() throws DatabaseError, DBusError, IOError {
-    ScannerResult scannerResult = ScannerResult();
-    scannerResult = buyShoppingCard();
+    ScannerResult scannerResult = buyShoppingCard();
+	scannerResult.audioType = AudioType.LOGOUT;
     logged_in = false;
     state = ScannerSessionState.READY;
     return scannerResult;
