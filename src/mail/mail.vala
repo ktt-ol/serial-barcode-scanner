@@ -66,8 +66,13 @@ public class MailImplementation {
 		owned get {
 			MailDate result = {};
 			var tmp = m.get_date();
-			result.timezone = tmp.get_timezone_abbreviation();
-			result.date = tmp.to_unix();
+			if (tmp != null) {
+				result.timezone = tmp.get_timezone_abbreviation();
+				result.date = tmp.to_unix();
+			} else {
+				result.timezone = "";
+				result.date = 0;
+			}
 			return result;
 		}
 		set {
@@ -80,6 +85,7 @@ public class MailImplementation {
 	public MailImplementation() {
 		m = new GMime.Message(true);
 		m.set_header("X-Mailer", "KtT Shopsystem", "utf-8");
+		m.set_date(new DateTime.now_local());
 		attachments = new GMime.Part[0];
 		filter_smtp = new GMime.FilterSmtpData();
 		filter_unix2dos = new GMime.FilterUnix2Dos(true);
