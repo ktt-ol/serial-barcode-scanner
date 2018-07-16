@@ -127,6 +127,7 @@ public class DataBase : Object {
 		queries["user_disable"]      = "UPDATE users SET disabled = ? WHERE id = ?";
 		queries["last_timestamp"]    = "SELECT timestamp FROM sales ORDER BY timestamp DESC LIMIT 1";
 		queries["category_list"]     = "SELECT id, name FROM categories";
+		queries["category_add"]      = "INSERT INTO categories('name') VALUES (?)";
 		queries["supplier_list"]     = "SELECT id, name, postal_code, city, street, phone, website FROM supplier";
 		queries["supplier_get"]      = "SELECT id, name, postal_code, city, street, phone, website FROM supplier WHERE id = ?";
 		queries["supplier_add"]      = "INSERT INTO supplier('name', 'postal_code', 'city', 'street', 'phone', 'website') VALUES (?, ?, ?, ?, ?, ?)";
@@ -964,6 +965,23 @@ public class DataBase : Object {
 		}
 
 		return result;
+	}
+
+	public void add_category(string name) throws DBusError, IOError, DatabaseError {
+		/* check if category already exists */
+		foreach(var c in get_category_list()) {
+			if(name == c.name) {
+				return;
+			}
+		}
+
+		statements["category_add"].reset();
+		statements["category_add"].bind_text(1, name);
+		int rc = statements["category_add"].step();
+
+		if(rc != Sqlite.DONE) {
+			throw new DatabaseError.INTERNAL_ERROR(_("internal error: %d"), rc);
+		}
 	}
 
 	public Supplier[] get_supplier_list() throws DBusError, IOError, DatabaseError {

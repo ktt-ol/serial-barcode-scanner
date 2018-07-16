@@ -52,7 +52,8 @@ public interface Database : Object {
 	public abstract bool user_exists(int user) throws DBusError, IOError, DatabaseError;
 	public abstract bool user_equals(UserInfo u) throws DBusError, IOError, DatabaseError;
 	public abstract int64 get_timestamp_of_last_purchase() throws DBusError, IOError;
-	public abstract Category[] get_category_list() throws DBusError, IOError;
+	public abstract Category[] get_category_list() throws DBusError, IOError, DatabaseError;
+	public abstract int add_category(string name) throws DBusError, IOError, DatabaseError;
 	public abstract Supplier[] get_supplier_list() throws DBusError, IOError;
 	public abstract Supplier get_supplier(int id) throws DBusError, IOError;
 	public abstract void add_supplier(string name, string postal_code, string city, string street, string phone, string website) throws DBusError, IOError, DatabaseError;
