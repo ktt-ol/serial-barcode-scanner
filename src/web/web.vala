@@ -1131,11 +1131,29 @@ public class WebServer {
 
 	void handler_img(Soup.Server server, Soup.Message msg, string path, GLib.HashTable? query, Soup.ClientContext client) {
 		try {
-			var f = File.new_for_path(templatedir+path);
+			var f = File.new_for_path(Path.build_filename(templatedir, path));
 			uint8[] data = null;
 
 			if(f.query_exists() && f.load_contents(null, out data, null)) {
 				msg.set_response("image/png", Soup.MemoryUse.COPY, data);
+				msg.set_status(200);
+				return;
+			}
+		} catch(Error e) {
+			error(_("Error: %s\n"), e.message);
+		}
+
+		handler_404(server, msg, path, query, client);
+		return;
+	}
+
+	void handler_font(Soup.Server server, Soup.Message msg, string path, GLib.HashTable? query, Soup.ClientContext client) {
+		try {
+			var f = File.new_for_path(Path.build_filename(templatedir, path));
+			uint8[] data = null;
+
+			if(f.query_exists() && f.load_contents(null, out data, null)) {
+				msg.set_response("application/octet-stream; charset=binary", Soup.MemoryUse.COPY, data);
 				msg.set_status(200);
 				return;
 			}
@@ -1492,6 +1510,7 @@ public class WebServer {
 		srv.add_handler("/js", handler_js);
 		srv.add_handler("/css", handler_css);
 		srv.add_handler("/img", handler_img);
+		srv.add_handler("/fonts", handler_font);
 
 		/* cashbox */
 		srv.add_handler("/cashbox", handler_cashbox);
