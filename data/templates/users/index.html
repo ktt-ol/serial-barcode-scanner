@@ -1,4 +1,4 @@
-<table class="sortable table table-bordered table-striped table-condensed">
+<table id="usertable" class="table table-bordered table-striped table-condensed">
 	<thead>
 		<tr><th>ID</th></th><th>Name</th></tr>
 	</thead>
@@ -6,3 +6,9 @@
 		{{{DATA}}}
 	</tbody>
 </table>
+
+<script type="text/javascript">
+$(document).ready(function() {
+    $('#usertable').DataTable();
+} );
+</script>
