@@ -14,7 +14,9 @@ RUN set -ex && \
     libgee-dev \
     libgmime-2.6-dev \
     libarchive-dev \
-    libgstreamer0.10-dev \
+    libgstreamer1.0-dev \
+    gstreamer1.0-alsa \
+    rygel-playbin \
     librsvg2-dev \
     libsqlite3-dev \
     libpango1.0-dev \
