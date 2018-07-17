@@ -285,7 +285,7 @@ public class DataBase : Object {
 		statements["stock_status"].reset();
 		while(statements["stock_status"].step() == Sqlite.ROW) {
 			DetailedProduct entry = {
-				statements["stock_status"].column_int(0),
+				uint64.parse(statements["stock_status"].column_text(0)),
 				statements["stock_status"].column_text(1),
 				statements["stock_status"].column_text(2),
 				statements["stock_status"].column_int(3),
