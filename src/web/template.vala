@@ -65,6 +65,7 @@ public class WebTemplate {
 		}
 
 		this.template = ((string) basis).replace("{{{NAVBAR}}}", ((string) menu));
+		this.template = this.template.replace("{{{SHORTNAME}}}", shortname);
 		this.template = this.template.replace("{{{AUTH}}}", ((string) auth));
 		this.template = this.template.replace("{{{CONTENT}}}", ((string) template));
 		this.template = this.template.replace("{{{USERNAME}}}", login.name);

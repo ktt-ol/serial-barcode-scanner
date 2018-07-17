@@ -19,6 +19,7 @@ public PGP pgp;
 public Config cfg;
 public AudioPlayer audio;
 string templatedir;
+string? shortname;
 
 public static int main(string[] args) {
 	Intl.setlocale(LocaleCategory.ALL, "");
@@ -37,17 +38,32 @@ public static int main(string[] args) {
 		var datapath = cfg.get_string("GENERAL", "datapath");
 		templatedir = Path.build_filename(datapath, "templates");
 		port = cfg.get_integer("WEB", "port");
-
-		try {
-			certificate = cfg.get_string("WEB", "cert");
-			privatekey = cfg.get_string("WEB", "key");
-		} catch(KeyFileError e) {
-			warning(_("KeyFile Error: %s\n"), e.message);
-		}
 	} catch(IOError e) {
 		error(_("IO Error: %s\n"), e.message);
 	} catch(KeyFileError e) {
 		error(_("KeyFile Error: %s\n"), e.message);
+	} catch(DBusError e) {
+		error(_("DBus Error: %s\n"), e.message);
+	}
+
+	try {
+		certificate = cfg.get_string("WEB", "cert");
+		privatekey = cfg.get_string("WEB", "key");
+	} catch(KeyFileError e) {
+		warning(_("KeyFile Error: %s\n"), e.message);
+	} catch(IOError e) {
+		error(_("IO Error: %s\n"), e.message);
+	} catch(DBusError e) {
+		error(_("DBus Error: %s\n"), e.message);
+	}
+
+	try {
+		shortname = cfg.get_string("GENERAL", "shortname");
+	} catch(KeyFileError e) {
+		shortname = "";
+		warning(_("KeyFile Error: %s\n"), e.message);
+	} catch(IOError e) {
+		error(_("IO Error: %s\n"), e.message);
 	} catch(DBusError e) {
 		error(_("DBus Error: %s\n"), e.message);
 	}
