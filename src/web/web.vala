@@ -336,7 +336,7 @@ public class WebServer {
 		try {
 			var session = new WebSession(server, msg, path, query, client);
 
-			if(id != session.user && !(session.superuser || session.auth_users)) {
+			if(id == 0 || id != session.user && !(session.superuser || session.auth_users)) {
 				handler_403(server, msg, path, query, client);
 				return;
 			}
