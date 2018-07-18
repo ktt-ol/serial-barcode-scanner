@@ -304,11 +304,11 @@ public class DataBase : Object {
 
 		try {
 			p.ean = ean_alias_get(ean);
-			p.name = get_product_name(ean);
-			p.category = get_product_category(ean);
-			p.amount = get_product_amount(ean);
-			p.memberprice = get_product_price(1, ean);
-			p.guestprice = get_product_price(0, ean);
+			p.name = get_product_name(p.ean);
+			p.category = get_product_category(p.ean);
+			p.amount = get_product_amount(p.ean);
+			p.memberprice = get_product_price(1, p.ean);
+			p.guestprice = get_product_price(0, p.ean);
 			return p;
 		} catch(DatabaseError e){
 			throw e;
