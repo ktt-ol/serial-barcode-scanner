@@ -19,6 +19,7 @@ public class MailImplementation {
 	private GMime.Part? main_text = null;
 	private GMime.Part? main_html = null;
 	private GMime.Part[] attachments;
+	private DateTime gdate;
 
 	private GMime.FilterUnix2Dos filter_unix2dos;
 	private GMime.FilterSmtpData filter_smtp;
@@ -65,27 +66,22 @@ public class MailImplementation {
 	public MailDate date {
 		owned get {
 			MailDate result = {};
-			var tmp = m.get_date();
-			if (tmp != null) {
-				result.timezone = tmp.get_timezone_abbreviation();
-				result.date = tmp.to_unix();
-			} else {
-				result.timezone = "";
-				result.date = 0;
-			}
+			result.timezone = this.gdate.get_timezone_abbreviation();
+			result.date = this.gdate.to_unix();
 			return result;
 		}
 		set {
 			var timezone = new TimeZone(value.timezone);
-			var date = new DateTime.from_unix_utc((int64) value.date).to_timezone(timezone);
-			m.set_date(date);
+			this.gdate = new DateTime.from_unix_utc((int64) value.date).to_timezone(timezone);
+			m.set_date(this.gdate);
 		}
 	}
 
 	public MailImplementation() {
 		m = new GMime.Message(true);
 		m.set_header("X-Mailer", "KtT Shopsystem", "utf-8");
-		m.set_date(new DateTime.now_local());
+		this.gdate = new DateTime.now_local();
+		m.set_date(this.gdate);
 		attachments = new GMime.Part[0];
 		filter_smtp = new GMime.FilterSmtpData();
 		filter_unix2dos = new GMime.FilterUnix2Dos(true);
@@ -100,10 +96,6 @@ public class MailImplementation {
 
 	public void set_subject(string subject) {
 		m.set_subject(subject);
-	}
-
-	public void set_date(uint64 date, int tz_offset) {
-		m.set_date((ulong) date, tz_offset);
 	}
 #endif
 
