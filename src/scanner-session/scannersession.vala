@@ -29,7 +29,7 @@ public class ScannerSessionImplementation {
   private Cli cli;
 
   private ScannerSessionState state = ScannerSessionState.READY;
-  private DetailedProduct[] shoppingCard = {};
+  private DetailedProduct[] shoppingCart = {};
 
   public signal void msg(MessageType type, string message);
   public signal void msg_overlay(string title, string message);
@@ -140,7 +140,7 @@ public class ScannerSessionImplementation {
           scannerResult.type = MessageType.INFO;
           scannerResult.message = _("Login: %s (%d)").printf(name, user);
           scannerResult.audioType = AudioType.LOGIN;
-          shoppingCard = {};
+          shoppingCart = {};
           state = ScannerSessionState.USER;
         } else {
           scannerResult.type = MessageType.ERROR;
@@ -154,7 +154,7 @@ public class ScannerSessionImplementation {
           scannerResult.type = MessageType.INFO;
           scannerResult.message = _("Login as Guest");
           scannerResult.audioType = AudioType.LOGIN;
-          shoppingCard = {};
+          shoppingCart = {};
           state = ScannerSessionState.USER;
         } else {
           scannerResult.type = MessageType.ERROR;
@@ -234,7 +234,7 @@ public class ScannerSessionImplementation {
             return scannerResult;
           }
 
-        shoppingCard += p;
+        shoppingCart += p;
 
         Price price = p.memberprice;
 
@@ -243,20 +243,20 @@ public class ScannerSessionImplementation {
         }
 
         scannerResult.type = MessageType.INFO;
-        scannerResult.message = _("Article added to shopping card: %s (%s €)").printf(@"$(p.name)", @"$price");
+        scannerResult.message = _("Added to 🛒: %s (%s €)").printf(@"$(p.name)", @"$price");
         scannerResult.audioType = AudioType.PURCHASE;
         state = ScannerSessionState.USER;
         break;
       case ScannerSessionCodeType.UNDO:
-        if(shoppingCard.length > 0){
-          var removedProduct = shoppingCard[shoppingCard.length-1];
-          shoppingCard = shoppingCard[0:shoppingCard.length-1];
+        if(shoppingCart.length > 0){
+          var removedProduct = shoppingCart[shoppingCart.length-1];
+          shoppingCart = shoppingCart[0:shoppingCart.length-1];
           scannerResult.type = MessageType.INFO;
-          scannerResult.message = _("Removed last Item from Shopping Cart: %s").printf(@"$(removedProduct.name)");
+          scannerResult.message = _("Removed from 🛒: %s").printf(@"$(removedProduct.name)");
           scannerResult.audioType = AudioType.INFO;
         } else {
           scannerResult.type = MessageType.INFO;
-          scannerResult.message = _("No more Items on your Shopping Cart");
+          scannerResult.message = _("🛒 is empty");
           scannerResult.audioType = AudioType.ERROR;
         }
         break;
@@ -281,8 +281,8 @@ public class ScannerSessionImplementation {
     Price totalPrice = 0;
     uint8 i = 0;
     DetailedProduct p = DetailedProduct();
-    for(i = 0; i < shoppingCard.length; i++) {
-      p = shoppingCard[i];
+    for(i = 0; i < shoppingCart.length; i++) {
+      p = shoppingCart[i];
       db.buy(user, p.ean);
       amountOfItems++;
       Price price = p.memberprice;
