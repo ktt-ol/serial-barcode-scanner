@@ -18,6 +18,7 @@ public CSVMemberFile csvimport;
 public PGP pgp;
 public Config cfg;
 public AudioPlayer audio;
+public PDFStock pdfStock;
 string templatedir;
 
 public static int main(string[] args) {
@@ -27,10 +28,12 @@ public static int main(string[] args) {
 	uint port = 8080;
 
 	try {
-		db  = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Database", "/io/mainframe/shopsystem/database");
-		pgp = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.PGP", "/io/mainframe/shopsystem/pgp");
-		cfg = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Config", "/io/mainframe/shopsystem/config");
-    audio	= Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.AudioPlayer", "/io/mainframe/shopsystem/audio");
+		db  	 = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Database", "/io/mainframe/shopsystem/database");
+		pgp 	 = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.PGP", "/io/mainframe/shopsystem/pgp");
+		cfg 	 = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Config", "/io/mainframe/shopsystem/config");
+		audio	 = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.AudioPlayer", "/io/mainframe/shopsystem/audio");
+		pdfStock = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.StockPDF", "/io/mainframe/shopsystem/stockpdf");
+		
 		templatedir = cfg.get_string("WEB", "filepath");
 		port = cfg.get_integer("WEB", "port");
 

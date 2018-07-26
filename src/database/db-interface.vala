@@ -44,6 +44,7 @@ public interface Database : Object {
 	public abstract int64 get_last_purchase(int user) throws IOError;
 	public abstract StatsInfo get_stats_info() throws IOError;
 	public abstract int[] get_member_ids() throws IOError;
+	public abstract int[] get_system_member_ids() throws IOError;
 	public abstract void user_disable(int user, bool value) throws IOError, DatabaseError;
 	public abstract void user_replace(UserInfo u) throws IOError, DatabaseError;
 	public abstract bool user_is_disabled(int user) throws IOError, DatabaseError;

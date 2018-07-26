@@ -79,3 +79,9 @@ but you need to modify a few things.
    `sqlite3 shop.db "INSERT INTO users (id, email, firstname, lastname) VALUES (1, "test@tester", "Firstname", "Lastname");`
  * Setup user password
     sqlite3 shop.db  "update authentication set password = '$(echo -n yourpw | shasum -a 256 | cut -d " " -f 1)' where user = 1;"
+
+=== Some Vala resources ===
+
+* https://wiki.gnome.org/Projects/Vala/ValaForJavaProgrammers
+* https://valadoc.org/
+* https://getbootstrap.com/2.3.2/

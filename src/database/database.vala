@@ -121,6 +121,7 @@ public class DataBase : Object {
 		queries["total_sales"]       = "SELECT SUM(price) FROM invoice WHERE user >= 0 AND timestamp >= ?";
 		queries["total_profit"]      = "SELECT SUM(price - (SELECT price FROM purchaseprices WHERE product = productid)) FROM invoice WHERE user >= 0 AND timestamp >= ?";
 		queries["user_get_ids"]      = "SELECT id FROM users WHERE id > 0";
+		queries["system_user_get_ids"]      = "SELECT id FROM users WHERE id <= 0";
 		queries["user_replace"]      = "INSERT OR REPLACE INTO users ('id', 'email', 'firstname', 'lastname', 'gender', 'street', 'plz', 'city', 'pgp', 'hidden', 'disabled', 'joined_at', 'sound_theme') VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, (select sound_theme from users where id = ?))";
 		queries["user_auth_create"]  = "INSERT OR IGNORE INTO authentication (user) VALUES (?)";
 		queries["user_disable"]      = "UPDATE users SET disabled = ? WHERE id = ?";
@@ -837,6 +838,16 @@ public class DataBase : Object {
 		statements["user_get_ids"].reset();
 		while(statements["user_get_ids"].step() == Sqlite.ROW)
 			result += statements["user_get_ids"].column_int(0);
+
+		return result;
+	}
+
+	public int[] get_system_member_ids() {
+		int[] result = {};
+
+		statements["system_user_get_ids"].reset();
+		while(statements["system_user_get_ids"].step() == Sqlite.ROW)
+			result += statements["system_user_get_ids"].column_int(0);
 
 		return result;
 	}
