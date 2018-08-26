@@ -1,3 +1,14 @@
 build/
 *.swp
+dev-shop.db
 .DS_Store
+obj-x86_64-linux-gnu/
+debian/.debhelper/
+debian/debhelper-build-stamp
+debian/files
+debian/shopsystem.debhelper.log
+debian/shopsystem.postinst.debhelper
+debian/shopsystem.postrm.debhelper
+debian/shopsystem.prerm.debhelper
+debian/shopsystem.substvars
+debian/shopsystem/

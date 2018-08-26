@@ -7,7 +7,7 @@ docker build -t sbs-build .
 
 # Config
 
-Change (or create) the `ktt-shopsystem.cfg` file that everything lays in `/mnt/serial-barcode-scanner` (change every folder...).
+Change the `config.ini` file that everything lays in `/mnt/serial-barcode-scanner` (change every folder...).
 
 
 # Usage
@@ -20,7 +20,6 @@ cd ..
 docker run --rm -it -p 8080:8080 -v "$PWD":/mnt/serial-barcode-scanner sbs-build
 ```
 
-You have now a tmux terminal to work with the vala files and run the program. E.g.
-- `cd src && make` to make the whole project
-- `cd src/curses-ui/ && ./curses-ui` to start the curses ui.
-- ...
+You have now a tmux terminal to work with the vala files and run the program. 
+
+You can now start the single binaries in "obj-x..../src/" dir. 
