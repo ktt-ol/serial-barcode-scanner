@@ -3,11 +3,17 @@ set -g prefix C-a
 unbind C-b
 bind C-a send-prefix
 
+# reload ~/.tmux.conf using PREFIX r
+bind r source-file ~/.tmux.conf \; display "Reloaded!"
+
 # scroll mode with s
 bind s copy-mode
+# scroll also with mouse
+# Problem: can't select text anymore
+#set -g mode-mouse on
 
 # use windows like tabs (S means shift key)
-bind -n S-down new-window
+bind -n S-down new-window -c "#{pane_current_path}"
 bind -n S-left prev
 bind -n S-right next
 
@@ -18,7 +24,6 @@ set -g base-index 1
 set -g default-terminal "screen-256color"
 
 # status line
-set -g status-utf8 on
 set -g status-fg white
 set -g status-bg blue
 set -g window-status-current-bg white
