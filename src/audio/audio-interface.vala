@@ -17,8 +17,16 @@
 public interface AudioPlayer : Object {
 	public abstract signal void end_of_stream();
 
-	public abstract void play_system(string file) throws IOError;
-	public abstract string get_random_user_theme() throws IOError;
-	public abstract string[] get_user_themes() throws IOError;
-	public abstract void play_user(string theme, string type) throws IOError;
+	public abstract void play_system(string file) throws DBusError, IOError;
+	public abstract string get_random_user_theme() throws DBusError, IOError;
+	public abstract string[] get_user_themes() throws DBusError, IOError;
+	public abstract void play_user(string theme, string type) throws DBusError, IOError;
+}
+
+public enum AudioType {
+	ERROR,
+	LOGIN,
+	LOGOUT,
+	PURCHASE,
+	INFO
 }

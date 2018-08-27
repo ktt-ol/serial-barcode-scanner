@@ -1,4 +1,6 @@
 /* Copyright 2013, Sebastian Reichel <sre@ring0.de>
+ * Copyright 2017-2018, Johannes Rudolph <johannes.rudolph@gmx.com>
+ * Copyright 2018, Malte Modler <malte@malte-modler.de>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -22,7 +24,9 @@ private static void play(string file) {
 	try {
 		audio.play_system(file);
 	} catch(IOError e) {
-		ui.log(MessageType.WARNING, "could not play audio: %s".printf(e.message));
+		ui.log(MessageType.WARNING, _("could not play audio: %s").printf(e.message));
+	} catch(DBusError e) {
+		ui.log(MessageType.WARNING, _("could not play audio: %s").printf(e.message));
 	}
 }
 
@@ -42,31 +46,39 @@ public void log_handler(string? log_domain, LogLevelFlags flags, string message)
 public static int main(string[] args) {
 	loop = new MainLoop();
 
+	Intl.setlocale(LocaleCategory.ALL, "");
+	Intl.textdomain("shopsystem");
+
 	/* handle unix signals */
-	Unix.signal_add(Posix.SIGTERM, handle_signals);
-	Unix.signal_add(Posix.SIGINT,  handle_signals);
+	Unix.signal_add(Posix.Signal.TERM, handle_signals);
+	Unix.signal_add(Posix.Signal.INT,  handle_signals);
 
 	try {
 		audio = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.AudioPlayer", "/io/mainframe/shopsystem/audio");
 		scanner = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.ScannerSession", "/io/mainframe/shopsystem/scanner_session");
-	} catch(IOError e) {
-		error("IOError: %s\n", e.message);
-	}
 
-	ui = new CursesUI();
+		var configdir = "/etc/shopsystem";
+		ui = new CursesUI(configdir);
+	} catch(IOError e) {
+		error(_("IO Error: %s\n"), e.message);
+	} catch(DBusError e) {
+		error(_("DBus Error: %s\n"), e.message);
+	} catch(KeyFileError e) {
+		error(_("KeyFile Error: %s\n"), e.message);
+	}
 
 	Log.set_default_handler(log_handler);
 
 	scanner.msg.connect(msg_handler);
 	scanner.msg_overlay.connect(msg_overlay_handler);
 
-	ui.log(MessageType.INFO, "KtT Shop System has been started");
+	ui.log(MessageType.INFO, _("Shop System has been started"));
 	play("startup.ogg");
 
 	/* run mainloop */
 	loop.run();
 
-	ui.log(MessageType.INFO, "Stopping Shop System");
+	ui.log(MessageType.INFO, _("Stopping Shop System"));
 	play("shutdown.ogg");
 
 	/* leave curses mode */

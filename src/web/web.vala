@@ -1,4 +1,5 @@
 /* Copyright 2012, Sebastian Reichel <sre@ring0.de>
+ * Copyright 2017-2018, Johannes Rudolph <johannes.rudolph@gmx.com>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -20,7 +21,8 @@ public class WebServer {
 		try {
 			var l = new WebSession(server, msg, path, query, client);
 			var t = new WebTemplate("index.html", l);
-			t.replace("TITLE", "KtT Shop System");
+			t.replace("TITLE", shortname + " Shop System");
+			t.replace("SHORTNAME", shortname);
 			t.menu_set_active("home");
 			msg.set_response("text/html", Soup.MemoryUse.COPY, t.data);
 			msg.set_status(200);
@@ -30,6 +32,8 @@ public class WebServer {
 		} catch(DatabaseError e) {
 			handler_400(server, msg, path, query, client, e.message);
 		} catch(IOError e) {
+			handler_400(server, msg, path, query, client, e.message);
+		} catch(DBusError e) {
 			handler_400(server, msg, path, query, client, e.message);
 		}
 	}
@@ -39,7 +43,7 @@ public class WebServer {
 			var l = new WebSession(server, msg, path, query, client);
 			l.logout();
 			var t = new WebTemplate("logout.html", l);
-			t.replace("TITLE", "KtT Shop System");
+			t.replace("TITLE", shortname + " Shop System");
 			t.menu_set_active("home");
 			msg.set_response("text/html", Soup.MemoryUse.COPY, t.data);
 			msg.set_status(200);
@@ -49,6 +53,8 @@ public class WebServer {
 		} catch(DatabaseError e) {
 			handler_400(server, msg, path, query, client, e.message);
 		} catch(IOError e) {
+			handler_400(server, msg, path, query, client, e.message);
+		} catch(DBusError e) {
 			handler_400(server, msg, path, query, client, e.message);
 		}
 	}
@@ -96,7 +102,7 @@ public class WebServer {
 			}
 
 			var t = new WebTemplate("users/index.html", session);
-			t.replace("TITLE", "KtT Shop System: User");
+			t.replace("TITLE", shortname + " Shop System: User");
 			t.menu_set_active("users");
 			var data = "";
 			foreach(var m in db.get_member_ids()) {
@@ -118,6 +124,8 @@ public class WebServer {
 			handler_400(server, msg, path, query, client, e.message);
 		} catch(IOError e) {
 			handler_400(server, msg, path, query, client, e.message);
+		} catch(DBusError e) {
+			handler_400(server, msg, path, query, client, e.message);
 		}
 	}
 
@@ -130,7 +138,7 @@ public class WebServer {
 			}
 
 			var t = new WebTemplate("users/import-pgp.html", session);
-			t.replace("TITLE", "KtT Shop System: PGP Key Import");
+			t.replace("TITLE", shortname + " Shop System: PGP Key Import");
 			t.menu_set_active("users");
 
 			Soup.Buffer filedata;
@@ -171,6 +179,8 @@ public class WebServer {
 			handler_400(server, msg, path, query, client, e.message);
 		} catch(IOError e) {
 			handler_400(server, msg, path, query, client, e.message);
+		} catch(DBusError e) {
+			handler_400(server, msg, path, query, client, e.message);
 		}
 	}
 
@@ -182,7 +192,7 @@ public class WebServer {
 				return;
 			}
 			var t = new WebTemplate("users/import.html", session);
-			t.replace("TITLE", "KtT Shop System: User Import");
+			t.replace("TITLE", shortname + " Shop System: User Import");
 			t.menu_set_active("users");
 
 			Soup.Buffer filedata;
@@ -275,6 +285,8 @@ public class WebServer {
 			handler_400(server, msg, path, query, client, e.message);
 		} catch(IOError e) {
 			handler_400(server, msg, path, query, client, e.message);
+		} catch(DBusError e) {
+			handler_400(server, msg, path, query, client, e.message);
 		}
 	}
 
@@ -315,6 +327,8 @@ public class WebServer {
 			handler_400(server, msg, path, query, client, e.message);
 		} catch(IOError e) {
 			handler_400(server, msg, path, query, client, e.message);
+		} catch(DBusError e) {
+			handler_400(server, msg, path, query, client, e.message);
 		}
 	}
 
@@ -322,12 +336,12 @@ public class WebServer {
 		try {
 			var session = new WebSession(server, msg, path, query, client);
 
-			if(id != session.user && !(session.superuser || session.auth_users)) {
+			if(id == 0 || id != session.user && !(session.superuser || session.auth_users)) {
 				handler_403(server, msg, path, query, client);
 				return;
 			}
 			var t = new WebTemplate("users/entry.html", session);
-			t.replace("TITLE", "KtT Shop System: User Info %llu".printf(id));
+			t.replace("TITLE", shortname + " Shop System: User Info %llu".printf(id));
 			t.menu_set_active("users");
 
 			var userinfo = db.get_user_info(id);
@@ -343,6 +357,7 @@ public class WebServer {
 			t.replace("PGPKEYID", userinfo.pgp);
 			t.replace("DISABLED", userinfo.disabled ? "true" : "false");
 			t.replace("HIDDEN", userinfo.hidden ? "true" : "false");
+			t.replace("RFID", string.joinv("<br>",userinfo.rfid));
 
 			var userauth = db.get_user_auth(id);
 			t.replace("ISSUPERUSER", userauth.superuser ? "true" : "false");
@@ -400,6 +415,8 @@ public class WebServer {
 			handler_400(server, msg, path, query, client, e.message);
 		} catch(IOError e) {
 			handler_400(server, msg, path, query, client, e.message);
+		} catch(DBusError e) {
+			handler_400(server, msg, path, query, client, e.message);
 		}
 	}
 
@@ -431,7 +448,7 @@ public class WebServer {
 				return;
 			}
 			var t = new WebTemplate("users/invoice.html", l);
-			t.replace("TITLE", "KtT Shop System: User Invoice %llu".printf(id));
+			t.replace("TITLE", shortname + " Shop System: User Invoice %llu".printf(id));
 			t.menu_set_active("users");
 
 			/* years, in which something has been purchased by the user */
@@ -517,6 +534,8 @@ public class WebServer {
 			handler_400(server, msg, path, query, client, e.message);
 		} catch(IOError e) {
 			handler_400(server, msg, path, query, client, e.message);
+		} catch(DBusError e) {
+			handler_400(server, msg, path, query, client, e.message);
 		}
 	}
 
@@ -553,12 +572,12 @@ public class WebServer {
 		try {
 			var l = new WebSession(server, msg, path, query, client);
 			var t = new WebTemplate("products/index.html", l);
-			t.replace("TITLE", "KtT Shop System: Product List");
+			t.replace("TITLE", shortname + " Shop System: Product List");
 			t.menu_set_active("products");
 
 			string table = "";
 			foreach(var e in db.get_stock()) {
-				table += @"<tr><td><a href=\"/products/$(e.id)\">$(e.id)</a></td><td><a href=\"/products/$(e.id)\">$(e.name)</a></td><td>$(e.category)</td><td>$(e.amount)</td><td>$(e.memberprice)€</td><td>$(e.guestprice)€</td></tr>";
+				table += @"<tr><td><a href=\"/products/$(e.ean)\">$(e.ean)</a></td><td><a href=\"/products/$(e.ean)\">$(e.name)</a></td><td>$(e.category)</td><td>$(e.amount)</td><td>$(e.memberprice)€</td><td>$(e.guestprice)€</td></tr>";
 			}
 
 			t.replace("DATA", table);
@@ -583,6 +602,8 @@ public class WebServer {
 			handler_400(server, msg, path, query, client, e.message);
 		} catch(IOError e) {
 			handler_400(server, msg, path, query, client, e.message);
+		} catch(DBusError e) {
+			handler_400(server, msg, path, query, client, e.message);
 		}
 	}
 
@@ -590,7 +611,7 @@ public class WebServer {
 		try {
 			var l = new WebSession(server, msg, path, query, client);
 			var t = new WebTemplate("products/bestbefore.html", l);
-			t.replace("TITLE", "KtT Shop System: Best Before List");
+			t.replace("TITLE", shortname + " Shop System: Best Before List");
 			t.menu_set_active("products");
 
 			string table = "";
@@ -615,6 +636,8 @@ public class WebServer {
 			handler_400(server, msg, path, query, client, e.message);
 		} catch(IOError e) {
 			handler_400(server, msg, path, query, client, e.message);
+		} catch(DBusError e) {
+			handler_400(server, msg, path, query, client, e.message);
 		}
 	}
 
@@ -638,6 +661,8 @@ public class WebServer {
 			handler_400(server, msg, path, query, client, e.message);
 		} catch(IOError e) {
 			handler_400(server, msg, path, query, client, e.message);
+		} catch(DBusError e) {
+			handler_400(server, msg, path, query, client, e.message);
 		}
 	}
 
@@ -645,7 +670,7 @@ public class WebServer {
 		try {
 			var l = new WebSession(server, msg, path, query, client);
 			var t = new WebTemplate("products/entry.html", l);
-			t.replace("TITLE", "KtT Shop System: Product %llu".printf(id));
+			t.replace("TITLE", shortname + " Shop System: Product %llu".printf(id));
 			t.menu_set_active("products");
 
 			/* ean */
@@ -718,6 +743,8 @@ public class WebServer {
 			handler_400(server, msg, path, query, client, e.message);
 		} catch(IOError e) {
 			handler_400(server, msg, path, query, client, e.message);
+		} catch(DBusError e) {
+			handler_400(server, msg, path, query, client, e.message);
 		}
 	}
 
@@ -734,9 +761,7 @@ public class WebServer {
 			var pdfdata = pdfStock.generate(allProducts);
 			msg.set_status(200);
 			msg.set_response("application/pdf", Soup.MemoryUse.COPY, pdfdata);
-		} catch(DatabaseError e) {
-			handler_400(server, msg, path, query, client, e.message);
-		} catch(IOError e) {
+		} catch(Error e) {
 			handler_400(server, msg, path, query, client, e.message);
 		}
 	}
@@ -765,18 +790,18 @@ public class WebServer {
 				if (!postdata.contains("apply_inventory")) {
 					// PUT / show changes and request an apply
 					foreach(var e in db.get_stock()) {
-						var realAmountStr = postdata.get(e.id);
+						var realAmountStr = postdata.get(e.ean.to_string());
 						if (realAmountStr != null && realAmountStr.length > 0) {
 							var realAmount = int.parse(realAmountStr);
 							var amountStyleClass = "success";
 							if (realAmount < e.amount) {
-								amountStyleClass = "error";
+								amountStyleClass = "danger";
 							} else if (realAmount > e.amount) {
 								amountStyleClass = "info";
 							}
 							var diff = realAmount - e.amount;
-							table += @"<tr class='$(amountStyleClass)'><td>$(e.id)</td><td>$(e.name)</td><td>$(e.category)</td><td>$(e.amount)</td><td>"
-								+ @"$(realAmount) <strong>[ $(diff) ]</strong><input type=\"hidden\" name=\"$(e.id)\" value=\"$(realAmount)\"></td></tr>";
+							table += @"<tr class='$(amountStyleClass)'><td>$(e.ean)</td><td>$(e.name)</td><td>$(e.category)</td><td>$(e.amount)</td><td>"
+								+ @"$(realAmount) <strong>[ $(diff) ]</strong><input type=\"hidden\" name=\"$(e.ean)\" value=\"$(realAmount)\"></td></tr>";
 						}
 					}
 					actionTemplate = """<input type="hidden" name="apply_inventory" value="true"><button type="submit" class="btn btn-primary">Apply Changes</button>""";
@@ -800,9 +825,9 @@ public class WebServer {
 					var supplierId = int.parse(postdata.get("supplierId"));
 					var userId = int.parse(postdata.get("userId"));
 					foreach(var e in db.get_stock()) {
-						var realAmountStr = postdata.get(e.id);
+						var realAmountStr = postdata.get(e.ean.to_string());
 						if (realAmountStr != null && realAmountStr.length > 0) {
-							var pId = uint64.parse(e.id);
+							var pId = uint64.parse(e.ean.to_string());
 							var realAmount = int.parse(realAmountStr);
 							if (realAmount < e.amount) {
 								// Loss transaction
@@ -835,7 +860,7 @@ public class WebServer {
 				// default GET / list products with a form
 				var tabindexCounter = 1;
 				foreach(var e in db.get_stock()) {
-					table += @"<tr><td><a href=\"/products/$(e.id)\">$(e.id)</a></td><td><a href=\"/products/$(e.id)\">$(e.name)</a></td><td>$(e.category)</td><td>$(e.amount)</td><td><input type=\"number\" name=\"$(e.id)\" tabindex=\"$(tabindexCounter)\"></td></tr>";
+					table += @"<tr><td><a href=\"/products/$(e.ean)\">$(e.ean)</a></td><td><a href=\"/products/$(e.ean)\">$(e.name)</a></td><td>$(e.category)</td><td>$(e.amount)</td><td><input type=\"number\" name=\"$(e.ean)\" tabindex=\"$(tabindexCounter)\"></td></tr>";
 					tabindexCounter++;
 				}
 				actionTemplate = """<button type="submit" class="btn btn-primary">Preview</button>""";
@@ -857,9 +882,7 @@ public class WebServer {
 		} catch(TemplateError e) {
 			stderr.printf(e.message+"\n");
 			handler_404(server, msg, path, query, client);
-		} catch(DatabaseError e) {
-			handler_400(server, msg, path, query, client, e.message);
-		} catch(IOError e) {
+		} catch(Error e) {
 			handler_400(server, msg, path, query, client, e.message);
 		}
 	}
@@ -868,7 +891,7 @@ public class WebServer {
 		try {
 			var session = new WebSession(server, msg, path, query, client);
 			var template = new WebTemplate("products/new.html", session);
-			template.replace("TITLE", "KtT Shop System: New Product");
+			template.replace("TITLE", shortname + " Shop System: New Product");
 			template.menu_set_active("products");
 
 			if(!session.superuser && !session.auth_products) {
@@ -911,6 +934,8 @@ public class WebServer {
 			handler_400(server, msg, path, query, client, e.message);
 		} catch(IOError e) {
 			handler_400(server, msg, path, query, client, e.message);
+		} catch(DBusError e) {
+			handler_400(server, msg, path, query, client, e.message);
 		}
 	}
 
@@ -924,7 +949,7 @@ public class WebServer {
 			}
 
 			var template = new WebTemplate("products/restock.html", session);
-			template.replace("TITLE", "KtT Shop System: Restock Product %llu".printf(id));
+			template.replace("TITLE", shortname + " Shop System: Restock Product %llu".printf(id));
 			template.replace("NAME", db.get_product_name(id));
 			template.menu_set_active("products");
 
@@ -968,6 +993,8 @@ public class WebServer {
 			handler_400(server, msg, path, query, client, e.message);
 		} catch(IOError e) {
 			handler_400(server, msg, path, query, client, e.message);
+		} catch(DBusError e) {
+			handler_400(server, msg, path, query, client, e.message);
 		}
 	}
 
@@ -982,7 +1009,7 @@ public class WebServer {
 			}
 
 			var template = new WebTemplate("products/newprice.html", session);
-			template.replace("TITLE", "KtT Shop System: New Price for Product %llu".printf(id));
+			template.replace("TITLE", shortname + " Shop System: New Price for Product %llu".printf(id));
 			template.replace("NAME", db.get_product_name(id));
 			template.menu_set_active("products");
 
@@ -1014,6 +1041,8 @@ public class WebServer {
 			handler_400(server, msg, path, query, client, e.message);
 		} catch(IOError e) {
 			handler_400(server, msg, path, query, client, e.message);
+		} catch(DBusError e) {
+			handler_400(server, msg, path, query, client, e.message);
 		}
 	}
 
@@ -1021,7 +1050,7 @@ public class WebServer {
 		try {
 			var l = new WebSession(server, msg, path, query, client);
 			var t = new WebTemplate("aliases/index.html", l);
-			t.replace("TITLE", "KtT Shop System: Alias List");
+			t.replace("TITLE", shortname + " Shop System: Alias List");
 			t.menu_set_active("aliases");
 
 			string table = "";
@@ -1046,6 +1075,8 @@ public class WebServer {
 			handler_400(server, msg, path, query, client, e.message);
 		} catch(IOError e) {
 			handler_400(server, msg, path, query, client, e.message);
+		} catch(DBusError e) {
+			handler_400(server, msg, path, query, client, e.message);
 		}
 	}
 
@@ -1053,7 +1084,7 @@ public class WebServer {
 		try {
 			var session = new WebSession(server, msg, path, query, client);
 			var template = new WebTemplate("aliases/new.html", session);
-			template.replace("TITLE", "KtT Shop System: New Alias");
+			template.replace("TITLE", shortname + " Shop System: New Alias");
 			template.menu_set_active("aliases");
 
 			if(!session.superuser && !session.auth_products) {
@@ -1093,6 +1124,8 @@ public class WebServer {
 			handler_400(server, msg, path, query, client, e.message);
 		} catch(IOError e) {
 			handler_400(server, msg, path, query, client, e.message);
+		} catch(DBusError e) {
+			handler_400(server, msg, path, query, client, e.message);
 		}
 	}
 
@@ -1101,7 +1134,7 @@ public class WebServer {
 		try {
 			var l = new WebSession(server, msg, path, query, client);
 			var t = new WebTemplate("stats/index.html", l);
-			t.replace("TITLE", "KtT Shop System: Statistics");
+			t.replace("TITLE", shortname + " Shop System: Statistics");
 			t.menu_set_active("stats");
 
 			var stats = db.get_stats_info();
@@ -1134,7 +1167,7 @@ public class WebServer {
 			var t = new WebTemplate("stats/stock.html", l);
 			string data = db.get_stats_stock().json;
 			t.replace("DATA", data);
-			t.replace("TITLE", "KtT Shop System: Statistics: Stock");
+			t.replace("TITLE", shortname + " Shop System: Statistics: Stock");
 			t.menu_set_active("stats");
 			msg.set_response("text/html", Soup.MemoryUse.COPY, t.data);
 			msg.set_status(200);
@@ -1150,7 +1183,7 @@ public class WebServer {
 			var t = new WebTemplate("stats/profit_per_day.html", l);
 			string data = db.get_stats_profit_per_day().json;
 			t.replace("DATA", data);
-			t.replace("TITLE", "KtT Shop System: Statistics: Profit");
+			t.replace("TITLE", shortname + " Shop System: Statistics: Profit");
 			t.menu_set_active("stats");
 			msg.set_response("text/html", Soup.MemoryUse.COPY, t.data);
 			msg.set_status(200);
@@ -1166,7 +1199,7 @@ public class WebServer {
 			var t = new WebTemplate("stats/profit_per_weekday.html", l);
 			string data = db.get_stats_profit_per_weekday().json;
 			t.replace("DATA", data);
-			t.replace("TITLE", "KtT Shop System: Statistics: Profit/Weekday");
+			t.replace("TITLE", shortname + " Shop System: Statistics: Profit/Weekday");
 			t.menu_set_active("stats");
 			msg.set_response("text/html", Soup.MemoryUse.COPY, t.data);
 			msg.set_status(200);
@@ -1182,7 +1215,7 @@ public class WebServer {
 			var t = new WebTemplate("stats/profit_per_product.html", l);
 			string data = db.get_stats_profit_per_products().json;
 			t.replace("DATA", data);
-			t.replace("TITLE", "KtT Shop System: Statistics: Profit/Product");
+			t.replace("TITLE", shortname + " Shop System: Statistics: Profit/Product");
 			t.menu_set_active("stats");
 			msg.set_response("text/html", Soup.MemoryUse.COPY, t.data);
 			msg.set_status(200);
@@ -1217,7 +1250,7 @@ public class WebServer {
 
 	void handler_img(Soup.Server server, Soup.Message msg, string path, GLib.HashTable? query, Soup.ClientContext client) {
 		try {
-			var f = File.new_for_path(templatedir+path);
+			var f = File.new_for_path(Path.build_filename(templatedir, path));
 			uint8[] data = null;
 
 			if(f.query_exists() && f.load_contents(null, out data, null)) {
@@ -1226,7 +1259,25 @@ public class WebServer {
 				return;
 			}
 		} catch(Error e) {
-			error("there has been some error: %s!\n", e.message);
+			error(_("Error: %s\n"), e.message);
+		}
+
+		handler_404(server, msg, path, query, client);
+		return;
+	}
+
+	void handler_font(Soup.Server server, Soup.Message msg, string path, GLib.HashTable? query, Soup.ClientContext client) {
+		try {
+			var f = File.new_for_path(Path.build_filename(templatedir, path));
+			uint8[] data = null;
+
+			if(f.query_exists() && f.load_contents(null, out data, null)) {
+				msg.set_response("application/octet-stream; charset=binary", Soup.MemoryUse.COPY, data);
+				msg.set_status(200);
+				return;
+			}
+		} catch(Error e) {
+			error(_("Error: %s\n"), e.message);
 		}
 
 		handler_404(server, msg, path, query, client);
@@ -1260,6 +1311,8 @@ public class WebServer {
 		} catch(IOError e) {
 			stderr.printf(e.message+"\n");
 			handler_400_fallback(server, msg, path, query, client);
+		} catch(DBusError e) {
+			handler_400(server, msg, path, query, client, e.message);
 		}
 	}
 
@@ -1284,6 +1337,8 @@ public class WebServer {
 			handler_400(server, msg, path, query, client, e.message);
 		} catch(IOError e) {
 			handler_400(server, msg, path, query, client, e.message);
+		} catch(DBusError e) {
+			handler_400(server, msg, path, query, client, e.message);
 		}
 	}
 
@@ -1291,7 +1346,7 @@ public class WebServer {
 		try {
 			var session = new WebSession(server, msg, path, query, client);
 			var template = new WebTemplate("errors/todo.html", session);
-			template.replace("TITLE", "KtT Shop System: ToDo");
+			template.replace("TITLE", shortname + " Shop System: ToDo");
 			template.menu_set_active("");
 			msg.set_response("text/html", Soup.MemoryUse.COPY, template.data);
 			msg.set_status(200);
@@ -1301,6 +1356,8 @@ public class WebServer {
 		} catch(DatabaseError e) {
 			handler_400(server, msg, path, query, client, e.message);
 		} catch(IOError e) {
+			handler_400(server, msg, path, query, client, e.message);
+		} catch(DBusError e) {
 			handler_400(server, msg, path, query, client, e.message);
 		}
 	}
@@ -1336,7 +1393,7 @@ public class WebServer {
 				hist += "</tr>\n";
 			}
 
-			template.replace("TITLE", "KtT Shop System: Cashbox");
+			template.replace("TITLE", shortname + " Shop System: Cashbox");
 			template.replace("CASHBOX_STATUS", status);
 			template.replace("CASHBOX_HISTORY", hist);
 			template.menu_set_active("cashbox");
@@ -1348,6 +1405,8 @@ public class WebServer {
 		} catch(DatabaseError e) {
 			handler_400(server, msg, path, query, client, e.message);
 		} catch(IOError e) {
+			handler_400(server, msg, path, query, client, e.message);
+		} catch(DBusError e) {
 			handler_400(server, msg, path, query, client, e.message);
 		}
 	}
@@ -1362,7 +1421,7 @@ public class WebServer {
 			}
 
 			var template = new WebTemplate("cashbox/add.html", session);
-			template.replace("TITLE", "KtT Shop System: Cashbox Balance");
+			template.replace("TITLE", shortname + " Shop System: Cashbox Balance");
 			template.menu_set_active("cashbox");
 
 			bool error = false;
@@ -1420,6 +1479,8 @@ public class WebServer {
 			handler_400(server, msg, path, query, client, e.message);
 		} catch(IOError e) {
 			handler_400(server, msg, path, query, client, e.message);
+		} catch(DBusError e) {
+			handler_400(server, msg, path, query, client, e.message);
 		}
 	}
 
@@ -1434,7 +1495,7 @@ public class WebServer {
 			try {
 				var session = new WebSession(server, msg, path, query, client);
 				var template = new WebTemplate("cashbox/selection.html", session);
-				template.replace("TITLE", "KtT Shop System: Cashbox Detail");
+				template.replace("TITLE", shortname + " Shop System: Cashbox Detail");
 				template.menu_set_active("cashbox");
 				msg.set_response("text/html", Soup.MemoryUse.COPY, template.data);
 				msg.set_status(200);
@@ -1444,6 +1505,8 @@ public class WebServer {
 			} catch(DatabaseError e) {
 				handler_400(server, msg, path, query, client, e.message);
 			} catch(IOError e) {
+				handler_400(server, msg, path, query, client, e.message);
+			} catch(DBusError e) {
 				handler_400(server, msg, path, query, client, e.message);
 			}
 		}
@@ -1504,9 +1567,8 @@ public class WebServer {
 			}
 
 			var template = new WebTemplate("cashbox/detail.html", session);
-			template.replace("TITLE", "KtT Shop System: Cashbox Detail");
+			template.replace("TITLE", shortname + " Shop System: Cashbox Detail");
 			template.menu_set_active("cashbox");
-
 			template.replace("DATE", start.format("%B %Y"));
 			template.replace("DEBIT", debit.to_string());
 			template.replace("LOSS", loss.to_string());
@@ -1526,6 +1588,8 @@ public class WebServer {
 			handler_400(server, msg, path, query, client, e.message);
 		} catch(IOError e) {
 			handler_400(server, msg, path, query, client, e.message);
+		} catch(DBusError e) {
+			handler_400(server, msg, path, query, client, e.message);
 		}
 	}
 
@@ -1537,7 +1601,7 @@ public class WebServer {
 			options |= Soup.ServerListenOptions.HTTPS;
 
 		if(!srv.listen_all(port, options)) {
-			throw new GLib.IOError.FAILED("Could not setup webserver!");
+			throw new GLib.IOError.FAILED(_("Could not setup webserver!"));
 		}
 
 		/* index */
@@ -1550,6 +1614,7 @@ public class WebServer {
 		srv.add_handler("/js", handler_js);
 		srv.add_handler("/css", handler_css);
 		srv.add_handler("/img", handler_img);
+		srv.add_handler("/fonts", handler_font);
 
 		/* cashbox */
 		srv.add_handler("/cashbox", handler_cashbox);

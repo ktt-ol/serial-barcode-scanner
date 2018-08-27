@@ -1,0 +1,30 @@
+<legend>Current Cashbox Status</legend>
+
+<div class="input-group">
+	<input name"status" class="form-control" type="number" readonly="readonly" value="{{{CASHBOX_STATUS}}}"/>
+	<div class="input-group-addon">€</div>
+</div>
+
+<legend>Update Cashbox</legend>
+<form action="/cashbox/add" class="form-inline">
+	<div class="form-group">
+		<select name="type" size="1" class="form-control">
+			<option value="loss">Loss (Money is missing from the cashbox)</option>
+			<option value="withdrawal">Withdrawal (You removed money from the cashbox)</option>
+			<option value="donation">Donation (Cashbox has more money, than there should be)</option>
+			<option value="deposit">Deposit (You added money to the cashbox)</option>
+		</select>
+		<div class="input-group">
+			<input name="amount" type="number" placeholder="Amount (in Cent)" class="form-control" />
+			<div class="input-group-addon">Cent</div>
+		</div>
+		<button type="submit" class="form-control btn btn-primary"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span></button>
+	</div>
+</form>
+
+<legend>History (last ten updates)</legend>
+<table class="table table-bordered table-striped table-hover table-condensed table-nonfluid">
+	<tr><td>Date &amp; Time</td><td>Name</td><td>Amount</td></tr>
+	{{{CASHBOX_HISTORY}}}
+</table>
+<a href="/cashbox/details">Details for a specific month</a>

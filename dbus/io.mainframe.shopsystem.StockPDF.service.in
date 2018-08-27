@@ -1,4 +1,0 @@
-[D-BUS Service]
-Name=io.mainframe.shopsystem.StockPDF
-Exec=${PATH}/pdf-stock/pdf-stock
-User=shop

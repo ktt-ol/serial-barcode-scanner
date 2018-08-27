@@ -42,13 +42,13 @@ public class PGPKeyArchive {
 		gpg.set_armor(true);
 	}
 
-	public string[] import_archive(uint8[] data) {
+	public string[] import_archive(uint8[] data) throws DBusError, IOError {
 		string[] result = {};
 		unowned Archive.Entry entry;
 		var archive = new Archive.Read();
 
 		/* support all formats & compression types */
-		archive.support_compression_all();
+		archive.support_filter_all();
 		archive.support_format_all();
 
 		/* load test archive for now */
@@ -93,7 +93,7 @@ public class PGPKeyArchive {
 		return result;
 	}
 
-	public string[] list_keys() {
+	public string[] list_keys() throws DBusError, IOError {
 		string[] result = {};
 		GPG.Key key;
 
@@ -108,7 +108,7 @@ public class PGPKeyArchive {
 		return result;
 	}
 
-	public string get_key(string fingerprint) {
+	public string get_key(string fingerprint) throws DBusError, IOError {
 		GPG.Data keydata;
 		GPG.Data.create(out keydata);
 
@@ -120,7 +120,7 @@ public class PGPKeyArchive {
 			keydata.read(data);
 			return (string) data;
 		} else {
-			stdout.printf("error!\n");
+			stdout.printf(_("Error!\n"));
 			return "";
 		}
 	}

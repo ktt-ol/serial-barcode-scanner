@@ -51,7 +51,7 @@ public class Dialog {
 
 		if (countdownValue > 0) {
 			Timeout.add_seconds(1, decrementTitleCountdown);
-		}		
+		}
 	}
 
 	private void setTitle() {
@@ -61,7 +61,7 @@ public class Dialog {
 		}
 		int title_x = (dialogWidth-title.length)/2;
 		win.mvaddstr(0, title_x, title);
-		win.mvaddch(0, title_x-2, Acs.RTEE); 
+		win.mvaddch(0, title_x-2, Acs.RTEE);
 		win.mvaddch(0, title_x-1, ' ');
 		win.mvaddch(0, title_x+title.length, ' ');
 		win.mvaddch(0, title_x+title.length+1, Acs.LTEE);
@@ -70,7 +70,7 @@ public class Dialog {
 		win.mvaddch(0, title_x+title.length+3, Acs.HLINE);
 	}
 
-	private bool decrementTitleCountdown() {	
+	private bool decrementTitleCountdown() {
 		countdownValue--;
 		setTitle();
 		win.refresh();

@@ -41,7 +41,7 @@ public class MessageBox {
 
 		init_pair (INFO_COLOR, Color.WHITE, Color.BLACK);
 		init_pair (WARN_COLOR, Color.YELLOW, Color.BLACK);
-		init_pair (ERROR_COLOR, Color.RED, Color.BLACK);		
+		init_pair (ERROR_COLOR, Color.RED, Color.BLACK);
 	}
 
 	public void add(string msg, short color_pair = MessageBox.INFO_COLOR) {
@@ -49,7 +49,7 @@ public class MessageBox {
 
 		if(now.get_day_of_year() != last.get_day_of_year() || now.get_year() != last.get_year()) {
 			string curtime = now.format("%Y-%m-%d");
-			subwin.addstr("\nDate Changed: " + curtime);
+			subwin.addstr(_("\nDate Changed: ") + curtime);
 		}
 
 		last = now;

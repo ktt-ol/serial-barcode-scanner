@@ -14,7 +14,13 @@
  */
 
 public static int main(string args[]) {
-	PDFInvoice invoice = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.InvoicePDF", "/io/mainframe/shopsystem/invoicepdf");
+	PDFInvoice invoice;
+
+	try {
+		invoice = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.InvoicePDF", "/io/mainframe/shopsystem/invoicepdf");
+	} catch(IOError e) {
+		error(_("IO Error: %s\n"), e.message);
+	}
 
 	InvoiceRecipient r = {
 		"Max",
@@ -43,10 +49,20 @@ public static int main(string args[]) {
 	invoice.invoice_entries = {e1};
 
 	/* generate pdf */
-	var pdfdata = invoice.generate();
+	try {
+		var pdfdata = invoice.generate();
 
-	/* write pdf into file */
-	FileUtils.set_contents("test.pdf", (string) pdfdata, pdfdata.length);
+		/* write pdf into file */
+		FileUtils.set_contents("test.pdf", (string) pdfdata, pdfdata.length);
+	} catch(DBusError e) {
+		error(_("DBus Error: %s\n"), e.message);
+	} catch(IOError e) {
+		error(_("IO Error: %s\n"), e.message);
+	} catch(InvoicePDFError e) {
+		error(_("Invoice PDF Error: %s\n"), e.message);
+	} catch(FileError e) {
+		error(_("File Error: %s\n"), e.message);
+	}
 
 	return 0;
 }

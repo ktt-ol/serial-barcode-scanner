@@ -1,0 +1,12 @@
+{{{ADDRESS}}} {{{LASTNAME}}},
+
+wir erlauben uns, Ihnen für den Verzehr von Speisen und Getränken <b>{{{SUM}}}€</b> in Rechnung zu stellen.
+
+Eine detaillierte Auflistung der einzelnen Posten befindet sich, mit genauer Zeitangabe des Einkaufs, auf den folgenden Seiten.
+
+{{{VAT}}}
+
+Der Gesamtbetrag wird in 10 Tagen von dem angegebenen Bankkonto eingezogen.
+Mit freundlichen Grüßen
+
+{{{ORGANIZATION}}}

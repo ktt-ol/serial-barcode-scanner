@@ -1,4 +1,5 @@
 /* Copyright 2012-2013, Sebastian Reichel <sre@ring0.de>
+ * Copyright 2017-2018, Johannes Rudolph <johannes.rudolph@gmx.com>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -24,7 +25,7 @@ public class DataBase : Object {
 			int rc = db.prepare_v2(query, -1, out stmt);
 
 			if(rc != Sqlite.OK) {
-				error("could not prepare statement: %s", query);
+				error(_("Error: could not prepare statement: %s"), query);
 			}
 		}
 
@@ -77,7 +78,7 @@ public class DataBase : Object {
 
 		rc = Sqlite.Database.open(file, out db);
 		if(rc != Sqlite.OK) {
-			error("could not open database!");
+			error(_("Error: could not open database!"));
 		}
 
 		/* setup queries */
@@ -127,6 +128,7 @@ public class DataBase : Object {
 		queries["user_disable"]      = "UPDATE users SET disabled = ? WHERE id = ?";
 		queries["last_timestamp"]    = "SELECT timestamp FROM sales ORDER BY timestamp DESC LIMIT 1";
 		queries["category_list"]     = "SELECT id, name FROM categories";
+		queries["category_add"]      = "INSERT INTO categories('name') VALUES (?)";
 		queries["supplier_list"]     = "SELECT id, name, postal_code, city, street, phone, website FROM supplier";
 		queries["supplier_get"]      = "SELECT id, name, postal_code, city, street, phone, website FROM supplier WHERE id = ?";
 		queries["supplier_add"]      = "INSERT INTO supplier('name', 'postal_code', 'city', 'street', 'phone', 'website') VALUES (?, ?, ?, ?, ?, ?)";
@@ -139,6 +141,10 @@ public class DataBase : Object {
 		queries["alias_ean_add"]     = "INSERT OR IGNORE INTO ean_aliases (id, real_ean) VALUES (?, ?)";
 		queries["alias_ean_get"]     = "SELECT real_ean FROM ean_aliases WHERE id = ?";
 		queries["alias_ean_list"]    = "SELECT id, real_ean FROM ean_aliases ORDER BY id ASC";
+		queries["userid_rfid"]       = "SELECT user FROM rfid_users WHERE rfid = ?";
+		queries["rfid_userid"]       = "SELECT rfid FROM rfid_users WHERE user = ?";
+		queries["rfid_insert"]       = "INSERT OR REPLACE INTO rfid_users ('user','rfid') VALUES (?,?)";
+		queries["rfid_delete_user"]  = "DELETE FROM rfid_users WHERE user = ?";
 
 		/* compile queries into statements */
 		foreach(var entry in queries.entries) {
@@ -151,7 +157,7 @@ public class DataBase : Object {
 #endif
 	}
 
-	public GLib.HashTable<string,string> get_products() {
+	public GLib.HashTable<string,string> get_products() throws DBusError, IOError, DatabaseError {
 		var result = new GLib.HashTable<string,string>(null, null);
 		statements["products"].reset();
 
@@ -274,13 +280,13 @@ public class DataBase : Object {
 	}
 #endif
 
-	public StockEntry[] get_stock() {
-		StockEntry[] result = {};
+	public DetailedProduct[] get_stock() throws DBusError, IOError, DatabaseError {
+		DetailedProduct[] result = {};
 
 		statements["stock_status"].reset();
 		while(statements["stock_status"].step() == Sqlite.ROW) {
-			StockEntry entry = {
-				statements["stock_status"].column_text(0),
+			DetailedProduct entry = {
+				uint64.parse(statements["stock_status"].column_text(0)),
 				statements["stock_status"].column_text(1),
 				statements["stock_status"].column_text(2),
 				statements["stock_status"].column_int(3),
@@ -294,7 +300,23 @@ public class DataBase : Object {
 		return result;
 	}
 
-	public PriceEntry[] get_prices(uint64 product) {
+	public DetailedProduct get_product_for_ean(uint64 ean) throws DBusError, IOError, DatabaseError {
+		DetailedProduct p = {};
+
+		try {
+			p.ean = ean_alias_get(ean);
+			p.name = get_product_name(p.ean);
+			p.category = get_product_category(p.ean);
+			p.amount = get_product_amount(p.ean);
+			p.memberprice = get_product_price(1, p.ean);
+			p.guestprice = get_product_price(0, p.ean);
+			return p;
+		} catch(DatabaseError e){
+			throw e;
+		}
+	}
+
+	public PriceEntry[] get_prices(uint64 product) throws DBusError, IOError, DatabaseError {
 		PriceEntry[] result = {};
 
 		statements["prices"].reset();
@@ -312,7 +334,7 @@ public class DataBase : Object {
 		return result;
 	}
 
-	public RestockEntry[] get_restocks(uint64 product, bool descending) {
+	public RestockEntry[] get_restocks(uint64 product, bool descending) throws DBusError, IOError, DatabaseError {
 		RestockEntry[] result = {};
 
 		var statement = statements[descending ? "restocks_desc" : "restocks_asc"];
@@ -336,7 +358,7 @@ public class DataBase : Object {
 		return result;
 	}
 
-	public bool buy(int32 user, uint64 article) throws DatabaseError {
+	public bool buy(int32 user, uint64 article) throws DBusError, IOError, DatabaseError {
 		int rc = 0;
 		int64 timestamp = (new DateTime.now_utc()).to_unix();
 
@@ -347,12 +369,12 @@ public class DataBase : Object {
 
 		rc = statements["purchase"].step();
 		if(rc != Sqlite.DONE)
-			throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
+			throw new DatabaseError.INTERNAL_ERROR(_("internal error: %d"), rc);
 
 		return true;
 	}
 
-	public string get_product_name(uint64 article) throws DatabaseError {
+	public string get_product_name(uint64 article) throws DBusError, IOError, DatabaseError {
 		statements["product_name"].reset();
 		statements["product_name"].bind_text(1, "%llu".printf(article));
 
@@ -362,13 +384,13 @@ public class DataBase : Object {
 			case Sqlite.ROW:
 				return statements["product_name"].column_text(0);
 			case Sqlite.DONE:
-				throw new DatabaseError.PRODUCT_NOT_FOUND("unknown product: %llu", article);
+				throw new DatabaseError.PRODUCT_NOT_FOUND(_("unknown product: %llu"), article);
 			default:
-				throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
+				throw new DatabaseError.INTERNAL_ERROR(_("internal error: %d"), rc);
 		}
 	}
 
-	public string get_product_category(uint64 article) throws DatabaseError {
+	public string get_product_category(uint64 article) throws DBusError, IOError, DatabaseError {
 		statements["product_category"].reset();
 		statements["product_category"].bind_text(1, "%llu".printf(article));
 
@@ -378,13 +400,13 @@ public class DataBase : Object {
 			case Sqlite.ROW:
 				return statements["product_category"].column_text(0);
 			case Sqlite.DONE:
-				throw new DatabaseError.PRODUCT_NOT_FOUND("unknown product: %llu", article);
+				throw new DatabaseError.PRODUCT_NOT_FOUND(_("unknown product: %llu"), article);
 			default:
-				throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
+				throw new DatabaseError.INTERNAL_ERROR(_("internal error: %d"), rc);
 		}
 	}
 
-	public int get_product_amount(uint64 article) throws DatabaseError {
+	public int get_product_amount(uint64 article) throws DBusError, IOError, DatabaseError {
 		statements["product_amount"].reset();
 		statements["product_amount"].bind_text(1, "%llu".printf(article));
 
@@ -394,13 +416,13 @@ public class DataBase : Object {
 			case Sqlite.ROW:
 				return statements["product_amount"].column_int(0);
 			case Sqlite.DONE:
-				throw new DatabaseError.PRODUCT_NOT_FOUND("unknown product: %llu", article);
+				throw new DatabaseError.PRODUCT_NOT_FOUND(_("unknown product: %llu"), article);
 			default:
-				throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
+				throw new DatabaseError.INTERNAL_ERROR(_("internal error: %d"), rc);
 		}
 	}
 
-	public bool get_product_deprecated(uint64 article) throws DatabaseError {
+	public bool get_product_deprecated(uint64 article) throws DBusError, IOError, DatabaseError {
 		statements["product_deprecated"].reset();
 		statements["product_deprecated"].bind_text(1, "%llu".printf(article));
 
@@ -410,13 +432,13 @@ public class DataBase : Object {
 			case Sqlite.ROW:
 				return statements["product_deprecated"].column_int(0) == 1;
 			case Sqlite.DONE:
-				throw new DatabaseError.PRODUCT_NOT_FOUND("unknown product: %llu", article);
+				throw new DatabaseError.PRODUCT_NOT_FOUND(_("unknown product: %llu"), article);
 			default:
-				throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
+				throw new DatabaseError.INTERNAL_ERROR(_("internal error: %d"), rc);
 		}
 	}
 
-	public void product_deprecate(uint64 article, bool value) throws DatabaseError {
+	public void product_deprecate(uint64 article, bool value) throws DBusError, IOError, DatabaseError {
 		int rc;
 
 		statements["product_set_deprecated"].reset();
@@ -425,10 +447,10 @@ public class DataBase : Object {
 
 		rc = statements["product_set_deprecated"].step();
 		if(rc != Sqlite.DONE)
-			throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
+			throw new DatabaseError.INTERNAL_ERROR(_("internal error: %d"), rc);
 	}
 
-	public Price get_product_price(int user, uint64 article) throws DatabaseError {
+	public Price get_product_price(int user, uint64 article) throws DBusError, IOError, DatabaseError {
 		int64 timestamp = (new DateTime.now_utc()).to_unix();
 		bool member = user != 0;
 
@@ -445,13 +467,13 @@ public class DataBase : Object {
 				else
 					return statements["price"].column_int(1);
 			case Sqlite.DONE:
-				throw new DatabaseError.PRODUCT_NOT_FOUND("unknown product: %llu", article);
+				throw new DatabaseError.PRODUCT_NOT_FOUND(_("unknown product: %llu"), article);
 			default:
-				throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
+				throw new DatabaseError.INTERNAL_ERROR(_("internal error: %d"), rc);
 		}
 	}
 
-	public string undo(int32 user) throws DatabaseError {
+	public string undo(int32 user) throws DBusError, IOError, DatabaseError {
 		uint64 pid = 0;
 		int rc = 0;
 		string pname;
@@ -464,12 +486,12 @@ public class DataBase : Object {
 			case Sqlite.ROW:
 				pid = uint64.parse(statements["last_purchase"].column_text(0));
 				pname = get_product_name(pid);
-				write_to_log("Remove purchase of %s", pname);
+				stderr.printf(_("Remove purchase of %s"), pname);
 				break;
 			case Sqlite.DONE:
-				throw new DatabaseError.PRODUCT_NOT_FOUND("undo not possible without purchases");
+				throw new DatabaseError.PRODUCT_NOT_FOUND(_("undo not possible without purchases"));
 			default:
-				throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
+				throw new DatabaseError.INTERNAL_ERROR(_("internal error: %d"), rc);
 		}
 
 		statements["undo"].reset();
@@ -477,12 +499,12 @@ public class DataBase : Object {
 
 		rc = statements["undo"].step();
 		if(rc != Sqlite.DONE)
-			throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
+			throw new DatabaseError.INTERNAL_ERROR(_("internal error: %d"), rc);
 
 		return pname;
 	}
 
-	public void restock(int user, uint64 product, uint amount, uint price, int supplier, int64 best_before_date) throws DatabaseError {
+	public void restock(int user, uint64 product, uint amount, uint price, int supplier, int64 best_before_date) throws DBusError, IOError, DatabaseError {
 		int rc = 0;
 		int64 timestamp = (new DateTime.now_utc()).to_unix();
 
@@ -504,10 +526,10 @@ public class DataBase : Object {
 		rc = statements["stock"].step();
 
 		if(rc != Sqlite.DONE)
-			throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
+			throw new DatabaseError.INTERNAL_ERROR(_("internal error: %d"), rc);
 	}
 
-	public void new_product(uint64 id, string name, int category, int memberprice, int guestprice) throws DatabaseError {
+	public void new_product(uint64 id, string name, int category, int memberprice, int guestprice) throws DBusError, IOError, DatabaseError {
 		statements["product_create"].reset();
 		statements["product_create"].bind_text(1, @"$id");
 		statements["product_create"].bind_text(2, name);
@@ -518,13 +540,13 @@ public class DataBase : Object {
 		if(rc == Sqlite.CONSTRAINT) {
 			throw new DatabaseError.CONSTRAINT_FAILED(db.errmsg());
 		} else if(rc != Sqlite.DONE) {
-			throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
+			throw new DatabaseError.INTERNAL_ERROR(_("internal error: %d"), rc);
 		}
 
 		new_price(id, 0, memberprice, guestprice);
 	}
 
-	public void new_price(uint64 product, int64 timestamp, int memberprice, int guestprice) throws DatabaseError {
+	public void new_price(uint64 product, int64 timestamp, int memberprice, int guestprice) throws DBusError, IOError, DatabaseError {
 		statements["price_create"].reset();
 		statements["price_create"].bind_text(1, @"$product");
 		statements["price_create"].bind_int64(2, timestamp);
@@ -533,11 +555,11 @@ public class DataBase : Object {
 		int rc = statements["price_create"].step();
 
 		if(rc != Sqlite.DONE) {
-			throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
+			throw new DatabaseError.INTERNAL_ERROR(_("internal error: %d"), rc);
 		}
 	}
 
-	public bool check_user_password(int32 user, string password) {
+	public bool check_user_password(int32 user, string password) throws DBusError, IOError, DatabaseError {
 		statements["password_get"].reset();
 		statements["password_get"].bind_int(1, user);
 
@@ -551,7 +573,7 @@ public class DataBase : Object {
 		}
 	}
 
-	public void set_user_password(int32 user, string password) throws DatabaseError {
+	public void set_user_password(int32 user, string password) throws DBusError, IOError, DatabaseError {
 		var pwhash = Checksum.compute_for_string(ChecksumType.SHA256, password);
 		int rc;
 
@@ -560,7 +582,7 @@ public class DataBase : Object {
 		statements["user_auth_create"].bind_int(1, user);
 		rc = statements["user_auth_create"].step();
 		if(rc != Sqlite.DONE)
-			throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
+			throw new DatabaseError.INTERNAL_ERROR(_("internal error: %d"), rc);
 
 		/* set password */
 		statements["password_set"].reset();
@@ -568,31 +590,31 @@ public class DataBase : Object {
 		statements["password_set"].bind_int(2, user);
 		rc = statements["password_set"].step();
 		if(rc != Sqlite.DONE)
-			throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
+			throw new DatabaseError.INTERNAL_ERROR(_("internal error: %d"), rc);
 	}
 
-	public void set_sessionid(int user, string sessionid) throws DatabaseError {
+	public void set_sessionid(int user, string sessionid) throws DBusError, IOError, DatabaseError {
 		statements["session_set"].reset();
 		statements["session_set"].bind_text(1, sessionid);
 		statements["session_set"].bind_int(2, user);
 
 		int rc = statements["session_set"].step();
 		if(rc != Sqlite.DONE)
-			throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
+			throw new DatabaseError.INTERNAL_ERROR(_("internal error: %d"), rc);
 	}
 
-	public int get_user_by_sessionid(string sessionid) throws DatabaseError {
+	public int get_user_by_sessionid(string sessionid) throws DBusError, IOError, DatabaseError {
 		statements["session_get"].reset();
 		statements["session_get"].bind_text(1, sessionid);
 
 		if(statements["session_get"].step() == Sqlite.ROW) {
 			return statements["session_get"].column_int(0);
 		} else {
-			throw new DatabaseError.SESSION_NOT_FOUND("No such session available in database!");
+			throw new DatabaseError.SESSION_NOT_FOUND(_("No such session available in database!"));
 		}
 	}
 
-	public UserInfo get_user_info(int user) throws DatabaseError {
+	public UserInfo get_user_info(int user) throws DBusError, IOError, DatabaseError {
 		var result = UserInfo();
 		statements["userinfo"].reset();
 		statements["userinfo"].bind_int(1, user);
@@ -613,15 +635,26 @@ public class DataBase : Object {
 			result.soundTheme  = statements["userinfo"].column_text(10);
 			result.joined_at   = statements["userinfo"].column_int64(11);
 		} else if(rc == Sqlite.DONE) {
-			throw new DatabaseError.USER_NOT_FOUND("user not found");
+			throw new DatabaseError.USER_NOT_FOUND(_("user not found"));
 		} else {
-			throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
+			throw new DatabaseError.INTERNAL_ERROR(_("internal error: %d"), rc);
 		}
+
+		statements["rfid_userid"].reset();
+		statements["rfid_userid"].bind_int(1, user);
+		rc = statements["rfid_userid"].step();
+
+		string[] rfid = {};
+		while(rc == Sqlite.ROW) {
+						rfid += statements["rfid_userid"].column_text(0);
+						rc = statements["rfid_userid"].step();
+		}
+		result.rfid = rfid;
 
 		return result;
 	}
 
-	public UserAuth get_user_auth(int user) throws DatabaseError {
+	public UserAuth get_user_auth(int user) throws DBusError, IOError, DatabaseError {
 		var result = UserAuth();
 		result.id = user;
 		result.superuser = false;
@@ -641,13 +674,13 @@ public class DataBase : Object {
 		} else if(rc == Sqlite.DONE) {
 			/* entry not found, we return defaults */
 		} else {
-			throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
+			throw new DatabaseError.INTERNAL_ERROR(_("internal error: %d"), rc);
 		}
 
 		return result;
 	}
 
-	public void set_user_auth(UserAuth auth) throws DatabaseError {
+	public void set_user_auth(UserAuth auth) throws DBusError, IOError, DatabaseError {
 		int rc;
 
 		/* create user auth line if not existing */
@@ -655,7 +688,7 @@ public class DataBase : Object {
 		statements["user_auth_create"].bind_int(1, auth.id);
 		rc = statements["user_auth_create"].step();
 		if(rc != Sqlite.DONE)
-			throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
+			throw new DatabaseError.INTERNAL_ERROR(_("internal error: %d"), rc);
 
 		/* set authentication */
 		statements["userauth_set"].reset();
@@ -666,21 +699,21 @@ public class DataBase : Object {
 
 		rc = statements["userauth_set"].step();
 		if(rc != Sqlite.DONE)
-			throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
+			throw new DatabaseError.INTERNAL_ERROR(_("internal error: %d"), rc);
 	}
 
-	public string get_username(int user) throws DatabaseError {
+	public string get_username(int user) throws DBusError, IOError, DatabaseError {
 		statements["username"].reset();
 		statements["username"].bind_int(1, user);
 
 		if(statements["username"].step() == Sqlite.ROW) {
 			return statements["username"].column_text(0)+" "+statements["username"].column_text(1);
 		} else {
-			throw new DatabaseError.USER_NOT_FOUND("No such user available in database!");
+			throw new DatabaseError.USER_NOT_FOUND(_("No such user available in database!"));
 		}
 	}
 
-	public string get_user_theme(int user, string fallback) throws DatabaseError {
+	public string get_user_theme(int user, string fallback) throws DBusError, IOError, DatabaseError {
 		statements["user_theme_get"].reset();
 		statements["user_theme_get"].bind_text(1, fallback);
 		statements["user_theme_get"].bind_int(2, user);
@@ -688,11 +721,11 @@ public class DataBase : Object {
 		if(statements["user_theme_get"].step() == Sqlite.ROW) {
 			return statements["user_theme_get"].column_text(0);
 		} else {
-			throw new DatabaseError.USER_NOT_FOUND("No such user available in database!");
+			throw new DatabaseError.USER_NOT_FOUND(_("No such user available in database!"));
 		}
 	}
 
-	public void set_userTheme(int user, string userTheme) throws DatabaseError {
+	public void set_userTheme(int user, string userTheme) throws DBusError, IOError, DatabaseError {
 		statements["user_theme_set"].reset();
 		if (userTheme == "") {
 			statements["user_theme_set"].bind_null(1);
@@ -703,10 +736,10 @@ public class DataBase : Object {
 
 		int rc = statements["user_theme_set"].step();
 		if(rc != Sqlite.DONE)
-			throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
+			throw new DatabaseError.INTERNAL_ERROR(_("internal error: %d"), rc);
 	}
 
-	public InvoiceEntry[] get_invoice(int user, int64 from=0, int64 to=-1) throws DatabaseError {
+	public InvoiceEntry[] get_invoice(int user, int64 from=0, int64 to=-1) throws DBusError, IOError, DatabaseError {
 		InvoiceEntry[] result = {};
 
 		if(to == -1) {
@@ -731,13 +764,13 @@ public class DataBase : Object {
 		}
 
 		if(rc != Sqlite.DONE) {
-			throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
+			throw new DatabaseError.INTERNAL_ERROR(_("internal error: %d"), rc);
 		}
 
 		return result;
 	}
 
-	public int64 get_first_purchase(int user) {
+	public int64 get_first_purchase(int user) throws DBusError, IOError, DatabaseError {
 		statements["purchase_first"].reset();
 		statements["purchase_first"].bind_int(1, user);
 
@@ -747,7 +780,7 @@ public class DataBase : Object {
 			return 0;
 	}
 
-	public int64 get_last_purchase(int user) {
+	public int64 get_last_purchase(int user) throws DBusError, IOError, DatabaseError {
 		statements["purchase_last"].reset();
 		statements["purchase_last"].bind_int(1, user);
 
@@ -757,7 +790,7 @@ public class DataBase : Object {
 			return 0;
 	}
 
-	public StatsInfo get_stats_info() {
+	public StatsInfo get_stats_info() throws DBusError, IOError, DatabaseError {
 		var result = StatsInfo();
 
 		DateTime now = new DateTime.now_local();
@@ -832,7 +865,7 @@ public class DataBase : Object {
 		return result;
 	}
 
-	public int[] get_member_ids() {
+	public int[] get_member_ids() throws DBusError, IOError, DatabaseError {
 		int[] result = {};
 
 		statements["user_get_ids"].reset();
@@ -842,7 +875,7 @@ public class DataBase : Object {
 		return result;
 	}
 
-	public int[] get_system_member_ids() {
+	public int[] get_system_member_ids() throws DBusError, IOError, DatabaseError {
 		int[] result = {};
 
 		statements["system_user_get_ids"].reset();
@@ -852,7 +885,7 @@ public class DataBase : Object {
 		return result;
 	}
 
-	public void user_disable(int user, bool value) throws DatabaseError {
+	public void user_disable(int user, bool value) throws DBusError, IOError, DatabaseError {
 		int rc;
 
 		/* create user auth line if not existing */
@@ -860,7 +893,7 @@ public class DataBase : Object {
 		statements["user_auth_create"].bind_int(1, user);
 		rc = statements["user_auth_create"].step();
 		if(rc != Sqlite.DONE)
-			throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
+			throw new DatabaseError.INTERNAL_ERROR(_("internal error: %d"), rc);
 
 		/* set disabled flag */
 		statements["user_disable"].reset();
@@ -868,10 +901,10 @@ public class DataBase : Object {
 		statements["user_disable"].bind_int(2, user);
 		rc = statements["user_disable"].step();
 		if(rc != Sqlite.DONE)
-			throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
+			throw new DatabaseError.INTERNAL_ERROR(_("internal error: %d"), rc);
 	}
 
-	public void user_replace(UserInfo u) throws DatabaseError {
+	public void user_replace(UserInfo u) throws DBusError, IOError, DatabaseError {
 		statements["user_replace"].reset();
 		statements["user_replace"].bind_int(1, u.id);
 		statements["user_replace"].bind_text(2, u.email);
@@ -889,32 +922,47 @@ public class DataBase : Object {
 
 		int rc = statements["user_replace"].step();
 		if(rc != Sqlite.DONE)
-			throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
+			throw new DatabaseError.INTERNAL_ERROR(_("internal error: %d"), rc);
+
+		statements["rfid_delete_user"].reset();
+		statements["rfid_delete_user"].bind_int(1, u.id);
+		rc = statements["rfid_delete_user"].step();
+		if(rc != Sqlite.DONE)
+			throw new DatabaseError.INTERNAL_ERROR(_("internal error: %d"), rc);
+
+		foreach (string rfid in u.rfid) {
+			statements["rfid_insert"].reset();
+			statements["rfid_insert"].bind_int(1, u.id);
+			statements["rfid_insert"].bind_text(2, rfid);
+			rc = statements["rfid_insert"].step();
+			if(rc != Sqlite.DONE)
+				throw new DatabaseError.INTERNAL_ERROR(_("internal error: %d"), rc);
+		}
 	}
 
-	public bool user_is_disabled(int user) throws DatabaseError {
+	public bool user_is_disabled(int user) throws DBusError, IOError, DatabaseError {
 		return get_user_info(user).disabled;
 	}
 
-	public bool user_exists(int user) throws DatabaseError {
+	public bool user_exists(int user) throws DBusError, IOError, DatabaseError {
 		if(user in get_member_ids())
 			return true;
 		return false;
 	}
 
-	public bool user_equals(UserInfo u) throws DatabaseError {
+	public bool user_equals(UserInfo u) throws DBusError, IOError, DatabaseError {
 		var dbu = get_user_info(u.id);
 		return u.equals(dbu);
 	}
 
-	public int64 get_timestamp_of_last_purchase() {
+	public int64 get_timestamp_of_last_purchase() throws DBusError, IOError, DatabaseError {
 		statements["last_timestamp"].reset();
 		if(statements["last_timestamp"].step() != Sqlite.ROW)
 			return 0;
 		return statements["last_timestamp"].column_int64(0);
 	}
 
-	public Category[] get_category_list() {
+	public Category[] get_category_list() throws DBusError, IOError, DatabaseError {
 		Category[] result = {};
 
 		statements["category_list"].reset();
@@ -930,7 +978,24 @@ public class DataBase : Object {
 		return result;
 	}
 
-	public Supplier[] get_supplier_list() {
+	public void add_category(string name) throws DBusError, IOError, DatabaseError {
+		/* check if category already exists */
+		foreach(var c in get_category_list()) {
+			if(name == c.name) {
+				return;
+			}
+		}
+
+		statements["category_add"].reset();
+		statements["category_add"].bind_text(1, name);
+		int rc = statements["category_add"].step();
+
+		if(rc != Sqlite.DONE) {
+			throw new DatabaseError.INTERNAL_ERROR(_("internal error: %d"), rc);
+		}
+	}
+
+	public Supplier[] get_supplier_list() throws DBusError, IOError, DatabaseError {
 		Supplier[] result = {};
 
 		statements["supplier_list"].reset();
@@ -951,7 +1016,7 @@ public class DataBase : Object {
 		return result;
 	}
 
-	public Supplier get_supplier(int id) {
+	public Supplier get_supplier(int id) throws DBusError, IOError, DatabaseError {
 		Supplier result = Supplier();
 
 		statements["supplier_get"].reset();
@@ -978,7 +1043,7 @@ public class DataBase : Object {
 		return result;
 	}
 
-	public void add_supplier(string name, string postal_code, string city, string street, string phone, string website) throws DatabaseError {
+	public void add_supplier(string name, string postal_code, string city, string street, string phone, string website) throws DBusError, IOError, DatabaseError {
 		statements["supplier_add"].reset();
 		statements["supplier_add"].bind_text(1, name);
 		statements["supplier_add"].bind_text(2, postal_code);
@@ -989,11 +1054,11 @@ public class DataBase : Object {
 		int rc = statements["supplier_add"].step();
 
 		if(rc != Sqlite.DONE) {
-			throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
+			throw new DatabaseError.INTERNAL_ERROR(_("internal error: %d"), rc);
 		}
 	}
 
-	public int[] get_users_with_sales(int64 timestamp_from, int64 timestamp_to) {
+	public int[] get_users_with_sales(int64 timestamp_from, int64 timestamp_to) throws DBusError, IOError, DatabaseError {
 		var result = new int[0];
 		statements["users_with_sales"].reset();
 		statements["users_with_sales"].bind_int64(1, timestamp_from);
@@ -1006,7 +1071,7 @@ public class DataBase : Object {
 		return result;
 	}
 
-	public Price get_user_invoice_sum(int user, int64 timestamp_from, int64 timestamp_to) {
+	public Price get_user_invoice_sum(int user, int64 timestamp_from, int64 timestamp_to) throws DBusError, IOError, DatabaseError {
 		Price result = 0;
 
 		statements["user_invoice_sum"].reset();
@@ -1020,7 +1085,7 @@ public class DataBase : Object {
 		return result;
 	}
 
-	public Price cashbox_status() {
+	public Price cashbox_status() throws DBusError, IOError, DatabaseError {
 		Price result = 0;
 
 		statements["cashbox_status"].reset();
@@ -1031,7 +1096,7 @@ public class DataBase : Object {
 		return result;
 	}
 
-	public void cashbox_add(int user, Price amount, int64 timestamp) throws DatabaseError {
+	public void cashbox_add(int user, Price amount, int64 timestamp) throws DBusError, IOError, DatabaseError {
 		statements["cashbox_add"].reset();
 		statements["cashbox_add"].bind_int(1, user);
 		statements["cashbox_add"].bind_int(2, amount);
@@ -1040,11 +1105,11 @@ public class DataBase : Object {
 		int rc = statements["cashbox_add"].step();
 
 		if(rc != Sqlite.DONE) {
-			throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
+			throw new DatabaseError.INTERNAL_ERROR(_("internal error: %d"), rc);
 		}
 	}
 
-	public CashboxDiff[] cashbox_history() {
+	public CashboxDiff[] cashbox_history() throws DBusError, IOError, DatabaseError {
 		CashboxDiff[] result = {};
 
 		statements["cashbox_history"].reset();
@@ -1062,7 +1127,7 @@ public class DataBase : Object {
 		return result;
 	}
 
-	public CashboxDiff[] cashbox_changes(int64 start, int64 stop) {
+	public CashboxDiff[] cashbox_changes(int64 start, int64 stop) throws DBusError, IOError, DatabaseError {
 		CashboxDiff[] result = {};
 
 		statements["cashbox_changes"].reset();
@@ -1082,7 +1147,7 @@ public class DataBase : Object {
 		return result;
 	}
 
-	public void ean_alias_add(uint64 ean, uint64 real_ean) throws DatabaseError {
+	public void ean_alias_add(uint64 ean, uint64 real_ean) throws DBusError, IOError, DatabaseError {
 		statements["alias_ean_add"].reset();
 		statements["alias_ean_add"].bind_text(1, "%llu".printf(ean));
 		statements["alias_ean_add"].bind_text(2, "%llu".printf(real_ean));
@@ -1090,11 +1155,11 @@ public class DataBase : Object {
 		int rc = statements["alias_ean_add"].step();
 
 		if(rc != Sqlite.DONE) {
-			throw new DatabaseError.INTERNAL_ERROR("internal error: %d", rc);
+			throw new DatabaseError.INTERNAL_ERROR(_("internal error: %d"), rc);
 		}
 	}
 
-	public uint64 ean_alias_get(uint64 ean) {
+	public uint64 ean_alias_get(uint64 ean) throws DBusError, IOError, DatabaseError {
 		uint64 result = ean;
 
 		statements["alias_ean_get"].reset();
@@ -1106,7 +1171,7 @@ public class DataBase : Object {
 		return result;
 	}
 
-	public EanAlias[] ean_alias_list() {
+	public EanAlias[] ean_alias_list() throws DBusError, IOError, DatabaseError {
 		EanAlias[] result = {};
 
 		statements["alias_ean_list"].reset();
@@ -1131,12 +1196,12 @@ public class DataBase : Object {
 			return 1;
 	}
 
-	public BestBeforeEntry?[] bestbeforelist() {
+	public BestBeforeEntry?[] bestbeforelist() throws DBusError, IOError, DatabaseError {
 		var bbdlist = new GLib.GenericArray<BestBeforeEntry?>();
 
 		foreach(var product in get_stock()) {
 			var amount = product.amount;
-			var pid = uint64.parse(product.id);
+			var pid = product.ean;
 
 			if(amount <= 0)
 				continue;
@@ -1159,5 +1224,21 @@ public class DataBase : Object {
 		bbdlist.sort(sortBestBeforeEntry);
 
 		return bbdlist.data;
+	}
+
+	public int get_userid_for_rfid(string rfid) throws DBusError, IOError, DatabaseError {
+		statements["userid_rfid"].reset();
+		statements["userid_rfid"].bind_text(1, rfid);
+
+		int rc = statements["userid_rfid"].step();
+
+		switch(rc) {
+			case Sqlite.ROW:
+				return statements["userid_rfid"].column_int(0);
+			case Sqlite.DONE:
+				throw new DatabaseError.RFID_NOT_FOUND(_("unknown rfid: %s"), rfid);
+			default:
+				throw new DatabaseError.INTERNAL_ERROR(_("internal error: %d"), rc);
+		}
 	}
 }

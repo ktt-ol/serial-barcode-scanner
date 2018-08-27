@@ -20,38 +20,59 @@ public Config cfg;
 public AudioPlayer audio;
 public PDFStock pdfStock;
 string templatedir;
+string? shortname;
 
 public static int main(string[] args) {
+	Intl.setlocale(LocaleCategory.ALL, "");
+	Intl.textdomain("shopsystem");
+
 	TlsCertificate? cert = null;
 	string certificate = "";
 	string privatekey = "";
 	uint port = 8080;
 
 	try {
-		db  	 = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Database", "/io/mainframe/shopsystem/database");
-		pgp 	 = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.PGP", "/io/mainframe/shopsystem/pgp");
-		cfg 	 = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Config", "/io/mainframe/shopsystem/config");
-		audio	 = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.AudioPlayer", "/io/mainframe/shopsystem/audio");
+		db  = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Database", "/io/mainframe/shopsystem/database");
+		pgp = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.PGP", "/io/mainframe/shopsystem/pgp");
+		cfg = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Config", "/io/mainframe/shopsystem/config");
+		audio = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.AudioPlayer", "/io/mainframe/shopsystem/audio");
 		pdfStock = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.StockPDF", "/io/mainframe/shopsystem/stockpdf");
-		
-		templatedir = cfg.get_string("WEB", "filepath");
+		var datapath = cfg.get_string("GENERAL", "datapath");
+		templatedir = Path.build_filename(datapath, "templates");
 		port = cfg.get_integer("WEB", "port");
-
-		try {
-			certificate = cfg.get_string("WEB", "cert");
-			privatekey = cfg.get_string("WEB", "key");
-		} catch(KeyFileError e) {
-			warning("KeyFileError: %s\n", e.message);
-		}
 	} catch(IOError e) {
-		error("IOError: %s\n", e.message);
+		error(_("IO Error: %s\n"), e.message);
 	} catch(KeyFileError e) {
-		error("KeyFileError: %s\n", e.message);
+		error(_("KeyFile Error: %s\n"), e.message);
+	} catch(DBusError e) {
+		error(_("DBus Error: %s\n"), e.message);
 	}
 
-	stdout.printf("Web Server Port: %u\n", port);
-	stdout.printf("TLS certificate: %s\n", certificate);
-	stdout.printf("TLS private key: %s\n", privatekey);
+	try {
+		certificate = cfg.get_string("WEB", "cert");
+		privatekey = cfg.get_string("WEB", "key");
+	} catch(KeyFileError e) {
+		warning(_("KeyFile Error: %s\n"), e.message);
+	} catch(IOError e) {
+		error(_("IO Error: %s\n"), e.message);
+	} catch(DBusError e) {
+		error(_("DBus Error: %s\n"), e.message);
+	}
+
+	try {
+		shortname = cfg.get_string("GENERAL", "shortname");
+	} catch(KeyFileError e) {
+		shortname = "";
+		warning(_("KeyFile Error: %s\n"), e.message);
+	} catch(IOError e) {
+		error(_("IO Error: %s\n"), e.message);
+	} catch(DBusError e) {
+		error(_("DBus Error: %s\n"), e.message);
+	}
+
+	stdout.printf(_("Web Server Port: %u\n"), port);
+	stdout.printf(_("TLS certificate: %s\n"), certificate);
+	stdout.printf(_("TLS private key: %s\n"), privatekey);
 
 	/* attach WebServer to MainLoop */
 	try {
@@ -59,7 +80,7 @@ public static int main(string[] args) {
 			cert = new TlsCertificate.from_files(certificate, privatekey);
 		new WebServer(port, cert);
 	} catch(Error e) {
-		error("Could not start Webserver: %s\n", e.message);
+		error(_("Could not start Webserver: %s\n"), e.message);
 	}
 
 	/* start MainLoop */

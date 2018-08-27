@@ -15,14 +15,13 @@
 
 [DBus (name = "io.mainframe.shopsystem.Cli")]
 public class CliImpl {
-	
 	public signal void received_barcode(string barcode);
 
 	public CliImpl() {
- 	}
+	}
 
- 	public void send(string msg) {
- 		stdout.printf("Sending: %s\n", msg);                  
- 		received_barcode(msg);					
- 	}
+	public void send(string msg) throws IOError, DBusError {
+		stdout.printf(_("Sending: %s\n"), msg);
+		received_barcode(msg);
+	}
 }

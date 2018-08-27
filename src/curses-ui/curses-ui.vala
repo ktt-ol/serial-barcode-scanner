@@ -1,4 +1,6 @@
 /* Copyright 2013, Sebastian Reichel <sre@ring0.de>
+ * Copyright 2017-2018, Johannes Rudolph <johannes.rudolph@gmx.com>
+ * Copyright 2018, Malte Modler <malte@malte-modler.de>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -21,7 +23,7 @@ public class CursesUI {
 	//StatusPanel statuswin;
 	MessageBoxOverlay mbOverlay;
 
-	public CursesUI() {
+	public CursesUI(string configdir) {
 		/* unicode support */
 		Intl.setlocale(LocaleCategory.CTYPE, "");
 
@@ -37,8 +39,8 @@ public class CursesUI {
 		Curses.init_pair(1, Curses.Color.GREEN, Curses.Color.BLACK);
 		Curses.init_pair(2, Curses.Color.WHITE, Curses.Color.RED);
 
-		/* initialize widgets */		
-		banner    = new Logo();
+		/* initialize widgets */
+		banner    = new Logo(configdir);
 		//statuswin = new StatusPanel();
 		messages  = new MessageBox();
 		clkwin    = new ClockWindow();
@@ -68,18 +70,18 @@ public class CursesUI {
 	//}
 
 	public void log(MessageType type, string message) {
-		switch (type) {		
+		switch (type) {
 			case MessageType.WARNING:
 				messages.add(message, MessageBox.WARN_COLOR);
 				break;
-			case MessageType.ERROR: 
+			case MessageType.ERROR:
 				messages.add(message, MessageBox.ERROR_COLOR);
 				break;
 			default:
 				messages.add(message, MessageBox.INFO_COLOR);
 				break;
 		}
-		
+
 	}
 
 	public void log_overlay(string title, string message, int closeAfter) {
@@ -87,7 +89,7 @@ public class CursesUI {
 		Timeout.add_seconds(closeAfter, closeMbOverlay);
 	}
 
-	public void dialog_open(string title, string message, int closeAfter=0) {		
+	public void dialog_open(string title, string message, int closeAfter=0) {
 		dialog = new Dialog(message, title, closeAfter);
 		if (closeAfter > 0) {
 			Timeout.add_seconds(closeAfter, close);
@@ -102,7 +104,7 @@ public class CursesUI {
 		return false;
 	}
 
-	bool close() {		
+	bool close() {
 		dialog_close();
 		// just call me once
 		return false;

@@ -16,27 +16,28 @@
 Cfg cfg;
 
 public static int main(string[] args) {
-	string binarylocation = File.new_for_path(args[0]).get_parent().get_path();
+	Intl.setlocale(LocaleCategory.ALL, "");
+	Intl.textdomain("shopsystem");
 
-	cfg = new Cfg(binarylocation + "/../../ktt-shopsystem.cfg");
+	cfg = new Cfg("/etc/shopsystem/config.ini");
 
 	Bus.own_name(
 		BusType.SYSTEM,
 		"io.mainframe.shopsystem.Config",
 		BusNameOwnerFlags.NONE,
-		on_bus_aquired,
+		on_bus_acquired,
 		() => {},
-		() => stderr.printf("Could not aquire name\n"));
+		() => stderr.printf(_("Could not acquire name\n")));
 
 	new MainLoop().run();
 
 	return 0;
 }
 
-void on_bus_aquired(DBusConnection con) {
+void on_bus_acquired(DBusConnection con) {
     try {
         con.register_object("/io/mainframe/shopsystem/config", cfg);
     } catch(IOError e) {
-        stderr.printf("Could not register service\n");
+        stderr.printf(_("Could not register service\n"));
     }
 }

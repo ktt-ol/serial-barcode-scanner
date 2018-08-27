@@ -1,0 +1,19 @@
+[Unit]
+Description=Shop System UI
+
+[Service]
+User=shop
+Group=shop
+Type=simple
+ExecStart=@PATH@/shop-curses-ui
+ExecStartPre=/bin/chvt 7
+ExecStartPre=/bin/setupcon --current-tty --font-only
+StandardInput=tty
+StandardOutput=tty
+TTYPath=/dev/tty7
+TTYReset=yes
+TTYVHangup=yes
+TTYVTDisallocate=yes
+
+[Install]
+WantedBy=multi-user.target

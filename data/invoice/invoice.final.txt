@@ -1,0 +1,11 @@
+{{{ADDRESS}}} {{{LASTNAME}}},
+
+wir erlauben uns, Ihnen für den Verzehr von Speisen und Getränken
+wie folgt zu berechnen:
+
+{{{INVOICE_TABLE}}}
+
+{{{VAT}}}
+
+Grüße aus dem {{{SPACENAME}}},
+das Shop-System

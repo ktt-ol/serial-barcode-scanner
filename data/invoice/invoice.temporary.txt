@@ -1,0 +1,17 @@
+{{{ADDRESS}}} {{{LASTNAME}}},
+
+wir erlauben uns, Ihnen für den Verzehr von Speisen und Getränken
+wie folgt zu berechnen:
+
+{{{INVOICE_TABLE}}}
+
+{{{VAT}}}
+
+Bei dieser Abrechnung handelt es sich lediglich um einen Zwischenstand.
+Die Hauptrechnung wird einmal monatlich getrennt zugestellt und der
+Gesamtbetrag wird dann vom angegebenen Bankkonto eingezogen.
+
+Der Gesamtbetrag für den aktuellen Monat beträgt bisher: {{{SUM_MONTH}}} €
+
+Grüße aus dem {{{SPACENAME}}},
+das Shop-System

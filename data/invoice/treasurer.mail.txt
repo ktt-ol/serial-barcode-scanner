@@ -1,0 +1,8 @@
+Hi Treasurer,
+
+This mail has the members' invoices for the current month
+and an additional csv-file in the attachment. The members'
+invoices are for your files and the csv-file can be used
+for automatic money collection.
+
+-- {{{SHORTNAME}}} Shopsystem

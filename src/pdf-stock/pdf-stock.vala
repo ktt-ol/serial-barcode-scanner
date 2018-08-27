@@ -40,7 +40,7 @@ public class StockPDF {
 	EAN ean;
 	Cairo.Context ctx;
 	Pango.Layout layout;
-	StockEntry[] stock;
+	DetailedProduct[] stock;
 
 	/* pdf data */
 	private uint8[] data;
@@ -99,7 +99,7 @@ public class StockPDF {
 		ctx.restore();
 	}
 
-	private void render_table_row(StockEntry product) throws BarcodeError {
+	private void render_table_row(DetailedProduct product) throws BarcodeError {
 		ctx.set_line_width(0.8);
 
 		/* borders */
@@ -117,7 +117,7 @@ public class StockPDF {
 
 		/* EAN */
 		ctx.move_to(col1 + padding, y + padding);
-		ean.draw(product.id);
+		ean.draw(@"$(product.ean)");
 
 		/* Product Name */
 		ctx.move_to(col2 + padding, y);
@@ -125,7 +125,7 @@ public class StockPDF {
 		layout.set_wrap(Pango.WrapMode.WORD_CHAR);
 		layout.set_spacing((int) (-padding * Pango.SCALE));
 		layout.set_width((int) (col3-col2) * Pango.SCALE);
-		var text = @"$(product.id)\n$(product.name)";
+		var text = @"$(product.ean)\n$(product.name)";
 		layout.set_text(text, text.length);
 		Pango.cairo_update_layout(ctx, layout);
 		Pango.cairo_show_layout(ctx, layout);
@@ -154,7 +154,7 @@ public class StockPDF {
 		return Cairo.Status.SUCCESS;
 	}
 
-	public uint8[] generate(bool allProducts) {
+	public uint8[] generate(bool allProducts) throws DBusError, IOError {
 		data = null;
 
 		var surface = new Cairo.PdfSurface.for_stream(pdf_write, a4w, a4h);

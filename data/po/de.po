@@ -1,0 +1,483 @@
+# Copyright (C) 2018 Sebastian Reichel <sre@ring0.de>
+# This file is distributed under the same license as the main package.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: shopsystem 0.1\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2018-07-01 17:19+0200\n"
+"PO-Revision-Date: 2018-06-28 21:14+0200\n"
+"Last-Translator: Sebastian Reichel <sre@ring0.de>\n"
+"Language-Team: German\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: curses-ui/message_box.vala:52
+msgid ""
+"\n"
+"Date Changed: "
+msgstr ""
+"\n"
+"Datumswechsel: "
+
+#: scanner-session/scannersession.vala:289
+#, c-format
+msgid "%s bought %d items for %s €"
+msgstr "%s hat gerade %d Posten für %s € gekauft"
+
+#: web/template.vala:53 web/template.vala:55 web/template.vala:57
+#: web/template.vala:59 web/template.vala:82
+#, c-format
+msgid "%s could not be loaded!"
+msgstr "%s konnte nicht geladen werden!"
+
+#: web/template.vala:40 web/template.vala:43 web/template.vala:46
+#: web/template.vala:49 web/template.vala:78
+#, c-format
+msgid "%s not found!"
+msgstr "%s wurde nicht gefunden!"
+
+#: pdf-invoice/pdf-invoice.vala:591
+#, c-format
+msgid "Article name \"%s\" does not fit on a single page!"
+msgstr "Artikelname \"%s\" passt nicht auf eine Seite"
+
+#: serial-device/serial-device.vala:39
+msgid "Can't read lock file!\n"
+msgstr "Konnte Lock-Datei nicht lesen\n"
+
+#: audio/audio.vala:38
+msgid "Cannot find alsa GStreamer plugin"
+msgstr "GStreamer Plugin für ALSA konnte nicht gefunden werden"
+
+#: audio/audio.vala:42
+msgid "Cannot find playbin2 GStreamer plugin"
+msgstr "GStreamer Plugin playbin2 konnte nicht gefunden werden"
+
+#: audio/main.vala:40 database/main.vala:29 input-device/main.vala:31
+#: pdf-invoice/main.vala:31 pgp/main.vala:35 serial-device/main.vala:29
+#, c-format
+msgid "Config Error: %s\n"
+msgstr "Konfigurationsfehler: %s\n"
+
+#: serial-device/serial-device.vala:211
+#, c-format
+msgid "Convert Error: %s"
+msgstr "Konvertierungsfehler"
+
+#: audio/main.vala:30 cli/main.vala:37 config/main.vala:30
+#: database/main.vala:40 input-device/main.vala:42 pdf-invoice/main.vala:40
+#: pdf-stock/main.vala:26 pgp/main.vala:44 scanner-session/main.vala:28
+#: serial-device/main.vala:40
+msgid "Could not acquire name\n"
+msgstr "Konnte DBus Namen nicht erlangen\n"
+
+#: input-device/input-device.vala:40 serial-device/serial-device.vala:165
+msgid "Could not bind IOChannel"
+msgstr "IOChannel Verbindung konnte nicht hergestellt werden"
+
+#: serial-device/serial-device.vala:59
+#, c-format
+msgid "Could not create lock file: %s!\n"
+msgstr "Konnte Lock-Datei nicht erstellen: %s!\n"
+
+#: pdf-invoice/pdf-invoice.vala:81
+#, c-format
+msgid "Could not load SVG: %s\n"
+msgstr "Konnte SVG nicht laden: %s\n"
+
+#: config/config.vala:26
+#, c-format
+msgid "Could not load configuration file: %s"
+msgstr "Konnte Konfigurationsdatei nicht laden: %s"
+
+#: invoice/invoice.vala:339 pdf-invoice/pdf-invoice.vala:379
+#, c-format
+msgid "Could not open VAT template: %s"
+msgstr "Konnte VAT-Template nicht öffnen: %s"
+
+#: serial-device/serial-device.vala:55
+msgid "Could not open device!\n"
+msgstr "Konnte Gerätedatei nicht öffnen!\n"
+
+#: invoice/invoice.vala:253 invoice/invoice.vala:320
+#, c-format
+msgid "Could not open invoice template: %s"
+msgstr "Konnte Rechnungs-Template nicht öffnen: %s"
+
+#: audio/main.vala:54 cli/main.vala:68 config/main.vala:41
+#: database/main.vala:51 input-device/main.vala:53 input-device/main.vala:58
+#: pdf-stock/main.vala:37 pgp/main.vala:55 scanner-session/main.vala:41
+#: serial-device/main.vala:51
+msgid "Could not register service\n"
+msgstr "Konnte DBus-Service nicht registrieren\n"
+
+#: pdf-invoice/main.vala:51
+#, c-format
+msgid "Could not register service: %s\n"
+msgstr "Konnte DBus-Servicenicht registieren: %s\n"
+
+#: web/web.vala:1482
+msgid "Could not setup webserver!"
+msgstr "Konnte Webserver nicht konfigurieren!"
+
+#: web/main.vala:65
+#, c-format
+msgid "Could not start Webserver: %s\n"
+msgstr "Konnte Webserver nicht starten: %s\n"
+
+#: pdf-stock/test.vala:26 scanner-session/scannersession.vala:300
+#, c-format
+msgid "DBus Error: %s"
+msgstr "DBus Fehler: %s"
+
+#: audio/main.vala:42 curses-ui/main.vala:68 database/main.vala:31
+#: input-device/main.vala:33 pdf-invoice/main.vala:27 pdf-invoice/test.vala:58
+#: pgp/main.vala:31 serial-device/main.vala:31 web/main.vala:52
+#, c-format
+msgid "DBus Error: %s\n"
+msgstr "DBus Fehler: %s\n"
+
+#: scanner-session/scannersession.vala:304
+#, c-format
+msgid "Database Error: %s"
+msgstr "Datenbank Fehler: %s"
+
+#: scanner-session/scannersession.vala:66
+#, c-format
+msgid "Error (user=%d): %s"
+msgstr "Fehler (Nutzer %d): %s"
+
+#: cli/main.vala:51
+#, c-format
+msgid "Error sending command: %s"
+msgstr "Fehler beim senden des Kommandos: %s"
+
+#: pgp/pgp.vala:123
+msgid "Error!\n"
+msgstr "Fehler!\n"
+
+#: curses-ui/logo.vala:44 scanner-session/scannersession.vala:178
+#: scanner-session/scannersession.vala:225
+#, c-format
+msgid "Error: %s"
+msgstr "Fehler: %s"
+
+#: backup/main.vala:41 invoice/main.vala:51 invoice/main.vala:58
+#: invoice/single.vala:51 invoice/single.vala:58 mail/main.vala:26
+#: web/web.vala:1143
+#, c-format
+msgid "Error: %s\n"
+msgstr "Fehler: %s\n"
+
+#: mail/main.vala:35
+msgid "Error: Could not acquire name\n"
+msgstr "Fehler: Konnte DBus-Namen nicht bekommen\n"
+
+#: mail/main.vala:47
+msgid "Error: Could not register service\n"
+msgstr "Fehler: Konnte DBus-Service nicht registrieren\n"
+
+#: database/database.vala:81
+msgid "Error: could not open database!"
+msgstr "Fehler: Konnte Datenbank nicht öffnen!"
+
+#: database/database.vala:28
+#, c-format
+msgid "Error: could not prepare statement: %s"
+msgstr "Fehler: Konnte SQL-Anweisung nicht erstellen: %s"
+
+#: scanner-session/scannersession.vala:174
+#: scanner-session/scannersession.vala:221
+#, c-format
+msgid "Error: unknown product: %llu"
+msgstr "Fehler: unbekanntes Produkt: %llu"
+
+#: serial-device/serial-device.vala:163
+msgid "Failed to set encoding"
+msgstr "Fehler beim setzten der Zeichenkodierung"
+
+#: curses-ui/logo.vala:31
+#, c-format
+msgid "File '%s' doesn't exist.\n"
+msgstr "Datei '%s' existiert nicht.\n"
+
+#: input-device/input-device.vala:43 pdf-stock/test.vala:24
+#, c-format
+msgid "File Error: %s"
+msgstr "Datei Fehler: %s"
+
+#: pdf-invoice/pdf-invoice.vala:387 pdf-invoice/test.vala:64
+#, c-format
+msgid "File Error: %s\n"
+msgstr "Datei Fehler: %s\n"
+
+#: scanner-session/scannersession.vala:20
+msgid "Guest"
+msgstr "Gast"
+
+#: pdf-stock/test.vala:22 scanner-session/scannersession.vala:302
+#, c-format
+msgid "IO Error: %s"
+msgstr "EA Fehler: %s"
+
+#: audio/main.vala:38 curses-ui/main.vala:66 database/main.vala:27
+#: input-device/main.vala:29 pdf-invoice/main.vala:29 pdf-invoice/test.vala:22
+#: pdf-invoice/test.vala:60 pgp/main.vala:33
+#: scanner-session/scannersession.vala:49 serial-device/main.vala:27
+#: web/main.vala:48
+#, c-format
+msgid "IO Error: %s\n"
+msgstr "EA Fehler: %s\n"
+
+#: serial-device/serial-device.vala:207
+#, c-format
+msgid "IOChannel Error: %s"
+msgstr "IOChannel Fehler: %s"
+
+#: serial-device/serial-device.vala:168
+#, c-format
+msgid "IOChannel: %s"
+msgstr "IOChannel: %s"
+
+#: input-device/input-device.vala:27
+msgid "Ignoring InputDevice!\n"
+msgstr "Eingabegerät wird ignoriert\n"
+
+#: scanner-session/scannersession.vala:168
+#: scanner-session/scannersession.vala:215
+msgid "Internal Error!"
+msgstr "Interner Fehler!"
+
+#: pdf-invoice/test.vala:62
+#, fuzzy, c-format
+msgid "Invoice PDF Error: %s\n"
+msgstr "Datei Fehler: %s\n"
+
+#: curses-ui/main.vala:70 web/main.vala:45 web/main.vala:50
+#, c-format
+msgid "KeyFile Error: %s\n"
+msgstr "Schlüsseldatei Fehler: %s\n"
+
+#: scanner-session/scannersession.vala:149
+msgid "Login as GUEST"
+msgstr "Login als Gast"
+
+#: scanner-session/scannersession.vala:141
+#, c-format
+msgid "Login failed (User ID = %d)"
+msgstr "Login fehlgeschlagen (User ID = %d)"
+
+#: scanner-session/scannersession.vala:155
+msgid "Login failed as GUEST"
+msgstr "Gast-Login fehlgeschlagen"
+
+#: web/websession.vala:165
+#, c-format
+msgid "Login for user id %d failed\n"
+msgstr "Login für Benutzer %d fehlgeschlagen\n"
+
+#: scanner-session/scannersession.vala:135
+#, c-format
+msgid "Login: %s (%d)"
+msgstr "Login: %s (%d)"
+
+#: input-device/input-device.vala:215 serial-device/serial-device.vala:189
+msgid "Lost device"
+msgstr "Gerät verloren"
+
+#: pdf-invoice/pdf-invoice.vala:628
+msgid "No invoice ID given!"
+msgstr "Keine Rechnungsnummer übergeben!"
+
+#: pdf-invoice/pdf-invoice.vala:631
+msgid "No invoice data given!"
+msgstr "Keine Rechnungsdaten übergeben!"
+
+#: pdf-invoice/pdf-invoice.vala:634
+msgid "No invoice date given!"
+msgstr "Kein Rechnungsdatum übergeben!"
+
+#: pdf-invoice/pdf-invoice.vala:637
+msgid "No invoice recipient given!"
+msgstr "Kein Rechnungsempfänger übergeben!"
+
+#: scanner-session/scannersession.vala:253
+msgid "No more Items on your Shopping Cart"
+msgstr "Keine weiteren Gegenstände im Einkaufswagen"
+
+#: mail/mailer.vala:141 mail/mailer.vala:149
+msgid "No such mail"
+msgstr "Mail wurde nicht gefunden"
+
+#: database/database.vala:611
+msgid "No such session available in database!"
+msgstr "Keine solche Session in der Datenbank verfügbar!"
+
+#: database/database.vala:710 database/database.vala:722
+msgid "No such user available in database!"
+msgstr "Kein solcher Nutzer in der Datenbank verfügbar!"
+
+#: cli/main.vala:25
+#, c-format
+msgid ""
+"Nothing to send.\n"
+"Usage: %s <commands to send...>\n"
+"Example: %s \"USER 1\" \"LOGOUT\"\n"
+msgstr ""
+"Nichts zu senden.\n"
+"Benutzung: %s <Kommandos zum senden...>\n"
+"Beispiel: %s \"USER 1\" \"LOGOUT\"\n"
+
+#: invoice/main.vala:20
+msgid "Possible values for <temporary>: temporary, final\n"
+msgstr "Mögliche Werte für <temporary>: temporary, final\n"
+
+#: pdf-invoice/pdf-invoice.vala:471
+msgid "Prices > 9999.99€ are not supported!"
+msgstr "Preise > 9999,99€ werden nicht unterstützt!"
+
+#: database/database.vala:487
+#, c-format
+msgid "Remove purchase of %s"
+msgstr "Einkaufsposten %s wurde entfernt"
+
+#: mail/mailer.vala:180
+#, c-format
+msgid "Reply from SMTP-Server: %s"
+msgstr "Antwort vom SMTP-Server: %s"
+
+#: cli/cli.vala:24
+#, c-format
+msgid "Sending: %s\n"
+msgstr "Sende: %s\n"
+
+#: curses-ui/main.vala:78
+msgid "Shop System has been started"
+msgstr "Shop System wurde gestartet"
+
+#: curses-ui/main.vala:84
+msgid "Stopping Shop System"
+msgstr "Shop System wird gestoppt"
+
+#: web/main.vala:56
+#, c-format
+msgid "TLS certificate: %s\n"
+msgstr "TLS Zertifikat: %s\n"
+
+#: web/main.vala:57
+#, c-format
+msgid "TLS private key: %s\n"
+msgstr "TLS Privater Schlüssel: %s\n"
+
+#: invoice/invoice.vala:315
+msgid "Unknown MessageType"
+msgstr "Unbekannter Nachrichten Typ"
+
+#: invoice/main.vala:19
+#, c-format
+msgid "Usage: %s <temporary> [timestamp]\n"
+msgstr "Benutzung: %s <temporary> [timestamp]\n"
+
+#: web/main.vala:55
+#, c-format
+msgid "Web Server Port: %u\n"
+msgstr "Webserver Port: %u\n"
+
+#: pdf-invoice/pdf-invoice.vala:475
+msgid "Years after 9999 are not supported!"
+msgstr "Jahre nach 9999 werden nicht unterstützt!"
+
+#: scanner-session/scannersession.vala:240
+#, c-format
+msgid "article added to shopping card: %s (%s €)"
+msgstr "Artikel %s (%s €) wurde zum Warenkorb hinzugefügt"
+
+#: scanner-session/scannersession.vala:189
+#, c-format
+msgid "article info: %s (Member: %s €, Guest: %s €"
+msgstr "Artikelinfo: %s (Mitglied: %s €, Gast: %s €"
+
+#: input-device/input-device.vala:249
+#, c-format
+msgid "barcode: %s\n"
+msgstr "Barcode: %s\n"
+
+#: mail/mailer.vala:107
+msgid "could not configure STARTTLS"
+msgstr "Konnte STARTTLS nicht konfigurieren"
+
+#: web/template.vala:61 web/template.vala:84
+msgid "could not load templates!"
+msgstr "Konnte Templates nicht laden!"
+
+#: curses-ui/main.vala:28 curses-ui/main.vala:30
+#, c-format
+msgid "could not play audio: %s"
+msgstr "Konnte Audio Datei nicht abspielen: %s"
+
+#: mail/mailer.vala:99
+msgid "could not setup server"
+msgstr "Konnte Server nicht konfigurieren"
+
+#: mail/mailer.vala:176
+msgid "eSMTP: Start Session failed!"
+msgstr "eSMTP: Session Start fehlgeschlagen!"
+
+#: database/database.vala:370 database/database.vala:387
+#: database/database.vala:403 database/database.vala:419
+#: database/database.vala:435 database/database.vala:448
+#: database/database.vala:470 database/database.vala:492
+#: database/database.vala:500 database/database.vala:527
+#: database/database.vala:541 database/database.vala:556
+#: database/database.vala:583 database/database.vala:591
+#: database/database.vala:601 database/database.vala:638
+#: database/database.vala:675 database/database.vala:689
+#: database/database.vala:700 database/database.vala:737
+#: database/database.vala:765 database/database.vala:884
+#: database/database.vala:892 database/database.vala:913
+#: database/database.vala:919 database/database.vala:927
+#: database/database.vala:1028 database/database.vala:1079
+#: database/database.vala:1129 database/database.vala:1212
+#, c-format
+msgid "internal error: %d"
+msgstr "Interner Fehler: %d"
+
+#: scanner-session/scannersession.vala:249
+#, c-format
+msgid "removed last Item from Shopping Cart: %s"
+msgstr "Letzter Posten wurde aus dem Warenkorb entfernt: %s"
+
+#: serial-device/serial-device.vala:43
+msgid "serial device is locked!\n"
+msgstr "Serielles Gerät ist blockiert!\n"
+
+#: mail/mailer.vala:79
+msgid "server or port configuration is missing"
+msgstr "Server oder Port Konfiguration fehlt"
+
+#: input-device/input-device.vala:224
+msgid "short read!\n"
+msgstr "Unvollständige Daten aus Gerätedatei gelesen\n"
+
+#: database/database.vala:490
+msgid "undo not possible without purchases"
+msgstr "Rückgängig nicht möglich ohne Einkäufe"
+
+#: database/database.vala:385 database/database.vala:401
+#: database/database.vala:417 database/database.vala:433
+#: database/database.vala:468
+#, c-format
+msgid "unknown product: %llu"
+msgstr "Unbekanntes Produkt: %llu"
+
+#: database/database.vala:1210
+#, c-format
+msgid "unknown rfid: %s"
+msgstr "Unbekannter RFID: %s"
+
+#: database/database.vala:636
+msgid "user not found"
+msgstr "User nicht gefunden"

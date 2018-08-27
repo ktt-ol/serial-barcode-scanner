@@ -1,0 +1,4 @@
+[D-BUS Service]
+Name=io.mainframe.shopsystem.PGP
+Exec=@PATH@/shop-pgp
+User=shop

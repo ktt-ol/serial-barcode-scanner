@@ -1,0 +1,46 @@
+<a class="navbar-brand" href="/">{{{SHORTNAME}}} Shop System</a>
+
+<ul class="navbar-nav nav">
+	<li class="{{{MENU.home}}}"><a href="/">Home</a></li>
+	<li class="{{{MENU.products}}} dropdown">
+		<a href="#" class="dropdown-toggle" data-toggle="dropdown">Products
+			<b class="caret"></b>
+		</a>
+		<ul class="dropdown-menu">
+			<li>
+				<a href="/products">List</a>
+			</li>
+			<li>
+				<a href="/products/bestbefore">Best before dates</a>
+			</li>
+			<li>
+				<a href="/products/inventory">Start inventory</a>
+			</li>
+		</ul>
+	</li>
+	
+	<li class="{{{MENU.aliases}}}"><a href="/aliases">Aliases</a></li>
+	<li class="{{{MENU.cashbox}}} {{{AUTH_CASHBOX}}}"><a href="/cashbox">Cashbox</a></li>
+<!--
+	<li class="{{{MENU.stats}}} dropdown">
+		<a href="#" id="statsmenu" class="dropdown-toggle" data-toggle="dropdown">Statistics <b class="caret"></b></a>
+		<ul class="dropdown-menu">
+			<li><a href="/stats">Information</a></li>
+			<li><a href="/stats/stock">Graph: Stock</a></li>
+			<li><a href="/stats/profit_per_day">Graph: Profit / Day</a></li>
+			<li><a href="/stats/profit_per_weekday">Graph: Profit / Weekday</a></li>
+			<li><a href="/stats/profit_per_product">Graph: Profit / Product</a></li>
+		</ul>
+	</li>
+-->
+	<li class="{{{MENU.users}}} {{{AUTH_USERS}}} dropdown">
+		<a href="#" id="usersmenu" class="dropdown-toggle" data-toggle="dropdown">Users <b class="caret"></b></a>
+		<ul class="dropdown-menu">
+			<li><a href="/users">List</a></li>
+			<li><a href="/users/import">Import</a></li>
+			<li><a href="/users/import-pgp">Import PGP Keys</a></li>
+		</ul>
+	</li>
+</ul>
+
+{{{AUTH}}}

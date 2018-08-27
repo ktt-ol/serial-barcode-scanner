@@ -1,0 +1,4 @@
+[D-BUS Service]
+Name=io.mainframe.shopsystem.Mail
+Exec=@PATH@/shop-mailer
+User=shop

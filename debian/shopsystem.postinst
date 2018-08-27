@@ -1,0 +1,19 @@
+#!/bin/sh
+set -e
+
+#DEBHELPER#
+
+# source debconf stuff
+if [ -f /usr/share/debconf/confmodule ]; then
+	. /usr/share/debconf/confmodule
+fi
+
+if [ -f /usr/share/dbconfig-common/dpkg/postinst ]; then
+	. /usr/share/dbconfig-common/dpkg/postinst
+	dbc_dbfile_owner="shop:shop"
+	dbc_go shopsystem "$@"
+fi
+
+adduser shop audio
+
+exit 0

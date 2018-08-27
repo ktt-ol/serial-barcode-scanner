@@ -1,4 +1,5 @@
 /* Copyright 2013, Sebastian Reichel <sre@ring0.de>
+ * Copyright 2017-2018, Johannes Rudolph <johannes.rudolph@gmx.com>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,6 +16,8 @@
 
 [DBus (name = "io.mainframe.shopsystem.InvoicePDF")]
 public class InvoicePDF {
+	Config cfg;
+
 	/* A4 sizes (in points, 72 DPI) */
 	private const double width = 595.27559;  /* 210mm */
 	private const double height = 841.88976; /* 297mm */
@@ -60,8 +63,14 @@ public class InvoicePDF {
 		"Dezember"
 	};
 
-	public InvoicePDF(string datadir) {
+	string longname;
+	string vat;
+
+	public InvoicePDF(string datadir) throws DBusError, IOError, KeyFileError {
 		this.datadir = datadir;
+		cfg = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Config", "/io/mainframe/shopsystem/config");
+		longname = cfg.get_string("GENERAL", "longname");
+		vat = cfg.get_string("INVOICE", "vat");
 	}
 
 	private void render_svg(Cairo.Context ctx, string file) {
@@ -69,7 +78,7 @@ public class InvoicePDF {
 			var svg = new Rsvg.Handle.from_file(file);
 			svg.render_cairo(ctx);
 		} catch(Error e) {
-			error("Could not load SVG: %s\n", e.message);
+			error(_("Could not load SVG: %s\n"), e.message);
 		}
 	}
 
@@ -77,18 +86,18 @@ public class InvoicePDF {
 		ctx.save();
 		ctx.translate(-20, 818);
 		ctx.scale(1.42, 1.42);
-		render_svg(ctx, datadir + "/footer-line.svg");
+		render_svg(ctx, Path.build_filename(datadir, "footer-line.svg"));
 		ctx.restore();
 	}
 
 	private void draw_logo(Cairo.Context ctx) {
 		ctx.save();
 		ctx.translate(366,25);
-		render_svg(ctx, datadir + "/logo.svg");
+		render_svg(ctx, Path.build_filename(datadir, "logo.svg"));
 		ctx.restore();
 	}
 
-	private void draw_address(Cairo.Context ctx) {
+	private void draw_address(Cairo.Context ctx) throws DBusError, IOError, KeyFileError {
 		ctx.save();
 		ctx.set_source_rgb(0, 0, 0);
 		ctx.set_line_width(1.0);
@@ -104,8 +113,7 @@ public class InvoicePDF {
 		ctx.set_font_size(8.45);
 
 		ctx.move_to(56.5, 142);
-		/* TODO: get string from config file */
-		ctx.show_text("Kreativität trifft Technik e.V., Bahnhofsplatz 10, 26122 Oldenburg");
+		ctx.show_text(cfg.get_string("INVOICE", "addressrow"));
 
 		/* actually LMRoman12 */
 		ctx.select_font_face("LMSans10", Cairo.FontSlant.NORMAL, Cairo.FontWeight.NORMAL);
@@ -194,13 +202,12 @@ public class InvoicePDF {
 
 		ctx.move_to(56.5, 323);
 
-		/* TODO: get text from config file */
 		ctx.show_text(@"Rechnung Nr. $invoice_id");
 
 		ctx.restore();
 	}
 
-	private void draw_footer_text_left(Cairo.Context ctx) {
+	private void draw_footer_text_left(Cairo.Context ctx) throws DBusError, IOError, KeyFileError {
 		ctx.save();
 		ctx.move_to(64.0, 742.0);
 		ctx.set_source_rgb(0, 0, 0);
@@ -224,8 +231,7 @@ public class InvoicePDF {
 		/* set page width */
 		layout.set_width((int) 140 * Pango.SCALE);
 
-		/* TODO: get text from config file */
-		var text = "<b>Kreativität trifft Technik e.V.</b>\nAmtsgericht Oldenburg VR 201044\n\nHackspace „Mainframe“\nFabLab „Fab-O-Lab“\nSchnittstelle „Schnittstelle“\n\nBahnhofsplatz 10 • 26122 Oldenburg";
+		var text = cfg.get_string("INVOICE", "footer1");
 
 		/* write invoice date */
 		layout.set_markup(text, text.length);
@@ -237,7 +243,7 @@ public class InvoicePDF {
 		ctx.restore();
 	}
 
-	private void draw_footer_text_middle(Cairo.Context ctx) {
+	private void draw_footer_text_middle(Cairo.Context ctx) throws DBusError, IOError, KeyFileError {
 		ctx.save();
 		ctx.move_to(216.5, 742.0);
 		ctx.set_source_rgb(0, 0, 0);
@@ -261,8 +267,7 @@ public class InvoicePDF {
 		/* set page width */
 		layout.set_width((int) 190 * Pango.SCALE);
 
-		/* TODO: get text from config file */
-		var text = "<b>Mail:</b> vorstand@kreativitaet-trifft-technik.de\n<b>Web:</b> www.kreativitaet-trifft-technik.de\n\n\n\n<b>BGB-Vorstand:</b>\nPatrick Günther, Michael Pensler, Jan Janssen";
+		var text = cfg.get_string("INVOICE", "footer2");
 
 		/* write invoice date */
 		layout.set_markup(text, text.length);
@@ -274,7 +279,7 @@ public class InvoicePDF {
 		ctx.restore();
 	}
 
-	private void draw_footer_text_right(Cairo.Context ctx) {
+	private void draw_footer_text_right(Cairo.Context ctx) throws DBusError, IOError, KeyFileError {
 		ctx.save();
 		ctx.move_to(410.0, 742.0);
 		ctx.set_source_rgb(0, 0, 0);
@@ -298,8 +303,7 @@ public class InvoicePDF {
 		/* set page width */
 		layout.set_width((int) 150 * Pango.SCALE);
 
-		/* TODO: get text from config file */
-		var text = "<b>Raiffeisenbank Oldenburg</b>\nIBAN: DE34 2806 0228 0037 0185 00\nBIC: GENODEF1OL2\n\n\n<b>Finanzamt Oldenburg</b>\nAls gemeinnützig anerkannt.\nSteuer Nr.: 64/220/18413";
+		var text = cfg.get_string("INVOICE", "footer3");
 
 		/* write invoice date */
 		layout.set_markup(text, text.length);
@@ -328,7 +332,7 @@ public class InvoicePDF {
 			return "Moin";
 	}
 
-	private void draw_first_page_text(Cairo.Context ctx) {
+	private void draw_first_page_text(Cairo.Context ctx) throws IOError {
 		ctx.save();
 		ctx.move_to(56.5, 352.5);
 		ctx.set_source_rgb(0, 0, 0);
@@ -358,13 +362,29 @@ public class InvoicePDF {
 		/* load text template */
 		try {
 			var text = "";
-			FileUtils.get_contents(datadir + "/pdf-template.txt", out text);
+			FileUtils.get_contents(Path.build_filename(datadir, "pdf-template.txt"), out text);
 			text = text.replace("{{{ADDRESS}}}", address);
 			text = text.replace("{{{LASTNAME}}}", invoice_recipient.lastname);
 			text = text.replace("{{{SUM}}}", @"$sum");
+			text = text.replace("{{{ORGANIZATION}}}", longname);
+
+			if(vat == "yes") {
+				text = text.replace("{{{VAT}}}", "");
+			} else {
+				string vattext;
+
+				try {
+					FileUtils.get_contents(Path.build_filename(datadir, "vat.txt"), out vattext);
+				} catch(GLib.FileError e) {
+					throw new IOError.FAILED(_("Could not open VAT template: %s"), e.message);
+				}
+
+				text = text.replace("{{{VAT}}}", vattext);
+			}
+
 			layout.set_markup(text, text.length);
 		} catch(GLib.FileError e) {
-			error("File Error: %s\n", e.message);
+			error(_("File Error: %s\n"), e.message);
 		}
 
 		/* render text */
@@ -448,11 +468,11 @@ public class InvoicePDF {
 		var price = @"$(e.price)€".replace(".", ",");
 
 		if(e.price > 999999) {
-			throw new InvoicePDFError.PRICE_TOO_HIGH("Prices > 9999.99€ are not supported!");
+			throw new InvoicePDFError.PRICE_TOO_HIGH(_("Prices > 9999.99€ are not supported!"));
 		}
 
 		if(tm.get_year() > 9999) {
-			throw new InvoicePDFError.TOO_FAR_IN_THE_FUTURE("Years after 9999 are not supported!");
+			throw new InvoicePDFError.TOO_FAR_IN_THE_FUTURE(_("Years after 9999 are not supported!"));
 		}
 
 		/* if date remains the same do not add it again */
@@ -568,7 +588,7 @@ public class InvoicePDF {
 
 				/* retry adding the entry */
 				if(!draw_invoice_table_entry(ctx, y, entry, out y)) {
-					throw new InvoicePDFError.ARTICLE_NAME_TOO_LONG("Article name \"%s\" does not fit on a single page!", entry.product.name);
+					throw new InvoicePDFError.ARTICLE_NAME_TOO_LONG(_("Article name \"%s\" does not fit on a single page!"), entry.product.name);
 				}
 			}
 		}
@@ -597,7 +617,7 @@ public class InvoicePDF {
 		return Cairo.Status.SUCCESS;
 	}
 
-	public uint8[] generate() throws InvoicePDFError {
+	public uint8[] generate() throws DBusError, IOError, InvoicePDFError, KeyFileError {
 		data = null;
 
 		var document = new Cairo.PdfSurface.for_stream(pdf_write, width, height);
@@ -605,16 +625,16 @@ public class InvoicePDF {
 		var ctx = new Cairo.Context(document);
 
 		if(invoice_id == "")
-			throw new InvoicePDFError.NO_INVOICE_ID("No invoice ID given!");
+			throw new InvoicePDFError.NO_INVOICE_ID(_("No invoice ID given!"));
 
 		if(invoice_entries == null)
-			throw new InvoicePDFError.NO_INVOICE_DATA("No invoice data given!");
+			throw new InvoicePDFError.NO_INVOICE_DATA(_("No invoice data given!"));
 
 		if(invoice_date == 0)
-			throw new InvoicePDFError.NO_INVOICE_DATE("No invoice date given!");
+			throw new InvoicePDFError.NO_INVOICE_DATE(_("No invoice date given!"));
 
 		if(invoice_recipient.firstname == "" && invoice_recipient.lastname == "")
-			throw new InvoicePDFError.NO_INVOICE_RECIPIENT("No invoice recipient given!");
+			throw new InvoicePDFError.NO_INVOICE_RECIPIENT(_("No invoice recipient given!"));
 
 		/* first page */
 		draw_logo(ctx);
@@ -638,7 +658,7 @@ public class InvoicePDF {
 		return data;
 	}
 
-	public void clear() {
+	public void clear() throws DBusError, IOError {
 		invoice_date                  = 0;
 		invoice_id                    = "";
 		invoice_recipient.firstname   = "";

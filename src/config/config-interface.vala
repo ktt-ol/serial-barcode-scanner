@@ -15,12 +15,12 @@
 
 [DBus (name = "io.mainframe.shopsystem.Config")]
 public interface Config : Object {
-	public abstract bool has_group(string group_name) throws IOError, KeyFileError;
-	public abstract bool has_key(string group_name, string key) throws IOError, KeyFileError;
-	public abstract string get_string(string group_name, string key) throws IOError, KeyFileError;
-	public abstract bool get_boolean(string group_name, string key) throws IOError, KeyFileError;
-	public abstract int get_integer(string group_name, string key) throws IOError, KeyFileError;
-	public abstract int64 get_int64(string group_name, string key) throws IOError, KeyFileError;
-	public abstract uint64 get_uint64(string group_name, string key) throws IOError, KeyFileError;
-	public abstract double get_double(string group_name, string key) throws IOError, KeyFileError;
+	public abstract bool has_group(string group_name) throws DBusError, IOError, KeyFileError;
+	public abstract bool has_key(string group_name, string key) throws DBusError, IOError, KeyFileError;
+	public abstract string get_string(string group_name, string key) throws DBusError, IOError, KeyFileError;
+	public abstract bool get_boolean(string group_name, string key) throws DBusError, IOError, KeyFileError;
+	public abstract int get_integer(string group_name, string key) throws DBusError, IOError, KeyFileError;
+	public abstract int64 get_int64(string group_name, string key) throws DBusError, IOError, KeyFileError;
+	public abstract uint64 get_uint64(string group_name, string key) throws DBusError, IOError, KeyFileError;
+	public abstract double get_double(string group_name, string key) throws DBusError, IOError, KeyFileError;
 }

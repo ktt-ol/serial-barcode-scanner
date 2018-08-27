@@ -18,20 +18,23 @@ MainLoop ml;
 string[] commands;
 
 public static int main(string[] args) {
+	Intl.setlocale(LocaleCategory.ALL, "");
+	Intl.textdomain("shopsystem");
+
 	if (args.length == 1) {
-		stdout.printf("Nothing to send.\nUsage: %s <commnds to send...>\nExample: %s \"USER 1\" \"LOGOUT\"\n", args[0], args[0]);
+		stdout.printf(_("Nothing to send.\nUsage: %s <commands to send...>\nExample: %s \"USER 1\" \"LOGOUT\"\n"), args[0], args[0]);
 		return 0;
 	}
 	commands = args[1:args.length];
-	
+
 	cli = new CliImpl();
 	Bus.own_name(
 		BusType.SYSTEM,
 		"io.mainframe.shopsystem.Cli",
 		BusNameOwnerFlags.NONE,
-		on_bus_aquired,
-		on_name_aquired,
-		() => stderr.printf("Could not aquire name\n"));
+		on_bus_acquired,
+		on_name_acquired,
+		() => stderr.printf(_("Could not acquire name\n")));
 
 	ml = new MainLoop();
 
@@ -40,9 +43,13 @@ public static int main(string[] args) {
 	return 0;
 }
 
-void on_name_aquired() {
+void on_name_acquired() {
 	foreach (string cmd in commands) {
-		cli.send(cmd);
+		try {
+			cli.send(cmd);
+		} catch (Error e) {
+			stderr.printf(_("Error sending command: %s"), e.message);
+		}
 	}
 
 	// wait a minimal amount of time, to ensure the event was sent
@@ -51,15 +58,14 @@ void on_name_aquired() {
         ml.quit ();
         return false;
     });
- 	time.attach (ml.get_context ());
-
+	time.attach (ml.get_context ());
 }
 
-void on_bus_aquired(DBusConnection con) {
+void on_bus_acquired(DBusConnection con) {
     try {
-        con.register_object("/io/mainframe/shopsystem/cli", cli);        
+        con.register_object("/io/mainframe/shopsystem/cli", cli);
     } catch(IOError e) {
-        stderr.printf("Could not register service\n");
+        stderr.printf(_("Could not register service\n"));
     }
 
 }

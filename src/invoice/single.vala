@@ -48,14 +48,14 @@ public static int main(string[] args) {
 	try {
 		invoice = new InvoiceImplementation();
 	} catch(Error e) {
-		stderr.printf("Error: %s\n", e.message);
+		stderr.printf(_("Error: %s\n"), e.message);
 		return 1;
 	}
 
 	try {
 		invoice.send_invoice(temporary, timestamp, user);
 	} catch(Error e) {
-		stderr.printf("Error: %s\n", e.message);
+		stderr.printf(_("Error: %s\n"), e.message);
 		return 1;
 	}
 

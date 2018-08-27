@@ -24,3 +24,25 @@ public enum MessageType {
 	WARNING,
 	ERROR
 }
+
+public enum ScannerSessionCodeType {
+	USER,
+	GUEST,
+	UNDO,
+	LOGOUT,
+	EAN,
+	RFIDEM4100,
+	UNKNOWN
+}
+
+public enum ScannerSessionState {
+	READY,
+	USER
+}
+
+public struct ScannerResult {
+	public MessageType type;
+	public string message;
+	public AudioType audioType;
+	public string nextScannerdata;
+}

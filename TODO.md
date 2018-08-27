@@ -1,8 +1,3 @@
-### Build System
- * update Makefiles to use config.mk
- * create VAPI file for config.h
- * support "make install"
-
 #### CORE
  * disallow buying for disabled users
  * support user discounts
@@ -10,16 +5,12 @@
  * drop to user rights in all daemons if started as root user
   - [old code](https://github.com/ktt-ol/serial-barcode-scanner/commit/504cefec4a93a9b52fa9d25d6f353a4676485c43)
 
-### frontend
- * add auto-logout
-
 #### USERLIST-PDF
  * write new vala process, which generates a user list pdf using libcairobarcode
 
 #### PRODUCTLIST-PDF
  * write new vala process, which generates a product list pdf using libcairobarcode
-  - Version 1: EAN, Barcode, Name, Amount, Buying-Price
-  - Version 2: EAN, Barcode, Name, Member-Price, Guest-Price
+  - Version 1: EAN, Barcode, Name, Amount
 
 #### MAIL
  * add PGP support in mail script

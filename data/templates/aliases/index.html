@@ -1,0 +1,19 @@
+<table class="sortable table table-bordered table-striped table-condensed">
+	<thead>
+		<tr><th>EAN</th><th>Real EAN</th></th><th>Name</th></tr>
+	</thead>
+	<tbody>
+		{{{DATA}}}
+	</tbody>
+</table>
+
+<div id="newalias" style="display: {{{NEWALIAS}}};">
+	<legend>New Alias</legend>
+	<form action="/aliases/new" class="form-inline">
+		<div class="form-group">
+			<input class="form-control" name="ean" type="number" min="0" placeholder="EAN" />
+			<input class="form-control" name="real_ean" type="number" min="0" placeholder="Real EAN (existing product)" />
+			<button type="submit" class="form-control btn btn-primary"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span></button>
+		</div>
+	</form>
+</div>

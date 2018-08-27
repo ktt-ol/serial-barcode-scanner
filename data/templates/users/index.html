@@ -1,0 +1,14 @@
+<table id="usertable" class="table table-bordered table-striped table-condensed">
+	<thead>
+		<tr><th>ID</th></th><th>Name</th></tr>
+	</thead>
+	<tbody>
+		{{{DATA}}}
+	</tbody>
+</table>
+
+<script type="text/javascript">
+$(document).ready(function() {
+    $('#usertable').DataTable({"lengthMenu": [ [25, 50, 100, -1], [25, 50, 100, "All"] ] });
+} );
+</script>

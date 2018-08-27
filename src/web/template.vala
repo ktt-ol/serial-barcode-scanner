@@ -24,44 +24,48 @@ public class WebTemplate {
 	public uint8[] data { get { return template.data; } }
 
 	public WebTemplate(string file, WebSession login) throws TemplateError {
-		var b = File.new_for_path(templatedir+"base.html");
-		var m = File.new_for_path(templatedir+"menu.html");
-		var f = File.new_for_path(templatedir+file);
+		var bf = Path.build_filename(templatedir, "base.html");
+		var b = File.new_for_path(bf);
+		var mf = Path.build_filename(templatedir, "menu.html");
+		var m = File.new_for_path(mf);
+		var ff = Path.build_filename(templatedir, file);
+		var f = File.new_for_path(ff);
 		File fauth;
 
 		if(login.logged_in)
-			fauth = File.new_for_path(templatedir+"menu_logout.html");
+			fauth = File.new_for_path(Path.build_filename(templatedir, "menu_logout.html"));
 		else
-			fauth = File.new_for_path(templatedir+"menu_login.html");
+			fauth = File.new_for_path(Path.build_filename(templatedir, "menu_login.html"));
 
 		uint8[] basis, menu, template, auth;
 
 		if(!b.query_exists())
-			throw new TemplateError.NOT_FOUND(templatedir+"base.html not found!");
+			throw new TemplateError.NOT_FOUND(_("%s not found!").printf(bf));
 
 		if(!m.query_exists())
-			throw new TemplateError.NOT_FOUND(templatedir+"menu.html not found!");
+			throw new TemplateError.NOT_FOUND(_("%s not found!").printf(mf));
 
 		if(!fauth.query_exists())
-			throw new TemplateError.NOT_FOUND(fauth.get_path()+" not found!");
+			throw new TemplateError.NOT_FOUND(_("%s not found!").printf(fauth.get_path()));
 
 		if(!f.query_exists())
-			throw new TemplateError.NOT_FOUND(templatedir+file+" not found!");
+			throw new TemplateError.NOT_FOUND(_("%s not found!").printf(ff));
 
 		try {
 			if(!b.load_contents(null, out basis, null))
-				throw new TemplateError.NOT_LOADABLE(templatedir+"base.html could not be loaded!");
+				throw new TemplateError.NOT_LOADABLE(_("%s could not be loaded!").printf(bf));
 			if(!m.load_contents(null, out menu, null))
-				throw new TemplateError.NOT_LOADABLE(templatedir+"menu.html could not be loaded!");
+				throw new TemplateError.NOT_LOADABLE(_("%s could not be loaded!").printf(mf));
 			if(!fauth.load_contents(null, out auth, null))
-				throw new TemplateError.NOT_LOADABLE(fauth.get_path()+" could not be loaded!");
+				throw new TemplateError.NOT_LOADABLE(_("%s could not be loaded!").printf(fauth.get_path()));
 			if(!f.load_contents(null, out template, null))
-				throw new TemplateError.NOT_LOADABLE(templatedir+file+" could not be loaded!");
+				throw new TemplateError.NOT_LOADABLE(_("%s could not be loaded!").printf(ff));
 		} catch(Error e) {
-			throw new TemplateError.NOT_LOADABLE("could not load templates!");
+			throw new TemplateError.NOT_LOADABLE(_("could not load templates!"));
 		}
 
 		this.template = ((string) basis).replace("{{{NAVBAR}}}", ((string) menu));
+		this.template = this.template.replace("{{{SHORTNAME}}}", shortname);
 		this.template = this.template.replace("{{{AUTH}}}", ((string) auth));
 		this.template = this.template.replace("{{{CONTENT}}}", ((string) template));
 		this.template = this.template.replace("{{{USERNAME}}}", login.name);
@@ -71,17 +75,18 @@ public class WebTemplate {
 	}
 
 	public WebTemplate.DATA(string file) throws TemplateError {
-		var f = File.new_for_path(templatedir+file);
+		var ff = Path.build_filename(templatedir, file);
+		var f = File.new_for_path(ff);
 		uint8[] template;
 
 		if(!f.query_exists())
-			throw new TemplateError.NOT_FOUND(templatedir+file+" not found!");
+			throw new TemplateError.NOT_FOUND(_("%s not found!").printf(ff));
 
 		try {
 			if(!f.load_contents(null, out template, null))
-				throw new TemplateError.NOT_LOADABLE(templatedir+file+" could not be loaded!");
+				throw new TemplateError.NOT_LOADABLE(_("%s could not be loaded!").printf(ff));
 		} catch(Error e) {
-			throw new TemplateError.NOT_LOADABLE("could not load templates!");
+			throw new TemplateError.NOT_LOADABLE(_("could not load templates!"));
 		}
 
 		this.template = (string) template;

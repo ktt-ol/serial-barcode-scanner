@@ -15,6 +15,5 @@
 
 [DBus (name = "io.mainframe.shopsystem.StockPDF")]
 public interface PDFStock : Object {
-	// if false, only products with an amount > 0 are selected
-	public abstract uint8[] generate(bool allProducts) throws IOError;
+	public abstract uint8[] generate(bool allProducts) throws DBusError, IOError;
 }

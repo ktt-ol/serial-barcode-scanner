@@ -56,10 +56,10 @@ public class MailerImplementation {
 		return 1;
 	}
 
-	public MailerImplementation() throws IOError {
+	public MailerImplementation() throws DBusError, IOError {
 		int result;
 
-		GMime.init(0);
+		GMime.init();
 
 		Smtp.auth_client_init();
 		session = Smtp.Session();
@@ -67,7 +67,7 @@ public class MailerImplementation {
 		send_queue = new Queue<MailImplementation>();
 
 		/* ignore SIGPIPE, as suggested by libESMTP */
-		Posix.signal(Posix.SIGPIPE, Posix.SIG_IGN);
+		Posix.signal(Posix.Signal.PIPE, Posix.SIG_IGN);
 
 		/* get configuration */
 		Config config = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Config", "/io/mainframe/shopsystem/config");
@@ -76,7 +76,7 @@ public class MailerImplementation {
 			var cfgport	= config.get_integer("MAIL", "port");
 			server   = @"$cfgserv:$cfgport";
 		} catch(KeyFileError e) {
-			throw new IOError.FAILED("server or port configuration is missing");
+			throw new IOError.FAILED(_("server or port configuration is missing"));
 		}
 
 		try {
@@ -96,7 +96,7 @@ public class MailerImplementation {
 		/* setup server */
 		result = session.set_server(server);
 		if(result == 0)
-			throw new IOError.FAILED("could not setup server");
+			throw new IOError.FAILED(_("could not setup server"));
 
 		/* Use TLS if possible */
 		if (starttls)
@@ -104,7 +104,7 @@ public class MailerImplementation {
 		else
 			result = session.starttls_enable(Smtp.StartTlsOption.DISABLED);
 		if(result == 0)
-			throw new IOError.FAILED("could not configure STARTTLS");
+			throw new IOError.FAILED(_("could not configure STARTTLS"));
 
 		/* setup authentication */
 		if(username != "") {
@@ -120,7 +120,7 @@ public class MailerImplementation {
 		GMime.shutdown();
 	}
 
-	public string create_mail() throws IOError {
+	public string create_mail() throws DBusError, IOError {
 		string path = @"/io/mainframe/shopsystem/mail/$mailcounter";
 
 		var mail = new MailImplementation();
@@ -136,17 +136,17 @@ public class MailerImplementation {
 		return path;
 	}
 
-	public void delete_mail(string path) throws IOError {
+	public void delete_mail(string path) throws DBusError, IOError {
 		if(!(path in mails))
-			throw new IOError.NOT_FOUND("No such mail");
+			throw new IOError.NOT_FOUND(_("No such mail"));
 
 		mail_bus.unregister_object(mails[path].registration_id);
 		mails.remove(path);
 	}
 
-	public void send_mail(string path) throws IOError {
+	public void send_mail(string path) throws DBusError, IOError {
 		if(!(path in mails))
-			throw new IOError.NOT_FOUND("No such mail");
+			throw new IOError.NOT_FOUND(_("No such mail"));
 
 		send_queue.push_tail(mails[path].mail);
 		delete_mail(path);
@@ -172,12 +172,16 @@ public class MailerImplementation {
 		message.set_reverse_path(current_mail.get_reverse_path());
 
 		int result = session.start_session();
-		if(result == 0)
-			throw new IOError.FAILED("eSMTP: Start Session failed!");
+		if(result == 0) {
+			stderr.printf(_("eSMTP: Start Session failed!"));
+			return false;
+		}
 
 		unowned Smtp.Status status = message.transfer_status();
-		if(status.code < 200 || status.code >= 300)
-			throw new IOError.FAILED("Reply from SMTP-Server: %s", status.text);
+		if(status.code < 200 || status.code >= 300) {
+			stderr.printf(_("Reply from SMTP-Server: %s"));
+			return false;
+		}
 
 		current_mail = null;
 

@@ -16,5 +16,5 @@
 [DBus (name = "io.mainframe.shopsystem.InputDevice")]
 public interface InputDevice : Object {
 	public abstract signal void received_barcode(string barcode);
-	public abstract void blink(uint duration) throws IOError;
+	public abstract void blink(uint duration) throws IOError, DBusError;
 }
