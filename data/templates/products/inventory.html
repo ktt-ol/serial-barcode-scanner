@@ -1,0 +1,49 @@
+<h1>Inventory <small>Thanks that you do it! </small></h1>
+
+<div class="{{{SUCESS_HIDDEN}}} alert alert-success">
+    <strong>Success!</strong> Every change was added. Thank you!
+</div>
+
+<div class="alert alert-info">
+    <strong>Tip!</strong> You can download an inventory PDF to collect the data offline. 
+    <a href="/products/inventory-pdf" target="_blank" class="btn btn-primary">Only products with amount > 0</a>
+    <a href="/products/inventory-pdf?all=1" target="_blank" class="btn btn-primary">All products</a>
+</div>
+
+<form action="/products/inventory" method="POST" class="form-horizontal">
+    <div class="{{{RESTOCK_HIDDEN}}} form-group">
+        <label class="control-label col-sm-3">Select the supplier for the restock action.</label>
+        <div class="col-sm-3">
+            <select name="supplierId" class="form-control">
+                {{{SUPPLIERS}}}
+            </select>
+        </div>
+    </div>
+    <div class="{{{RESTOCK_HIDDEN}}} form-group">
+        <label class="control-label col-sm-3">Select the Shop User for loss transaction.</label>
+        <div class="col-sm-3">
+            <select name="userId" class="form-control">
+                {{{USERS}}}
+            </select>
+        </div>
+    </div>
+    <table class="sortable table table-bordered table-striped table-condensed">
+        <thead>
+            <tr>
+                <th>EAN</th>
+                <th>Name</th>
+                <th>Category</th>
+                <th>Expected Amount</th>
+                <th>Real Amount</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{{DATA}}}
+        </tbody>
+    </table>
+
+    <div class="pull-right">
+        {{{ACTION}}}
+    </div>
+
+</form>

@@ -15,6 +15,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libgmime-2.6-dev \
     libarchive-dev \
     libgstreamer1.0-dev \
+    rygel-playbin \
     librsvg2-dev \
     libsqlite3-dev \
     libpango1.0-dev \

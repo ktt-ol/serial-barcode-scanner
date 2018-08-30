@@ -84,6 +84,10 @@ table.user-entry td {
 	min-width: 350px;
 }
 
+h1 {
+	margin-bottom: 30px;
+}
+
 @media print {
 	.navbar-fixed-top {
 		display: none !important;

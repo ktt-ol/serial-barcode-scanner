@@ -30,14 +30,39 @@
 </table>
 
 <div id="restock" style="display: {{{ISADMIN}}};">
-	<form action="/products/{{{EAN}}}/restock" class="form-inline">
-		<input class="form-control" name="amount" type="number" min="1" placeholder="Amount" title="Amount" />
-		<input class="form-control" name="price"  type="number" step="0.01" min="0.00" placeholder="Price" title="Price per Piece" />
-		<select class="form-control" name="supplier" title="Supplier">
-			{{{SUPPLIERS}}}
-		</select>
-		<input class="form-control" name="best_before_date"  type="date" title="Best Before Date (YYYY-MM-DD)" />
-		<button type="submit" class="btn btn-primary"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span></button>
+		
+	<form action="/products/{{{EAN}}}/restock" class="form-horizontal">
+		<div class="control-group">
+			<label class="control-label">Amount</label>
+			<div class="controls">
+				<input name="amount" type="number" min="1" placeholder="Amount" />
+			</div>
+		</div>
+		<div class="control-group">
+			<label class="control-label">Price per Piece</label>
+			<div class="controls">
+				<input name="price"  type="number" step="0.01" min="0.00" placeholder="Price"  />
+			</div>
+		</div>
+		<div class="control-group">
+			<label class="control-label">Suppplier</label>
+			<div class="controls">
+				<select name="supplier">
+					{{{SUPPLIERS}}}
+				</select>
+			</div>
+		</div>
+		<div class="control-group">
+			<label class="control-label">Best Before Date</label>
+			<div class="controls">
+				<input name="best_before_date"  type="date" />
+			</div>
+		</div>
+		<div class="control-group">
+			<div class="controls">
+				<button type="submit" class="btn btn-primary"><i class="icon-plus"></i> Restock</button>
+			</div>
+		</div>
 	</form>
 </div>
 

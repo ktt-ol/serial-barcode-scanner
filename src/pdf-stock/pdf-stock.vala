@@ -154,7 +154,7 @@ public class StockPDF {
 		return Cairo.Status.SUCCESS;
 	}
 
-	public uint8[] generate() throws DBusError, IOError {
+	public uint8[] generate(bool allProducts) throws DBusError, IOError {
 		data = null;
 
 		var surface = new Cairo.PdfSurface.for_stream(pdf_write, a4w, a4h);
@@ -187,6 +187,9 @@ public class StockPDF {
 			render_table_header();
 
 			foreach(var p in stock) {
+				if (!allProducts && p.amount <= 0) {
+					continue;
+				}
 				render_table_row(p);
 				y += eanh + 6;
 

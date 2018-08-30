@@ -748,6 +748,145 @@ public class WebServer {
 		}
 	}
 
+	void handler_stock_as_pdf(Soup.Server server, Soup.Message msg, string path, GLib.HashTable<string,string>? query, Soup.ClientContext client) {
+		try {
+			var session = new WebSession(server, msg, path, query, client);
+			if(!session.superuser && !session.auth_products) {
+				handler_403(server, msg, path, query, client);
+				return;
+			}
+
+			var allProducts = query.contains("all");
+
+			var pdfdata = pdfStock.generate(allProducts);
+			msg.set_status(200);
+			msg.set_response("application/pdf", Soup.MemoryUse.COPY, pdfdata);
+		} catch(Error e) {
+			handler_400(server, msg, path, query, client, e.message);
+		}
+	}
+
+	void handler_products_inventory(Soup.Server server, Soup.Message msg, string path, GLib.HashTable<string,string>? query, Soup.ClientContext client) {
+		try {
+			var session = new WebSession(server, msg, path, query, client);
+			var template = new WebTemplate("products/inventory.html", session);
+			template.replace("TITLE", "KtT Shop System: Inventory");
+			template.menu_set_active("products");
+
+			if(!session.superuser && !session.auth_products) {
+				handler_403(server, msg, path, query, client);
+				return;
+			}
+
+			string table = "";
+			string actionTemplate = "";
+			string restockClassTemplate = "hidden";
+			string suppliersTemplate = "";
+			string usersTemplate = "";
+			string successClassTemplate = "hidden";
+			if (msg.method == "POST") {
+				var postdata = Soup.Form.decode((string) msg.request_body.data);
+				
+				if (!postdata.contains("apply_inventory")) {
+					// PUT / show changes and request an apply
+					foreach(var e in db.get_stock()) {
+						var realAmountStr = postdata.get(e.ean.to_string());
+						if (realAmountStr != null && realAmountStr.length > 0) {
+							var realAmount = int.parse(realAmountStr);
+							var amountStyleClass = "success";
+							if (realAmount < e.amount) {
+								amountStyleClass = "danger";
+							} else if (realAmount > e.amount) {
+								amountStyleClass = "info";
+							}
+							var diff = realAmount - e.amount;
+							table += @"<tr class='$(amountStyleClass)'><td>$(e.ean)</td><td>$(e.name)</td><td>$(e.category)</td><td>$(e.amount)</td><td>"
+								+ @"$(realAmount) <strong>[ $(diff) ]</strong><input type=\"hidden\" name=\"$(e.ean)\" value=\"$(realAmount)\"></td></tr>";
+						}
+					}
+					actionTemplate = """<input type="hidden" name="apply_inventory" value="true"><button type="submit" class="btn btn-primary">Apply Changes</button>""";
+
+					// a list of suppliers to choose
+					suppliersTemplate = "<option value=\"0\">Unknown</option>";
+					foreach(var e in db.get_supplier_list()) {
+						suppliersTemplate += "<option value=\"%lld\">%s</option>".printf(e.id, e.name);
+					}
+
+					// a list of users to choose
+					foreach(var uId in db.get_system_member_ids()) {
+						var user = db.get_user_info(uId);
+						usersTemplate += "<option value=\"%d\">%s %s (%d)</option>".printf(uId, user.firstname, user.lastname, uId);
+					}
+					
+					restockClassTemplate = ""; // this shows the option list
+				} else {
+					// PUT / apply changes
+
+					var supplierId = int.parse(postdata.get("supplierId"));
+					var userId = int.parse(postdata.get("userId"));
+					foreach(var e in db.get_stock()) {
+						var realAmountStr = postdata.get(e.ean.to_string());
+						if (realAmountStr != null && realAmountStr.length > 0) {
+							var pId = uint64.parse(e.ean.to_string());
+							var realAmount = int.parse(realAmountStr);
+							if (realAmount < e.amount) {
+								// Loss transaction
+								
+								for (int i=0; i< e.amount - realAmount; i++) {
+									db.buy(userId, pId);
+								}
+							} else if (realAmount > e.amount) {
+								// Restock
+
+								var amountDiff = realAmount - e.amount;
+								// find the latest bbd date 
+								int64 maxBbd = 0;
+								foreach(var restock in db.get_restocks(pId, true)) {
+									if (restock.best_before_date > maxBbd) {
+										maxBbd = restock.best_before_date;
+									}
+								}
+
+								//stderr.printf("restock %d for %d, diff %d, supplier %d\n", (int)maxBbd, (int)pId, amountDiff, supplierId);
+								db.restock(session.user, pId, amountDiff, 0, supplierId, maxBbd);
+							}
+						}
+					}
+
+					msg.set_redirect(302, "/products/inventory?success=x");
+					return;
+				}
+			} else {
+				// default GET / list products with a form
+				var tabindexCounter = 1;
+				foreach(var e in db.get_stock()) {
+					table += @"<tr><td><a href=\"/products/$(e.ean)\">$(e.ean)</a></td><td><a href=\"/products/$(e.ean)\">$(e.name)</a></td><td>$(e.category)</td><td>$(e.amount)</td><td><input type=\"number\" name=\"$(e.ean)\" tabindex=\"$(tabindexCounter)\"></td></tr>";
+					tabindexCounter++;
+				}
+				actionTemplate = """<button type="submit" class="btn btn-primary">Preview</button>""";
+
+				if (query.contains("success")) {
+					successClassTemplate = "";
+				}
+			}
+
+			template.replace("SUCESS_HIDDEN", successClassTemplate);
+			template.replace("USERS", usersTemplate);
+			template.replace("SUPPLIERS", suppliersTemplate);
+			template.replace("RESTOCK_HIDDEN", restockClassTemplate);
+			template.replace("DATA", table);
+			template.replace("ACTION", actionTemplate);
+			msg.set_response("text/html", Soup.MemoryUse.COPY, template.data);
+			msg.set_status(200);
+			return;
+		} catch(TemplateError e) {
+			stderr.printf(e.message+"\n");
+			handler_404(server, msg, path, query, client);
+		} catch(Error e) {
+			handler_400(server, msg, path, query, client, e.message);
+		}
+	}
+
 	void handler_products_new(Soup.Server server, Soup.Message msg, string path, GLib.HashTable<string,string>? query, Soup.ClientContext client) {
 		try {
 			var session = new WebSession(server, msg, path, query, client);
@@ -1486,6 +1625,8 @@ public class WebServer {
 		srv.add_handler("/products", handler_products);
 		srv.add_handler("/products/new", handler_products_new);
 		srv.add_handler("/products/bestbefore", handler_product_bestbefore);
+		srv.add_handler("/products/inventory", handler_products_inventory);
+		srv.add_handler("/products/inventory-pdf", handler_stock_as_pdf);
 
 		srv.add_handler("/aliases", handler_alias_list);
 		srv.add_handler("/aliases/new", handler_alias_new);

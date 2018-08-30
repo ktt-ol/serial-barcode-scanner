@@ -45,7 +45,8 @@ public interface Database : Object {
 	public abstract int64 get_first_purchase(int user) throws DBusError, IOError;
 	public abstract int64 get_last_purchase(int user) throws DBusError, IOError;
 	public abstract StatsInfo get_stats_info() throws DBusError, IOError;
-	public abstract int[] get_member_ids() throws DBusError, IOError;
+	public abstract int[] get_member_ids() throws DBusError, IOError, DatabaseError;
+	public abstract int[] get_system_member_ids() throws DBusError, IOError, DatabaseError;
 	public abstract void user_disable(int user, bool value) throws DBusError, IOError, DatabaseError;
 	public abstract void user_replace(UserInfo u) throws DBusError, IOError, DatabaseError;
 	public abstract bool user_is_disabled(int user) throws DBusError, IOError, DatabaseError;

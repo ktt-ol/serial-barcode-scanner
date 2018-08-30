@@ -18,6 +18,7 @@ public CSVMemberFile csvimport;
 public PGP pgp;
 public Config cfg;
 public AudioPlayer audio;
+public PDFStock pdfStock;
 string templatedir;
 string? shortname;
 
@@ -35,6 +36,7 @@ public static int main(string[] args) {
 		pgp = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.PGP", "/io/mainframe/shopsystem/pgp");
 		cfg = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.Config", "/io/mainframe/shopsystem/config");
 		audio = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.AudioPlayer", "/io/mainframe/shopsystem/audio");
+		pdfStock = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.StockPDF", "/io/mainframe/shopsystem/stockpdf");
 		var datapath = cfg.get_string("GENERAL", "datapath");
 		templatedir = Path.build_filename(datapath, "templates");
 		port = cfg.get_integer("WEB", "port");

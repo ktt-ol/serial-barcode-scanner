@@ -16,7 +16,7 @@
 public static int main(string args[]) {
 	try {
 		PDFStock stock = Bus.get_proxy_sync(BusType.SYSTEM, "io.mainframe.shopsystem.StockPDF", "/io/mainframe/shopsystem/stockpdf");
-		var pdfdata = stock.generate();
+		var pdfdata = stock.generate(true);
 		FileUtils.set_contents("test.pdf", (string) pdfdata, pdfdata.length);
 	} catch(IOError e) {
 		error(_("IO Error: %s"), e.message);

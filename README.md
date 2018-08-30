@@ -79,3 +79,9 @@ You can control display power via MQTT by configuring the MQTT settings (i.e. BR
 
 Edit the Logo in the logo.txt File.
 A helpful tool you will found here [http://patorjk.com/software/taag/](http://patorjk.com/software/taag/)
+
+=== Some Vala resources ===
+
+* https://wiki.gnome.org/Projects/Vala/ValaForJavaProgrammers
+* https://valadoc.org/
+* https://getbootstrap.com/2.3.2/
