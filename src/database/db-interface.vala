@@ -147,7 +147,16 @@ public struct UserInfo {
 		if(joined_at != x.joined_at) return false;
 		if(disabled != x.disabled) return false;
 		if(hidden != x.hidden) return false;
-		if(rfid != x.rfid) return false;
+
+		/* check if both objects contain the same RFIDs */
+		foreach(var id in rfid) {
+			if(!(id in x.rfid))
+				return false;
+		}
+		foreach(var id in x.rfid) {
+			if(!(id in rfid))
+				return false;
+		}
 
 		return true;
 	}
