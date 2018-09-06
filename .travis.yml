@@ -1,0 +1,12 @@
+language: c
+
+before_install:
+  - sudo apt-get update --quiet
+  - sudo apt-get install --yes build-essential ninja meson valac udev libarchive-dev libesmtp-dev libgee-0.8-dev libgmime-3.0-dev libgpgme11-dev libgstreamer1.0-dev libncursesw5-dev libncurses5-dev libpango1.0-dev librsvg2-dev libsqlite3-dev libsoup2.4-dev libssl-dev
+
+script:
+  - mkdir build
+  - meson build
+  - cd build
+  - ninja
+  - ninja test
