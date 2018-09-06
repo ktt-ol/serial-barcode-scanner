@@ -68,12 +68,9 @@ public class CSVMemberFile {
 				m.hidden = int.parse(csv_value(linedata[10])) != 0;
 				m.disabled = int.parse(csv_value(linedata[11])) != 0;
 				string[] rfid = {};
-				if(csv_value(linedata[12]) != "")
-					rfid += csv_value(linedata[12]);
-				if(csv_value(linedata[13]) != "")
-					rfid += csv_value(linedata[13]);
-				if(csv_value(linedata[14]) != "")
-					rfid += csv_value(linedata[14]);
+				foreach(var entry in linedata[12:linedata.length]) {
+					rfid += csv_value(entry);
+				}
 				m.rfid = rfid;
 
 				m.soundTheme = "";
