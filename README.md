@@ -32,20 +32,20 @@ support for the following tasks:
 The system consists of multiple daemons written in Vala, which communicate
 with each other using DBus.
 
-=== Building ===
+# Building
 
  * Install dependencies listed by `dpkg-checkbuilddeps` via `apt install`
  * Build the package with `dpkg-buildpackage -b`
 
-=== Install ===
+# Install
 
  * `apt install ./shopsystem.deb`
 
-=== Configuration ===
+# Configuration
 
  * Edit /etc/shopsystem/config.ini
 
-=== Database ===
+# Database
 
 To use the web interface, you need add a super user first. Further
 user can then be imported using the web interface. Creation of the
@@ -71,16 +71,16 @@ It will be restarted by any process, that needs the database DBus API.
  * `pkill -15 shop-database`
  * `sqlite3 /path/to/shopsystem.db`
 
-=== Display on / off via MQTT ===
+# Display on / off via MQTT
 
 You can control display power via MQTT by configuring the MQTT settings (i.e. BROKER, TOPIC) in the config file.
 
-=== Customize Your Shop ===
+# Customize Your Shop
 
 Edit the Logo in the logo.txt File.
 A helpful tool you will found here [http://patorjk.com/software/taag/](http://patorjk.com/software/taag/)
 
-=== Some Vala resources ===
+# Some Vala resources
 
 * https://wiki.gnome.org/Projects/Vala/ValaForJavaProgrammers
 * https://valadoc.org/
