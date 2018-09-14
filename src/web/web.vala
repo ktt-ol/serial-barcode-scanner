@@ -549,6 +549,52 @@ public class WebServer {
 		}
 	}
 
+	void handler_suppliers(Soup.Server server, Soup.Message msg, string path, GLib.HashTable? query, Soup.ClientContext client) {
+		try {
+			var session = new WebSession(server, msg, path, query, client);
+			var message = "";
+
+			var t = new WebTemplate("suppliers/index.html", session);
+			t.replace("TITLE", shortname + " Shop System: Suppliers");
+			t.menu_set_active("suppliers");
+
+			if(session.superuser || session.auth_products) {
+				t.replace("NEWSUPPLIER", "block");
+
+				var postdata = Soup.Form.decode_multipart(msg, null, null, null, null);
+				if(postdata != null) {
+					message = "<div class=\"alert alert-success\">New supplier has been added!</div>";
+					try {
+						db.add_supplier(postdata["name"], postdata["postal_code"], postdata["city"], postdata["street"], postdata["phone"], postdata["website"]);
+					} catch(DatabaseError e) {
+						message = @"<div class=\"alert alert-error\">Error: $(e.message)</div>";
+					}
+				}
+			} else {
+				t.replace("NEWSUPPLIER", "none");
+			}
+
+			string table = "";
+			foreach(var s in db.get_supplier_list()) {
+				table += @"<tr><td>$(s.id)</td><td>$(s.name)</td><td>$(s.postal_code)</td><td>$(s.city)</td><td>$(s.street)</td><td>$(s.phone)</td><td><a href=\"$(s.website)\">$(s.website)</a></td></tr>";
+			}
+			t.replace("DATA", table);
+			t.replace("MESSAGE", message);
+
+			msg.set_response("text/html", Soup.MemoryUse.COPY, t.data);
+			msg.set_status(200);
+		} catch(TemplateError e) {
+			stderr.printf(e.message+"\n");
+			handler_404(server, msg, path, query, client);
+		} catch(DatabaseError e) {
+			handler_400(server, msg, path, query, client, e.message);
+		} catch(IOError e) {
+			handler_400(server, msg, path, query, client, e.message);
+		} catch(DBusError e) {
+			handler_400(server, msg, path, query, client, e.message);
+		}
+	}
+
 	void handler_products(Soup.Server server, Soup.Message msg, string path, GLib.HashTable? query, Soup.ClientContext client) {
 		string[] pathparts = path.split("/");
 
@@ -796,7 +842,7 @@ public class WebServer {
 			string successClassTemplate = "hidden";
 			if (msg.method == "POST") {
 				var postdata = Soup.Form.decode((string) msg.request_body.data);
-				
+
 				if (!postdata.contains("apply_inventory")) {
 					// PUT / show changes and request an apply
 					foreach(var e in db.get_stock()) {
@@ -827,7 +873,7 @@ public class WebServer {
 						var user = db.get_user_info(uId);
 						usersTemplate += "<option value=\"%d\">%s %s (%d)</option>".printf(uId, user.firstname, user.lastname, uId);
 					}
-					
+
 					restockClassTemplate = ""; // this shows the option list
 				} else {
 					// PUT / apply changes
@@ -841,7 +887,7 @@ public class WebServer {
 							var realAmount = int.parse(realAmountStr);
 							if (realAmount < e.amount) {
 								// Loss transaction
-								
+
 								for (int i=0; i< e.amount - realAmount; i++) {
 									db.buy(userId, pId);
 								}
@@ -1638,6 +1684,10 @@ public class WebServer {
 		srv.add_handler("/products/inventory", handler_products_inventory);
 		srv.add_handler("/products/inventory-pdf", handler_stock_as_pdf);
 
+		/* suppliers */
+		srv.add_handler("/suppliers", handler_suppliers);
+
+		/* aliases */
 		srv.add_handler("/aliases", handler_alias_list);
 		srv.add_handler("/aliases/new", handler_alias_new);
 

@@ -1,0 +1,39 @@
+{{{MESSAGE}}}
+
+<table id="suppliertable" class="table table-bordered table-striped table-condensed">
+	<thead>
+		<tr>
+			<th>ID</th>
+			<th>Name</th>
+			<th>City</th>
+			<th>Postal Code</th>
+			<th>Street</th>
+			<th>Phone</th>
+			<th>Website</th>
+		</tr>
+	</thead>
+	<tbody>
+		{{{DATA}}}
+	</tbody>
+</table>
+
+<div id="newsupplier" style="display: {{{NEWSUPPLIER}}};">
+	<legend>New Supplier</legend>
+	<form method="POST" enctype="multipart/form-data" action="#" class="form-inline">
+		<div class="form-group">
+			<input class="form-control" name="name" type="text" placeholder="Name" />
+			<input class="form-control" name="postal_code" type="number" min="0" placeholder="Postal Code" />
+			<input class="form-control" name="city" type="text" placeholder="City" />
+			<input class="form-control" name="street" type="text" placeholder="Street" />
+			<input class="form-control" name="phone" type="text" placeholder="Phone" />
+			<input class="form-control" name="website" type="text" placeholder="Website" />
+			<button type="submit" class="form-control btn btn-primary"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span></button>
+		</div>
+	</form>
+</div>
+
+<script type="text/javascript">
+$(document).ready(function() {
+    $('#suppliertable').DataTable({"lengthMenu": [ [25, 50, 100, -1], [25, 50, 100, "All"] ] });
+} );
+</script>
