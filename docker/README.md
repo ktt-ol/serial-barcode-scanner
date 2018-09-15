@@ -17,7 +17,7 @@ Run the image with:
 # change into the "serial-barcode-scanner" directory
 cd ..
 
-docker run --rm -it -p 8080:8080 -v "$PWD":/mnt/serial-barcode-scanner sbs-build
+docker run --rm -it -p 8080:8080 -v "$PWD":/mnt/serial-barcode-scanner sbs-build tmux
 ```
 
 You have now a tmux terminal to work with the vala files and run the program. 
