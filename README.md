@@ -1,3 +1,7 @@
+<a href="https://travis-ci.org/ktt-ol/serial-barcode-scanner">
+	<img align="right" alt="Build Status" src="https://travis-ci.org/ktt-ol/serial-barcode-scanner.svg?branch=master" />
+</a>
+
 This is the Shop System of Oldenburg's Hackspace Mainframe.
 
 The software has been developed as a credit based system for members of the

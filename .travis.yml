@@ -8,5 +8,4 @@ install:
  - docker build -t sbs-build docker/
 
 script:
-# - docker run --rm -it -p 8080:8080 -v "$PWD":/mnt/serial-barcode-scanner sbs-build
- - true
+ - docker run --rm -it -p 8080:8080 -v "$PWD":/mnt/serial-barcode-scanner sbs-build

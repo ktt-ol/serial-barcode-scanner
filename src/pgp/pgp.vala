@@ -52,7 +52,7 @@ public class PGPKeyArchive {
 		archive.support_format_all();
 
 		/* load test archive for now */
-		if(archive.open_memory(data, data.length) != Archive.Result.OK)
+		if(archive.open_memory(data) != Archive.Result.OK)
 			return result;
 
 		while(archive.next_header(out entry) == Archive.Result.OK) {
@@ -68,7 +68,7 @@ public class PGPKeyArchive {
 			if(size > 50000)
 				continue;
 
-			if(archive.read_data((void*) content, (ssize_t) size) == size) {
+			if(archive.read_data(content) == size) {
 				if(!((string) content).has_prefix("-----BEGIN PGP PUBLIC KEY BLOCK-----"))
 					continue;
 
