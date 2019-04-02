@@ -1,1 +1,1 @@
-sqlite3 ../shop.db "SELECT id,firstname,lastname FROM users LEFT JOIN authentication ON users.id = authentication.user WHERE (disabled IS NULL or disabled != 1) and id > 0" | sed "s~|~,~g" > users.csv
+sqlite3 shop.db "SELECT id,firstname,lastname FROM users LEFT JOIN authentication ON users.id = authentication.user WHERE (users.disabled IS NULL or users.disabled != 1) and id > 0" | sed "s~|~,~g" > users.csv
