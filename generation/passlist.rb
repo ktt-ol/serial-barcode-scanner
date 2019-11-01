@@ -22,7 +22,7 @@ require "csv"
 	\begin{document}
 		\begin{center}
 		\begin{longtable}{| >{\centering\arraybackslash}p{8.5cm}| >{\centering\arraybackslash}p{8.5cm}| >{\centering\arraybackslash}p{8.5cm}|}
-			%s	
+			%s
 		\end{longtable}
 	\end{center}
 	\end{document}}
@@ -36,13 +36,13 @@ require "csv"
 
 @graphics = %q{ \includegraphics{%s} \rule{0cm}{3.5cm} %s}
 @name = %q{ %s %s %s}
-@ktt = %q{\includegraphics[width=8cm,angle=180]{ktt}  %s }
+@ktt = %q{\includegraphics[width=8cm,angle=180]{../ktt}  %s }
 
 @csv = CSV.read(ARGV[0])
 
 #generate barcodes
-@csv.each{|r| 
-	system("barcode -n -E -b 'USER %s' -o '%s.eps' -e 39\n" % [r[0], r[0]])
+@csv.each{|r|
+	system("barcode -n -E -b 'USER %s' -o 'passlist/%s.eps' -e 39\n" % [r[0], r[0]])
 }
 
 #generate latex
@@ -54,8 +54,8 @@ name = ""
 	sign = le ? "\\\\" : "&"
 	graphics += @graphics % [@csv[i-1][0], sign]
 	name += @name % [@csv[i-1][1], @csv[i-1][2], sign]
-	if le 
-		tmp += @line % [graphics, name] 
+	if le
+		tmp += @line % [graphics, name]
 		graphics = ""
 		name = ""
 		1.upto(3) {|j|
@@ -68,4 +68,4 @@ name = ""
 		name = ""
 	end
 }
-File.open("barcode.latex", "w+"){|f| f.write(@template % tmp)}
+File.open("passlist/passlist.latex", "w+"){|f| f.write(@template % tmp)}

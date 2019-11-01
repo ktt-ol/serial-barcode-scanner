@@ -1,0 +1,10 @@
+[mqtt]
+host = spacegate.mainframe.lan
+host_cert = spacegate.cert.pem
+port = 8883
+username = shop
+password = ...
+topic = /shop/stock
+
+[shop]
+shop_db = ../shop.db

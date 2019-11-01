@@ -19,7 +19,7 @@ require "csv"
 		\maketitle
 		\begin{center}
 		\begin{longtable}{|c|c|}
-			%s	
+			%s
 		\end{longtable}
 	\end{center}
 	\end{document}}
@@ -32,13 +32,13 @@ require "csv"
 	\hline}
 
 @graphics = %q{ \includegraphics{%s} %s}
-@name = %q{ %s %s %s}
+@name = %q{ %s %s (%s) %s}
 
 @csv = CSV.read(ARGV[0])
 
 #generate barcodes
-@csv.each{|r| 
-	system("barcode -n -E -b 'USER %s' -o '%s.eps' -u mm -g 80x30 -e 39\n" % [r[0], r[0]])
+@csv.each{|r|
+	system("barcode -n -E -b 'USER %s' -o 'barcodes/%s.eps' -u mm -g 80x30 -e 39\n" % [r[0], r[0]])
 }
 
 #generate latex
@@ -49,11 +49,11 @@ name = ""
 	le = i % 2 == 0 || i >= @csv.length
 	sign = le ? "\\\\" : "&"
 	graphics += @graphics % [@csv[i-1][0], sign]
-	name += @name % [@csv[i-1][1], @csv[i-1][2], sign]
-	if le 
-		tmp += @line % [graphics, name] 
+	name += @name % [@csv[i-1][1], @csv[i-1][2], @csv[i-1][0], sign]
+	if le
+		tmp += @line % [graphics, name]
 		graphics = ""
 		name = ""
 	end
 }
-File.open("barcode.latex", "w+"){|f| f.write(@template % tmp)}
+File.open("barcodes/barcode.latex", "w+"){|f| f.write(@template % tmp)}
