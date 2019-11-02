@@ -13,7 +13,7 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-public static int main(string args[]) {
+public static int main(string[] args) {
 	PDFInvoice invoice;
 
 	try {
