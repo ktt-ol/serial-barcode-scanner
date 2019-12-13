@@ -36,6 +36,10 @@ support for the following tasks:
 The system consists of multiple daemons written in Vala, which communicate
 with each other using DBus.
 
+# Building dependencies
+
+ * apt install build-essential
+
 # Building
 
  * Install dependencies listed by `dpkg-checkbuilddeps` via `apt install`
