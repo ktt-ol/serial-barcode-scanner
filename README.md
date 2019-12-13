@@ -39,11 +39,11 @@ with each other using DBus.
 # Building
 
  * Install dependencies listed by `dpkg-checkbuilddeps` via `apt install`
- * Build the package with `dpkg-buildpackage -b`
+ * Build the package with `dpkg-buildpackage -b --no-sign`
 
 # Install
 
- * `apt install ./shopsystem.deb`
+ * `apt install ../shopsystem_0.x_arch.deb`
 
 # Configuration
 
