@@ -19,26 +19,26 @@ public class AsciiNumbers {
 
 	public string[] zero = {
 		" _ ",
-		"/ \\",
-		"\\_/"
+		"| |",
+		"|_|"
 	};
 
 	public string[] one = {
 		"   ",
-		" /|",
-		"  |"
+		" | ",
+		" | "
 	};
 
 	public string[] two = {
-		"__ ",
-		" _)",
-		"(__"
+		" _ ",
+		" _|",
+		"|_ "
 	};
 
 	public string[] three = {
-		"__ ",
-		" _)",
-		"__)"
+		" _ ",
+		" _|",
+		" _|"
 	};
 
 	public string[] four = {
@@ -48,33 +48,33 @@ public class AsciiNumbers {
 	};
 
 	public string[] five = {
-		" __",
+		" _ ",
 		"|_ ",
-		"__)"
+		" _|"
 	};
 
 	public string[] six = {
 		" _ ",
-		"/_ ",
-		"\\_)"
+		"|_ ",
+		"|_|"
 	};
 
 	public string[] seven = {
-		"___",
-		"  /",
-		" / "
+		" _ ",
+		"  |",
+		"  |"
 	};
 
 	public string[] eight = {
 		" _ ",
-		"(_)",
-		"(_)"
+		"|_|",
+		"|_|"
 	};
 
 	public string[] nine = {
 		" _ ",
-		"(_\\",
-		" _/"
+		"|_|",
+		" _|"
 	};
 
 	public string[] colon = {
