@@ -59,9 +59,9 @@ To use the web interface, you need add a super user first. Further
 user can then be imported using the web interface. Creation of the
 initial super user is done with the following commands:
 
- * `busctl --system call io.mainframe.shopsystem.Database /io/mainframe/shopsystem/database io.mainframe.shopsystem.Database UserReplace "(issssssssxbbsas)" "<userid>" "<firstname>" "<lastname>" "<email>" "<gender>" "<street>" "<postcode>" "<city>" "" 0 0 0 "" 0`
- * `busctl --system call io.mainframe.shopsystem.Database /io/mainframe/shopsystem/database io.mainframe.shopsystem.Database SetUserPassword "is" "<userid>" "<password>"`
- * `busctl --system call io.mainframe.shopsystem.Database /io/mainframe/shopsystem/database io.mainframe.shopsystem.Database SetUserAuth "(ibbbb)" "<userid>" 1 1 1 1`
+ * `sudo busctl --system call io.mainframe.shopsystem.Database /io/mainframe/shopsystem/database io.mainframe.shopsystem.Database UserReplace "(issssssssxbbsas)" "<userid>" "<firstname>" "<lastname>" "<email>" "<gender>" "<street>" "<postcode>" "<city>" "" 0 0 0 "" 0`
+ * `sudo busctl --system call io.mainframe.shopsystem.Database /io/mainframe/shopsystem/database io.mainframe.shopsystem.Database SetUserPassword "is" "<userid>" "<password>"`
+ * `sudo busctl --system call io.mainframe.shopsystem.Database /io/mainframe/shopsystem/database io.mainframe.shopsystem.Database SetUserAuth "(ibbbb)" "<userid>" 1 1 1 1`
 
 Unfortunately the web interface does not yet allow do add categories
 or suppliers. You can use the following queries to add this before
