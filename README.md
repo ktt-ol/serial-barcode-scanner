@@ -38,11 +38,11 @@ with each other using DBus.
 
 # Building dependencies
 
- * apt install build-essential
+ * sudo apt install build-essential
 
 # Building
 
- * Install dependencies listed by `dpkg-checkbuilddeps` via `apt install`
+ * Install dependencies listed by `dpkg-checkbuilddeps` via `sudo apt install`
  * Build the package with `dpkg-buildpackage -b --no-sign`
 
 # Install
@@ -51,7 +51,7 @@ with each other using DBus.
 
 # Configuration
 
- * Edit /etc/shopsystem/config.ini
+ * Edit as root /etc/shopsystem/config.ini
 
 # Database
 
@@ -67,8 +67,8 @@ Unfortunately the web interface does not yet allow do add categories
 or suppliers. You can use the following queries to add this before
 adding products:
 
- * `busctl --system call io.mainframe.shopsystem.Database /io/mainframe/shopsystem/database io.mainframe.shopsystem.Database AddCategory "s" "Getränke"`
- * `busctl --system call io.mainframe.shopsystem.Database /io/mainframe/shopsystem/database io.mainframe.shopsystem.Database AddSupplier "ssssss" "Demo Lieferant" "12345" "Musterstadt" "Musterstr. 5" "+49 1234 56789" "https://www.example.org"`
+ * `sudo busctl --system call io.mainframe.shopsystem.Database /io/mainframe/shopsystem/database io.mainframe.shopsystem.Database AddCategory "s" "Getränke"`
+ * `sudo busctl --system call io.mainframe.shopsystem.Database /io/mainframe/shopsystem/database io.mainframe.shopsystem.Database AddSupplier "ssssss" "Demo Lieferant" "12345" "Musterstadt" "Musterstr. 5" "+49 1234 56789" "https://www.example.org"`
 
 It's also possible to directly access the database. While there are
 some triggers to keep the database in a sensible state, please be
@@ -76,8 +76,8 @@ careful with direct database transactions. For accessing the database
 in write mode, you need to kill the shopsystem database process first.
 It will be restarted by any process, that needs the database DBus API.
 
- * `pkill -15 shop-database`
- * `sqlite3 /path/to/shopsystem.db`
+ * `sudo pkill -15 shop-database`
+ * `sqlite3 /path/to/shopsystem.db` - use `sudo` if necessary
 
 # Display on / off via MQTT
 
