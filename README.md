@@ -51,7 +51,7 @@ with each other using DBus.
 
 # Configuration
 
- * Edit as root /etc/shopsystem/config.ini
+ * Edit as root: `/etc/shopsystem/config.ini`
 
 # Database
 
