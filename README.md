@@ -40,6 +40,10 @@ with each other using DBus.
 
  * sudo apt install build-essential
 
+# Runtime dependencies
+
+ * sudo apt install mosquitto-clients vbetool alsaplayer-text alsa-utils
+
 # Building
 
  * Install dependencies listed by `dpkg-checkbuilddeps` via `sudo apt install`
@@ -86,6 +90,7 @@ You can control display power via MQTT by configuring the MQTT settings (i.e. BR
 # Customize Your Shop
 
 Edit the Logo in the logo.txt File.
+Add sounds to `/usr/share/shopsystem/sounds`
 A helpful tool you will found here [http://patorjk.com/software/taag/](http://patorjk.com/software/taag/)
 
 # Some Vala resources
