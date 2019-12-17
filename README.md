@@ -42,7 +42,9 @@ with each other using DBus.
 
 # Runtime dependencies
 
- * sudo apt install mosquitto-clients vbetool alsaplayer-text alsa-utils
+ * for barcode-list generation: `sudo apt install texlive-full ruby`
+ * for MQTT and display-on-off `sudo apt install mosquitto-clients vbetool`
+ * for sound-output `sudo apt install alsaplayer-text alsa-utils`
 
 # Building
 
