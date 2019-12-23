@@ -97,6 +97,8 @@ public class ScannerSessionImplementation {
       return ScannerSessionCodeType.LOGOUT;
     } else if(scannerdata.length == 10) {
       return ScannerSessionCodeType.RFIDEM4100;
+      else if(scannerdata == "USERINFO") {
+      return ScannerSessionCodeType.USERINFO;
     } else {
       //Handle EAN Code
       uint64 id = 0;
@@ -201,6 +203,9 @@ public class ScannerSessionImplementation {
           scannerResult.nextScannerdata = @"USER $user";
           return scannerResult;
       default:
+	scannerResult.type = MessageType.ERROR;
+        scannerResult.message = _("Error: %s").printf("you may have to be logged in");
+        scannerResult.audioType = AudioType.ERROR;
         state = ScannerSessionState.READY;
         return scannerResult;
     }
@@ -259,6 +264,15 @@ public class ScannerSessionImplementation {
           scannerResult.message = _("🛒 is empty");
           scannerResult.audioType = AudioType.ERROR;
         }
+        break;
+      case ScannerSessionCodeType.USERINFO:
+	DateTime now = new DateTime.now_utc();
+        int64 timestampNow = now.to_unix();
+        int64 timestapFirstOfMonth = new DateTime.utc(now.get_year(),now.get_month(),1,0,0,0).to_unix();
+        string currentMonth = new DateTime.now_utc().format(this.cfg.get_string("DATE-FORMAT", "formatMailSubjectMonthly"));
+        scannerResult.type = MessageType.INFO;
+        scannerResult.message = ("userinfo: ",currentMonth,currentAmmount.to_string());
+        scannerResult.audioType = AudioType.INFO;
         break;
       case ScannerSessionCodeType.LOGOUT:
         scannerResult = logout();
