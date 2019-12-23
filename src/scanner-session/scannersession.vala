@@ -97,7 +97,7 @@ public class ScannerSessionImplementation {
       return ScannerSessionCodeType.LOGOUT;
     } else if(scannerdata.length == 10) {
       return ScannerSessionCodeType.RFIDEM4100;
-      else if(scannerdata == "USERINFO") {
+    } else if(scannerdata == "USERINFO") {
       return ScannerSessionCodeType.USERINFO;
     } else {
       //Handle EAN Code
@@ -269,9 +269,10 @@ public class ScannerSessionImplementation {
 	DateTime now = new DateTime.now_utc();
         int64 timestampNow = now.to_unix();
         int64 timestapFirstOfMonth = new DateTime.utc(now.get_year(),now.get_month(),1,0,0,0).to_unix();
-        string currentMonth = new DateTime.now_utc().format(this.cfg.get_string("DATE-FORMAT", "formatMailSubjectMonthly"));
+	Price currentAmmount = db.get_user_invoice_sum(this.user, timestapFirstOfMonth, timestampNow);
+        string currentMonth = new DateTime.now_utc().format("%B %Y");
         scannerResult.type = MessageType.INFO;
-        scannerResult.message = ("userinfo: ",currentMonth,currentAmmount.to_string());
+        scannerResult.message = ("userinfo: %s %s").printf(currentMonth,currentAmmount.to_string());
         scannerResult.audioType = AudioType.INFO;
         break;
       case ScannerSessionCodeType.LOGOUT:
