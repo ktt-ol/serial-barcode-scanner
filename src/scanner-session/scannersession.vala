@@ -272,7 +272,7 @@ public class ScannerSessionImplementation {
 	Price currentAmmount = db.get_user_invoice_sum(this.user, timestapFirstOfMonth, timestampNow);
         string currentMonth = new DateTime.now_utc().format("%B %Y");
         scannerResult.type = MessageType.INFO;
-        scannerResult.message = ("userinfo: %s %s").printf(currentMonth,currentAmmount.to_string());
+        scannerResult.message = ("userinfo: %s: %s €").printf(currentMonth,currentAmmount.to_string());
         scannerResult.audioType = AudioType.INFO;
         break;
       case ScannerSessionCodeType.LOGOUT:
