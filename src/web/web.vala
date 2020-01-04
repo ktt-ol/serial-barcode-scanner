@@ -1567,7 +1567,7 @@ public class WebServer {
 		try {
 			var session = new WebSession(server, msg, path, query, client);
 
-			if(!session.superuser) {
+			if(!session.superuser && !session.auth_cashbox) {
 				handler_403(server, msg, path, query, client);
 				return;
 			}
