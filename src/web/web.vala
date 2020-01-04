@@ -1541,30 +1541,25 @@ public class WebServer {
 	}
 
 	void handler_cashbox_detail_selection(Soup.Server server, Soup.Message msg, string path, GLib.HashTable? query, Soup.ClientContext client) {
-		string[] pathparts = path.split("/");
+		try {
+			string[] pathparts = path.split("/");
 
-		if(pathparts.length > 4) {
-			DateYear year = (DateYear) int.parse(pathparts[3]);
-			DateMonth month = (DateMonth) int.parse(pathparts[4]);
-			handler_cashbox_detail(server, msg, path, query, client, year, month);
-		} else {
-			try {
-				var session = new WebSession(server, msg, path, query, client);
-				var template = new WebTemplate("cashbox/selection.html", session);
-				template.replace("TITLE", shortname + " Shop System: Cashbox Detail");
-				template.menu_set_active("cashbox");
-				msg.set_response("text/html", Soup.MemoryUse.COPY, template.data);
-				msg.set_status(200);
-			} catch(TemplateError e) {
-				stderr.printf(e.message+"\n");
-				handler_404(server, msg, path, query, client);
-			} catch(DatabaseError e) {
-				handler_400(server, msg, path, query, client, e.message);
-			} catch(IOError e) {
-				handler_400(server, msg, path, query, client, e.message);
-			} catch(DBusError e) {
-				handler_400(server, msg, path, query, client, e.message);
+			if(pathparts.length > 4) {
+				DateYear year = (DateYear) int.parse(pathparts[3]);
+				DateMonth month = (DateMonth) int.parse(pathparts[4]);
+				handler_cashbox_detail(server, msg, path, query, client, year, month);
+			} else {
+				msg.set_redirect(302, "/cashbox");
 			}
+		} catch(TemplateError e) {
+			stderr.printf(e.message+"\n");
+			handler_404(server, msg, path, query, client);
+		} catch(DatabaseError e) {
+			handler_400(server, msg, path, query, client, e.message);
+		} catch(IOError e) {
+			handler_400(server, msg, path, query, client, e.message);
+		} catch(DBusError e) {
+			handler_400(server, msg, path, query, client, e.message);
 		}
 	}
 
