@@ -99,8 +99,16 @@ public class MailImplementation {
 	}
 #endif
 
-	public void add_recipient(MailContact contact, GMime.AddressType type) throws DBusError, IOError {
-		m.add_mailbox(type, contact.name, contact.email);
+	public void add_recipient(MailContact contact, RecipientType type) throws DBusError, IOError {
+		GMime.AddressType gmime_type;
+
+		switch(type) {
+			case RecipientType.BCC: gmime_type = GMime.AddressType.BCC; break;
+			case RecipientType.CC: gmime_type = GMime.AddressType.CC; break;
+			default: gmime_type = GMime.AddressType.TO; break;
+		}
+
+		m.add_mailbox(gmime_type, contact.name, contact.email);
 		recipients += contact.email;
 	}
 
