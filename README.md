@@ -44,6 +44,7 @@ with each other using DBus.
 
  * for barcode-list generation: `sudo apt install texlive-full ruby`
  * for MQTT and display-on-off `sudo apt install mosquitto-clients vbetool`
+ * for Space-API and display-on-off `sudo apt install wget jq vbetool`
  * for sound-output `sudo apt install alsaplayer-text alsa-utils`
 
 # Building
