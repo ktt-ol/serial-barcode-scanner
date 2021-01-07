@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: shopsystem\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-07-24 20:00+0200\n"
+"POT-Creation-Date: 2020-01-04 20:55+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -130,11 +130,11 @@ msgstr ""
 msgid "Could not register service: %s\n"
 msgstr ""
 
-#: web/web.vala:1465
+#: web/web.vala:1660
 msgid "Could not setup webserver!"
 msgstr ""
 
-#: web/main.vala:81
+#: web/main.vala:83
 #, c-format
 msgid "Could not start Webserver: %s\n"
 msgstr ""
@@ -146,8 +146,8 @@ msgstr ""
 
 #: audio/main.vala:42 curses-ui/main.vala:65 database/main.vala:31
 #: input-device/main.vala:33 pdf-invoice/main.vala:27 pdf-invoice/test.vala:58
-#: pgp/main.vala:31 serial-device/main.vala:31 web/main.vala:46
-#: web/main.vala:57 web/main.vala:68
+#: pgp/main.vala:31 serial-device/main.vala:31 web/main.vala:48
+#: web/main.vala:59 web/main.vala:70
 #, c-format
 msgid "DBus Error: %s\n"
 msgstr ""
@@ -179,7 +179,7 @@ msgstr ""
 
 #: backup/main.vala:41 invoice/main.vala:51 invoice/main.vala:58
 #: invoice/single.vala:51 invoice/single.vala:58 mail/main.vala:26
-#: web/web.vala:1123 web/web.vala:1141
+#: web/web.vala:1318 web/web.vala:1336
 #, c-format
 msgid "Error: %s\n"
 msgstr ""
@@ -240,7 +240,7 @@ msgstr ""
 #: input-device/main.vala:29 pdf-invoice/main.vala:29 pdf-invoice/test.vala:22
 #: pdf-invoice/test.vala:60 pgp/main.vala:33
 #: scanner-session/scannersession.vala:49 serial-device/main.vala:27
-#: web/main.vala:42 web/main.vala:55 web/main.vala:66
+#: web/main.vala:44 web/main.vala:57 web/main.vala:68
 #, c-format
 msgid "IO Error: %s\n"
 msgstr ""
@@ -269,7 +269,7 @@ msgstr ""
 msgid "Invoice PDF Error: %s\n"
 msgstr ""
 
-#: curses-ui/main.vala:67 web/main.vala:44 web/main.vala:53 web/main.vala:64
+#: curses-ui/main.vala:67 web/main.vala:46 web/main.vala:55 web/main.vala:66
 #, c-format
 msgid "KeyFile Error: %s\n"
 msgstr ""
@@ -321,11 +321,11 @@ msgstr ""
 msgid "No such mail"
 msgstr ""
 
-#: database/database.vala:612
+#: database/database.vala:613
 msgid "No such session available in database!"
 msgstr ""
 
-#: database/database.vala:711 database/database.vala:723
+#: database/database.vala:712 database/database.vala:724
 msgid "No such user available in database!"
 msgstr ""
 
@@ -345,7 +345,7 @@ msgstr ""
 msgid "Prices > 9999.99\342\202\254 are not supported!"
 msgstr ""
 
-#: database/database.vala:488
+#: database/database.vala:489
 #, c-format
 msgid "Remove purchase of %s"
 msgstr ""
@@ -373,12 +373,12 @@ msgstr ""
 msgid "Stopping Shop System"
 msgstr ""
 
-#: web/main.vala:72
+#: web/main.vala:74
 #, c-format
 msgid "TLS certificate: %s\n"
 msgstr ""
 
-#: web/main.vala:73
+#: web/main.vala:75
 #, c-format
 msgid "TLS private key: %s\n"
 msgstr ""
@@ -392,7 +392,7 @@ msgstr ""
 msgid "Usage: %s <temporary> [timestamp]\n"
 msgstr ""
 
-#: web/main.vala:71
+#: web/main.vala:73
 #, c-format
 msgid "Web Server Port: %u\n"
 msgstr ""
@@ -427,22 +427,22 @@ msgstr ""
 msgid "eSMTP: Start Session failed!"
 msgstr ""
 
-#: database/database.vala:371 database/database.vala:388
-#: database/database.vala:404 database/database.vala:420
-#: database/database.vala:436 database/database.vala:449
-#: database/database.vala:471 database/database.vala:493
-#: database/database.vala:501 database/database.vala:528
-#: database/database.vala:542 database/database.vala:557
-#: database/database.vala:584 database/database.vala:592
-#: database/database.vala:602 database/database.vala:639
-#: database/database.vala:676 database/database.vala:690
-#: database/database.vala:701 database/database.vala:738
-#: database/database.vala:766 database/database.vala:885
-#: database/database.vala:893 database/database.vala:914
-#: database/database.vala:920 database/database.vala:928
-#: database/database.vala:983 database/database.vala:1046
-#: database/database.vala:1097 database/database.vala:1147
-#: database/database.vala:1230
+#: database/database.vala:372 database/database.vala:389
+#: database/database.vala:405 database/database.vala:421
+#: database/database.vala:437 database/database.vala:450
+#: database/database.vala:472 database/database.vala:494
+#: database/database.vala:502 database/database.vala:529
+#: database/database.vala:543 database/database.vala:558
+#: database/database.vala:585 database/database.vala:593
+#: database/database.vala:603 database/database.vala:640
+#: database/database.vala:677 database/database.vala:691
+#: database/database.vala:702 database/database.vala:739
+#: database/database.vala:767 database/database.vala:896
+#: database/database.vala:904 database/database.vala:925
+#: database/database.vala:931 database/database.vala:939
+#: database/database.vala:994 database/database.vala:1057
+#: database/database.vala:1108 database/database.vala:1158
+#: database/database.vala:1241
 #, c-format
 msgid "internal error: %d"
 msgstr ""
@@ -459,23 +459,23 @@ msgstr ""
 msgid "short read!\n"
 msgstr ""
 
-#: database/database.vala:491
+#: database/database.vala:492
 msgid "undo not possible without purchases"
 msgstr ""
 
-#: database/database.vala:386 database/database.vala:402
-#: database/database.vala:418 database/database.vala:434
-#: database/database.vala:469
+#: database/database.vala:387 database/database.vala:403
+#: database/database.vala:419 database/database.vala:435
+#: database/database.vala:470
 #, c-format
 msgid "unknown product: %llu"
 msgstr ""
 
-#: database/database.vala:1228
+#: database/database.vala:1239
 #, c-format
 msgid "unknown rfid: %s"
 msgstr ""
 
-#: database/database.vala:637
+#: database/database.vala:638
 msgid "user not found"
 msgstr ""
 

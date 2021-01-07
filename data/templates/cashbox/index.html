@@ -27,4 +27,20 @@
 	<tr><td>Date &amp; Time</td><td>Name</td><td>Amount</td></tr>
 	{{{CASHBOX_HISTORY}}}
 </table>
-<a href="/cashbox/details">Details for a specific month</a>
+
+<legend>Details</legend>
+<div class="form-inline">
+	<div class="form-group">
+		<input id="yearDetail" class="form-control" type="number" placeholder="Year"/>
+		<input id="monthDetail" class="form-control" type="number" placeholder="Month"/>
+		<button class="form-control btn btn-default" onclick="showDetails()"></span>Show Details</button>
+	</div>
+</div>
+
+<script>
+function showDetails() {
+	var year = document.getElementById("yearDetail").value;
+	var month = document.getElementById("monthDetail").value;
+	location.href = location.pathname + "/details/" + year + "/" + month;
+}
+</script>
