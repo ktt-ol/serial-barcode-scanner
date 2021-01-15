@@ -38,7 +38,7 @@ with each other using DBus.
 
 # Building dependencies
 
- * sudo apt install build-essential
+ * `sudo apt install build-essential`
 
 # Runtime dependencies
 
