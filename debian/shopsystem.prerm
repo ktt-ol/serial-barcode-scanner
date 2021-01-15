@@ -11,6 +11,7 @@ if [ -f /usr/share/dbconfig-common/dpkg/prerm ]; then
 fi
 
 deluser shop audio || true
+deluser shop input || true
 
 #DEBHELPER#
 
