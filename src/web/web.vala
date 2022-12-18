@@ -732,6 +732,13 @@ public class WebServer {
 			/* ean */
 			t.replace("EAN", "%llu".printf(id));
 
+			/* aliases */
+			string aliases = "";
+			foreach(var a in db.get_product_aliases(id)) {
+				aliases += "<li>%llu</li>".printf(a);
+			}
+			t.replace("ALIASES", aliases);
+
 			/* name */
 			string name = db.get_product_name(id);
 			t.replace("NAME", name);

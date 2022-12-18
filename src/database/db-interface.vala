@@ -22,6 +22,7 @@ public interface Database : Object {
 	public abstract RestockEntry[] get_restocks(uint64 product, bool descending) throws DBusError, IOError;
 	public abstract bool buy(int32 user, uint64 article) throws DBusError, IOError, DatabaseError;
 	public abstract string get_product_name(uint64 article) throws DBusError, IOError, DatabaseError;
+	public abstract uint64[] get_product_aliases(uint64 article) throws DBusError, IOError, DatabaseError;
 	public abstract string get_product_category(uint64 article) throws DBusError, IOError, DatabaseError;
 	public abstract int get_product_amount(uint64 article) throws DBusError, IOError, DatabaseError;
 	public abstract bool get_product_deprecated(uint64 article) throws DBusError, IOError, DatabaseError;

@@ -141,6 +141,7 @@ public class DataBase : Object {
 		queries["alias_ean_add"]     = "INSERT OR IGNORE INTO ean_aliases (id, real_ean) VALUES (?, ?)";
 		queries["alias_ean_get"]     = "SELECT real_ean FROM ean_aliases WHERE id = ?";
 		queries["alias_ean_list"]    = "SELECT id, real_ean FROM ean_aliases ORDER BY id ASC";
+		queries["alias_rev_lookup"]  = "SELECT id FROM ean_aliases WHERE real_ean = ?";
 		queries["userid_rfid"]       = "SELECT user FROM rfid_users WHERE rfid = ?";
 		queries["rfid_userid"]       = "SELECT rfid FROM rfid_users WHERE user = ?";
 		queries["rfid_insert"]       = "INSERT OR REPLACE INTO rfid_users ('user','rfid') VALUES (?,?)";
@@ -387,6 +388,26 @@ public class DataBase : Object {
 				throw new DatabaseError.PRODUCT_NOT_FOUND(_("unknown product: %llu"), article);
 			default:
 				throw new DatabaseError.INTERNAL_ERROR(_("internal error: %d"), rc);
+		}
+	}
+
+	public uint64[] get_product_aliases(uint64 article) throws DBusError, IOError, DatabaseError {
+		statements["alias_rev_lookup"].reset();
+		statements["alias_rev_lookup"].bind_text(1, "%llu".printf(article));
+		uint64[] result = null;
+
+		while (true) {
+			int rc = statements["alias_rev_lookup"].step();
+
+			switch(rc) {
+				case Sqlite.ROW:
+					result += statements["alias_rev_lookup"].column_int64(0);
+					break;
+				case Sqlite.DONE:
+					return result;
+				default:
+					throw new DatabaseError.INTERNAL_ERROR(_("internal error: %d"), rc);
+			}
 		}
 	}
 
