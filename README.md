@@ -1,3 +1,12 @@
+# Deprecation Notice
+
+This project has been deprecated in favour of a reimplementation
+written in Rust. You can find the new system here:
+
+https://github.com/ktt-ol/ktt-shopsystem
+
+# Project Info
+
 <a href="https://travis-ci.org/ktt-ol/serial-barcode-scanner">
 	<img align="right" alt="Build Status" src="https://travis-ci.org/ktt-ol/serial-barcode-scanner.svg?branch=master" />
 </a>
